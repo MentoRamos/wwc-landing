@@ -8,16 +8,14 @@ import { ScrollReveal } from '@/components/animations/ScrollReveal';
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const MEDIA = [
-  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Portrait', type: 'photo' as const },
-  { src: '/photos/kaua-portrait-close.jpg', alt: 'Kauã Ramos — Close', type: 'photo' as const },
-  { src: '/photos/kaua-portrait-smile.jpg', alt: 'Kauã Ramos — Sorriso', type: 'photo' as const },
-  { src: '/photos/kaua-presenting.jpg', alt: 'Kauã Ramos — Apresentando', type: 'photo' as const },
-  { src: '/photos/kaua-pointing.jpg', alt: 'Kauã Ramos — Engajamento', type: 'photo' as const },
-  { src: '/photos/kaua-fullbody.jpg', alt: 'Kauã Ramos — Corpo inteiro', type: 'photo' as const },
-  { src: '/photos/kaua-hands.jpg', alt: 'Kauã Ramos — Mãos unidas', type: 'photo' as const },
-  { src: '/photos/kaua-laughing.jpg', alt: 'Kauã Ramos — Natural', type: 'photo' as const },
-  { src: '/photos/kaua-portrait-color.jpg', alt: 'Kauã Ramos — Perfil', type: 'photo' as const },
-  { src: '/photos/kaua-open.jpg', alt: 'Kauã Ramos — Open', type: 'photo' as const },
+  { src: '/photos/hero-keynote.jpg', alt: 'Keynote — CEO Quantificado', type: 'photo' as const },
+  { src: '/photos/presenting.jpg', alt: 'Apresentação no palco', type: 'photo' as const },
+  { src: '/photos/audience-view.jpg', alt: 'Plateia e palco', type: 'photo' as const },
+  { src: '/photos/networking.jpg', alt: 'Networking pós-palestra', type: 'photo' as const },
+  { src: '/photos/conversation.jpg', alt: 'Conversas entre convidados', type: 'photo' as const },
+  { src: '/photos/participants-grid.jpg', alt: 'Participantes do WWC', type: 'photo' as const },
+  { src: '/photos/badge-official.jpg', alt: 'Crachá oficial WWC', type: 'photo' as const },
+  { src: '/photos/flyer-event.jpg', alt: 'Flyer — Trackers & Performance', type: 'photo' as const },
   { src: '/video/wwc-highlight.mp4', alt: 'Vídeo highlight da 1ª edição', type: 'video' as const },
 ];
 

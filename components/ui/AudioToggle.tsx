@@ -63,14 +63,16 @@ export function AudioToggle() {
       {/* Hidden video — only the audio track matters.
           Rendered in DOM (not createElement) so the click event
           on the button counts as a user gesture for autoplay policy. */}
+      {/* Hidden via size+position, NOT display:none —
+          display:none prevents the browser from loading/playing the media */}
       <video
         ref={setVideoEl}
         src="/video/wwc-highlight.mp4"
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         muted={false}
-        className="hidden"
+        style={{ position: 'fixed', width: 1, height: 1, top: -9999, left: -9999, opacity: 0, pointerEvents: 'none' }}
         aria-hidden="true"
       />
 

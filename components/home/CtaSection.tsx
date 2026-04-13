@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
@@ -137,8 +138,14 @@ export function CtaSection() {
   }
 
   return (
-    <section id="interesse" className="py-24 md:py-36 border-t border-[var(--border)]">
-      <div className="container-lp">
+    <section id="interesse" className="py-24 md:py-36 border-t border-[var(--border)] relative overflow-hidden">
+      {/* Background — event networking, blended */}
+      <div className="absolute inset-0">
+        <Image src="/photos/networking.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.04]" quality={40} />
+        <div className="absolute inset-0 bg-[var(--bg)]/92" />
+      </div>
+
+      <div className="container-lp relative z-10">
         <div className="grid md:grid-cols-2 gap-12 md:gap-20">
           {/* Left — copy */}
           <div>

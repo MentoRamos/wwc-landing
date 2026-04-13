@@ -95,7 +95,7 @@ function ImageReveal({ src, alt }: { src: string; alt: string }) {
           alt={alt}
           fill
           sizes="(max-width: 768px) 100vw, 45vw"
-          className="object-cover"
+          className="object-cover object-top"
           quality={90}
         />
         {/* Blend right edge into card */}
@@ -165,7 +165,7 @@ export function SpeakerSection() {
         <ScrollReveal delay={0.15}>
           <div className="grid md:grid-cols-[1fr_1.4fr] gap-0 md:gap-0 mb-16 relative group">
             {/* Photo with clip-path reveal from left to right */}
-            <ImageReveal src="/photos/kaua-portrait-close.jpg" alt={featured.name} />
+            <ImageReveal src="/photos/kaua-portrait-seated.jpg" alt={featured.name} />
 
             {/* Info */}
             <div className="bg-[var(--bg-card)] border border-[var(--border)] border-l-0 p-8 md:p-12 flex flex-col justify-center relative">

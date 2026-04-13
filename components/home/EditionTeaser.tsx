@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
@@ -71,6 +72,12 @@ export function EditionTeaser() {
 
   return (
     <section ref={ref} className="py-32 md:py-44 relative overflow-hidden">
+      {/* Background — event photo, blended */}
+      <div className="absolute inset-0">
+        <Image src="/photos/hero-keynote.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.05]" quality={40} />
+        <div className="absolute inset-0 bg-[var(--bg)]/90" />
+      </div>
+
       {/* Animated gold glow */}
       <motion.div style={{ opacity: glowOpacity, scale: bgScale }} className="absolute inset-0">
         <div
