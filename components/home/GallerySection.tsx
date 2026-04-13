@@ -123,8 +123,8 @@ export function GallerySection() {
     <section id="galeria" ref={sectionRef} className="py-24 md:py-36 relative overflow-hidden">
       {/* Background — event keynote, blended */}
       <div className="absolute inset-0">
-        <Image src="/photos/audience-view.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.06]" quality={40} />
-        <div className="absolute inset-0 bg-[var(--bg)]/85" />
+        <Image src="/photos/audience-view.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.12]" quality={50} />
+        <div className="absolute inset-0 bg-[var(--bg)]/70" />
       </div>
 
       {/* Ambient gold glow */}
@@ -147,7 +147,7 @@ export function GallerySection() {
       `}</style>
 
       <div className="container-lp relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-16">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
           <div>
             <ScrollReveal>
               <p className="text-[10px] tracking-[0.3em] uppercase text-[var(--accent)] mb-6 flex items-center gap-3">
@@ -171,6 +171,39 @@ export function GallerySection() {
             </p>
           </ScrollReveal>
         </div>
+
+        {/* Context block — strategic content */}
+        <ScrollReveal delay={0.25}>
+          <div className="grid md:grid-cols-3 gap-6 md:gap-10 mb-14 pb-10 border-b border-[var(--border)]">
+            <div>
+              <p className="text-[var(--text-2)] text-sm md:text-[15px] leading-[1.85]">
+                Uma noite que reuniu os principais nomes de Goiânia em torno de uma premissa simples:
+                {' '}<strong className="text-[var(--text-1)] font-medium">quem mede, performa melhor.</strong>
+              </p>
+            </div>
+            <div className="flex flex-col gap-4">
+              {[
+                { value: '40', label: 'CEOs e executivos presentes' },
+                { value: '6', label: 'Blocos de conteúdo prático' },
+                { value: '92%', label: 'Querem voltar na 2ª edição' },
+              ].map((stat) => (
+                <div key={stat.label} className="flex items-baseline gap-3">
+                  <span className="font-display text-xl text-[var(--accent)] leading-none">{stat.value}</span>
+                  <span className="text-[var(--text-3)] text-xs leading-snug">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <blockquote className="text-[var(--text-3)] text-sm leading-[1.85] italic border-l-2 border-[var(--accent)]/30 pl-5">
+                &ldquo;Não foi palestra motivacional — foi dado real, protocolo aplicável
+                e gente que realmente faz acontecer na mesma sala.&rdquo;
+              </blockquote>
+              <p className="text-[var(--text-4)] text-[10px] tracking-[0.2em] uppercase mt-3">
+                — Participante, CEO setor imobiliário
+              </p>
+            </div>
+          </div>
+        </ScrollReveal>
 
         {/* Dynamic grid — asymmetric, editorial layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[180px] sm:auto-rows-[250px] lg:auto-rows-[280px] gap-3 md:gap-4">
