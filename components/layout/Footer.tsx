@@ -33,30 +33,6 @@ function BackToTop() {
   );
 }
 
-const SOCIAL_LINKS = [
-  {
-    label: 'Instagram',
-    href: 'https://instagram.com',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
-      </svg>
-    ),
-  },
-  {
-    label: 'LinkedIn',
-    href: 'https://linkedin.com',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-        <rect x="2" y="9" width="4" height="12" />
-        <circle cx="4" cy="4" r="2" />
-      </svg>
-    ),
-  },
-];
 
 // Animated gold separator line
 function GoldSeparator() {
@@ -132,22 +108,24 @@ export function Footer() {
           </motion.nav>
 
           {/* Social links */}
-          <motion.div variants={itemVariants} className="flex items-center gap-4">
-            {SOCIAL_LINKS.map((social) => (
-              <motion.a
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={social.label}
-                className="w-9 h-9 border border-[var(--border)] flex items-center justify-center text-[var(--text-4)] hover:text-[var(--accent)] hover:border-[var(--accent)]/40 transition-all duration-300"
-                whileHover={{ scale: 1.08, y: -1 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.22, ease }}
-              >
-                {social.icon}
-              </motion.a>
-            ))}
+          <motion.div variants={itemVariants} className="flex items-center gap-3">
+            <motion.a
+              href="https://instagram.com/wealthwellnes_connect"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="flex items-center gap-3 px-5 py-2.5 border border-[var(--border)] text-[var(--text-4)] hover:text-[var(--accent)] hover:border-[var(--accent)]/40 transition-all duration-300"
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.22 }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
+              </svg>
+              <span className="text-[10px] tracking-[0.15em] uppercase">@wealthwellnes_connect</span>
+            </motion.a>
           </motion.div>
 
           {/* Bottom row: copyright + back to top */}

@@ -250,7 +250,7 @@ export function HeroSection() {
             }}
             whileTap={{ scale: 0.975 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="btn-glow group inline-flex items-center justify-center gap-3 px-9 md:px-11 py-4 md:py-5 bg-[var(--accent)] text-[var(--bg)] text-[11px] font-semibold tracking-[0.22em] uppercase hover:bg-transparent hover:text-[var(--accent)] border border-[var(--accent)] transition-colors duration-500"
+            className="btn-glow group inline-flex items-center justify-center text-center gap-3 px-7 md:px-11 py-3.5 md:py-5 bg-[var(--accent)] text-[var(--bg)] text-[11px] font-semibold tracking-[0.22em] uppercase hover:bg-transparent hover:text-[var(--accent)] border border-[var(--accent)] transition-colors duration-500"
           >
             Quero participar
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-1.5">

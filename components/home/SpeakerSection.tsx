@@ -142,8 +142,8 @@ export function SpeakerSection() {
     <section id="palestrantes" className="py-28 md:py-40 relative overflow-hidden">
       {/* Background — hero keynote, ultra faded */}
       <div className="absolute inset-0">
-        <Image src="/photos/hero-keynote.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.04]" quality={40} />
-        <div className="absolute inset-0 bg-[var(--bg)]/90" />
+        <Image src="/photos/hero-keynote.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.07]" quality={40} />
+        <div className="absolute inset-0 bg-[var(--bg)]/80" />
       </div>
 
       <div className="container-lp relative z-10">

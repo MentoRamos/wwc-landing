@@ -74,8 +74,8 @@ export function EditionTeaser() {
     <section ref={ref} className="py-32 md:py-44 relative overflow-hidden">
       {/* Background — event photo, blended */}
       <div className="absolute inset-0">
-        <Image src="/photos/hero-keynote.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.05]" quality={40} />
-        <div className="absolute inset-0 bg-[var(--bg)]/90" />
+        <Image src="/photos/hero-keynote.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.08]" quality={40} />
+        <div className="absolute inset-0 bg-[var(--bg)]/80" />
       </div>
 
       {/* Animated gold glow */}

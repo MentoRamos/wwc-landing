@@ -205,7 +205,7 @@ export function Header() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   transition={{ duration: 0.3, delay: 0.32, ease }}
-                  className="btn-glow inline-flex items-center justify-center px-6 py-3.5 border border-[var(--accent)] text-[var(--accent)] text-[11px] tracking-[0.22em] uppercase hover:bg-[var(--accent)] hover:text-[var(--bg)] transition-all duration-500 mt-3"
+                  className="btn-glow inline-flex items-center justify-center min-h-[48px] px-6 py-3.5 border border-[var(--accent)] text-[var(--accent)] text-[11px] tracking-[0.22em] uppercase hover:bg-[var(--accent)] hover:text-[var(--bg)] transition-all duration-500 mt-3"
                 >
                   Quero participar
                 </motion.a>

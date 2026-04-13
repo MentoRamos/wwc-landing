@@ -127,11 +127,11 @@ export function IcpSection() {
           alt=""
           fill
           sizes="100vw"
-          className="object-cover opacity-[0.06]"
+          className="object-cover opacity-[0.09]"
           quality={50}
         />
       </motion.div>
-      <div className="absolute inset-0 bg-[var(--bg)]/85" />
+      <div className="absolute inset-0 bg-[var(--bg)]/75" />
       <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)] via-transparent to-[var(--bg)]" />
 
       <div className="container-lp relative z-10">

@@ -105,7 +105,7 @@ function TopicCard({ topic, index }: TopicCardProps) {
       }}
       whileHover={{ y: -8 }}
       transition={{ duration: 0.4, ease }}
-      className="group relative bg-[var(--bg-card)] border border-[var(--border)] p-7 md:p-9 h-full cursor-default overflow-hidden"
+      className="group relative bg-[var(--bg-card)] border border-[var(--border)] p-5 md:p-9 h-full cursor-default overflow-hidden"
     >
 
       {/* Static gold top-edge glow — base */}
@@ -188,8 +188,8 @@ export function TopicsSection() {
     <section id="programacao" className="py-28 md:py-40 relative overflow-hidden">
       {/* Background — presenting photo, faded */}
       <div className="absolute inset-0">
-        <Image src="/photos/presenting.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.04]" quality={40} />
-        <div className="absolute inset-0 bg-[var(--bg)]/95" />
+        <Image src="/photos/presenting.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.07]" quality={40} />
+        <div className="absolute inset-0 bg-[var(--bg)]/80" />
       </div>
 
       <div className="container-lp relative z-10">

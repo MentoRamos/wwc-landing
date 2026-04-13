@@ -6,13 +6,13 @@ import { useRef, useState } from 'react';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 
 const PHOTOS = [
-  { src: '/photos/hero-keynote.jpg', alt: 'Keynote — Wealth & Wellness Connect', span: 'col-span-2 row-span-2' },
-  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Host & Curador', span: 'col-span-1 row-span-2' },
+  { src: '/photos/hero-keynote.jpg', alt: 'Keynote — Wealth & Wellness Connect', span: 'col-span-1 row-span-1 sm:col-span-2 sm:row-span-2' },
+  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Host & Curador', span: 'col-span-1 row-span-1 sm:col-span-1 sm:row-span-2' },
   { src: '/photos/audience-view.jpg', alt: 'Plateia do evento', span: 'col-span-1 row-span-1' },
   { src: '/photos/kaua-portrait-close.jpg', alt: 'Kauã Ramos — Portrait', span: 'col-span-1 row-span-1' },
   { src: '/photos/networking.jpg', alt: 'Networking entre convidados', span: 'col-span-1 row-span-1' },
   { src: '/photos/kaua-laughing.jpg', alt: 'Momentos do evento', span: 'col-span-1 row-span-1' },
-  { src: '/photos/conversation.jpg', alt: 'Conversas pós-evento', span: 'col-span-2 row-span-1' },
+  { src: '/photos/conversation.jpg', alt: 'Conversas pós-evento', span: 'col-span-1 row-span-1 sm:col-span-2 sm:row-span-1' },
 ];
 
 function ParallaxImage({ src, alt, span, index }: { src: string; alt: string; span: string; index: number }) {
@@ -121,6 +121,12 @@ export function GallerySection() {
 
   return (
     <section id="galeria" ref={sectionRef} className="py-24 md:py-36 relative overflow-hidden">
+      {/* Background — event keynote, blended */}
+      <div className="absolute inset-0">
+        <Image src="/photos/audience-view.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.06]" quality={40} />
+        <div className="absolute inset-0 bg-[var(--bg)]/85" />
+      </div>
+
       {/* Ambient gold glow */}
       <motion.div
         style={{ opacity: bgOpacity }}
@@ -167,7 +173,7 @@ export function GallerySection() {
         </div>
 
         {/* Dynamic grid — asymmetric, editorial layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[200px] sm:auto-rows-[250px] lg:auto-rows-[280px] gap-3 md:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[180px] sm:auto-rows-[250px] lg:auto-rows-[280px] gap-3 md:gap-4">
           {PHOTOS.map((photo, i) => (
             <ScrollReveal key={photo.src} delay={i * 0.1}>
               <ParallaxImage

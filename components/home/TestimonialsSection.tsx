@@ -180,11 +180,11 @@ export function TestimonialsSection() {
           alt=""
           fill
           sizes="100vw"
-          className="object-cover opacity-[0.07]"
+          className="object-cover opacity-[0.09]"
           quality={40}
         />
       </motion.div>
-      <div className="absolute inset-0 bg-[var(--bg)]/85" />
+      <div className="absolute inset-0 bg-[var(--bg)]/75" />
       <div className="absolute inset-0 grain pointer-events-none" />
 
       {/* Gold ambient */}
