@@ -1,4 +1,5 @@
 import { HeroSection } from '@/components/home/HeroSection';
+import { EventCarousel } from '@/components/home/EventCarousel';
 import { AboutSection } from '@/components/home/AboutSection';
 import { NumbersStrip } from '@/components/home/NumbersStrip';
 import { TopicsSection } from '@/components/home/TopicsSection';
@@ -14,6 +15,7 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <EventCarousel />
       <AboutSection />
       <NumbersStrip />
       <TopicsSection />
