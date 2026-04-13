@@ -201,29 +201,45 @@ export function SpeakerSection() {
           whileInView="visible"
           viewport={{ once: true, margin: '-10%' }}
         >
-          {others.map((speaker) => (
+          {others.map((speaker, i) => {
+            const photos = ['/photos/speaker-palco-left.jpg', '/photos/speaker-palco-right.jpg'];
+            return (
             <motion.div key={speaker.name} variants={cardVariants}>
               <TiltCard className="h-full">
                 <motion.div
                   whileHover={{ borderColor: 'rgba(201, 168, 76, 0.22)' }}
                   transition={{ duration: 0.4, ease }}
-                  className="bg-[var(--bg-card)] border border-[var(--border)] p-7 md:p-9 flex flex-col cursor-default h-full"
+                  className="bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden flex flex-col cursor-default h-full"
                   style={{ transformStyle: 'preserve-3d' }}
                 >
-                  <GoldRingAvatar initial={speaker.name.charAt(0)} />
-                  <h3 className="font-display text-xl mb-1.5 text-[var(--text-1)]">
-                    {speaker.name}
-                  </h3>
-                  <div className="text-[10px] tracking-[0.25em] uppercase text-[var(--accent)] mb-4">
-                    {speaker.role}
+                  {/* Speaker photo from event */}
+                  <div className="relative h-48 md:h-56 w-full">
+                    <Image
+                      src={photos[i] || photos[0]}
+                      alt={`${speaker.name} no palco`}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                      className="object-cover"
+                      quality={85}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent" />
                   </div>
-                  <p className="text-[var(--text-3)] text-sm leading-[1.75]">
-                    {speaker.bio}
-                  </p>
+                  <div className="p-7 md:p-9 pt-4">
+                    <h3 className="font-display text-xl mb-1.5 text-[var(--text-1)]">
+                      {speaker.name}
+                    </h3>
+                    <div className="text-[10px] tracking-[0.25em] uppercase text-[var(--accent)] mb-4">
+                      {speaker.role}
+                    </div>
+                    <p className="text-[var(--text-3)] text-sm leading-[1.75]">
+                      {speaker.bio}
+                    </p>
+                  </div>
                 </motion.div>
               </TiltCard>
             </motion.div>
-          ))}
+          );
+          })}
         </motion.div>
       </div>
     </section>
