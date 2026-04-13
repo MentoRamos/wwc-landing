@@ -81,21 +81,15 @@ export const SPEAKERS = [
     photo: '/photos/presenting.jpg',
   },
   {
-    name: 'Victor Albuquerque',
-    role: 'Empresário Imobiliário',
-    bio: 'Fundador da Legado. Integra métricas de saúde na rotina de alta performance nos negócios.',
-    featured: false,
-  },
-  {
-    name: 'Leonardo',
-    role: 'Gestor de Patrimônio',
-    bio: 'Especialista em wealth management que une saúde financeira e física como pilares de performance.',
-    featured: false,
-  },
-  {
     name: 'Dr. Amir',
     role: 'Médico',
     bio: 'Médico com foco em medicina preventiva e longevidade baseada em dados e biomarcadores.',
+    featured: false,
+  },
+  {
+    name: 'Rogério',
+    role: 'IBBRA',
+    bio: 'Representante da IBBRA — Instituto Brasileiro de Biohacking e Reprogramação Avançada. Protocolos práticos baseados em evidência.',
     featured: false,
   },
 ] as const;

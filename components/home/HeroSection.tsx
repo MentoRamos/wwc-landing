@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { EVENT } from '@/lib/constants';
-import { Logo } from '@/components/ui/Logo';
+
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -172,17 +172,6 @@ export function HeroSection() {
         {/* Vignette */}
         <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 250px rgba(0,0,0,0.5)' }} />
         <div className="absolute inset-0 grain pointer-events-none" />
-      </motion.div>
-
-      {/* ── Logo — top right, desktop only ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.2, delay: 1.8, ease }}
-        className="absolute top-28 md:top-32 right-6 md:right-10 lg:right-16 z-10 hidden md:block"
-        layoutId="hero-logo"
-      >
-        <Logo size={120} />
       </motion.div>
 
       {/* ── Main content with spring parallax ── */}
