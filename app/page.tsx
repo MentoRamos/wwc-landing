@@ -15,11 +15,11 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <EventCarousel />
       <AboutSection />
       <NumbersStrip />
       <TopicsSection />
       <GallerySection />
+      <EventCarousel />
       <SpeakerSection />
       <IcpSection />
       <TestimonialsSection />
