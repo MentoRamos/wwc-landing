@@ -98,7 +98,7 @@ export function HeroSection() {
             muted
             loop
             playsInline
-            poster="/photos/presenting.jpg"
+            poster="/photos/kaua-portrait-seated.jpg"
             onCanPlayThrough={() => setVideoReady(true)}
             initial={{ opacity: 0 }}
             animate={{ opacity: videoReady ? 1 : 0 }}
@@ -110,8 +110,8 @@ export function HeroSection() {
           </motion.video>
         ) : (
           <Image
-            src="/photos/presenting.jpg"
-            alt="Kauã Ramos palestrando no Wealth & Wellness Connect"
+            src="/photos/kaua-portrait-seated.jpg"
+            alt="Kauã Ramos — Wealth & Wellness Connect"
             fill
             sizes="100vw"
             className="object-cover object-[center_30%]"
@@ -124,8 +124,8 @@ export function HeroSection() {
         {/* Fallback image when video exists but hasn't loaded yet */}
         {hasVideo && !videoReady && (
           <Image
-            src="/photos/presenting.jpg"
-            alt="Kauã Ramos palestrando no Wealth & Wellness Connect"
+            src="/photos/kaua-portrait-seated.jpg"
+            alt="Kauã Ramos — Wealth & Wellness Connect"
             fill
             sizes="100vw"
             className="object-cover object-[center_30%]"

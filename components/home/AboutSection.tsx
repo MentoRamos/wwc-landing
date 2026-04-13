@@ -176,8 +176,8 @@ export function AboutSection() {
               whileHover="hover"
             >
               <Image
-                src="/photos/badge-full.jpg"
-                alt="Crachá oficial Wealth & Wellness Connect"
+                src="/photos/kaua-portrait-color.jpg"
+                alt="Kauã Ramos — Host & Curador do WWC"
                 fill
                 sizes="(max-width: 768px) 100vw, 420px"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"

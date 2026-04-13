@@ -6,10 +6,12 @@ import { useRef, useState } from 'react';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 
 const PHOTOS = [
-  { src: '/photos/hero-keynote.jpg', alt: 'Kauã Ramos na keynote do WWC', span: 'col-span-2 row-span-2' },
-  { src: '/photos/audience-view.jpg', alt: 'Plateia assistindo à palestra', span: 'col-span-1 row-span-1' },
-  { src: '/photos/presenting.jpg', alt: 'Apresentação sobre CEO Quantificado', span: 'col-span-1 row-span-2' },
-  { src: '/photos/networking.jpg', alt: 'Networking entre os convidados', span: 'col-span-1 row-span-1' },
+  { src: '/photos/hero-keynote.jpg', alt: 'Keynote — Wealth & Wellness Connect', span: 'col-span-2 row-span-2' },
+  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Host & Curador', span: 'col-span-1 row-span-2' },
+  { src: '/photos/audience-view.jpg', alt: 'Plateia do evento', span: 'col-span-1 row-span-1' },
+  { src: '/photos/kaua-portrait-close.jpg', alt: 'Kauã Ramos — Portrait', span: 'col-span-1 row-span-1' },
+  { src: '/photos/networking.jpg', alt: 'Networking entre convidados', span: 'col-span-1 row-span-1' },
+  { src: '/photos/kaua-laughing.jpg', alt: 'Momentos do evento', span: 'col-span-1 row-span-1' },
   { src: '/photos/conversation.jpg', alt: 'Conversas pós-evento', span: 'col-span-2 row-span-1' },
 ];
 

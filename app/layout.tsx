@@ -69,7 +69,7 @@ export const metadata: Metadata = {
       'Evento exclusivo para 40 CEOs e executivos. Saúde baseada em dados, wearables e biohacking. 2ª edição em breve.',
     images: [
       {
-        url: '/photos/presenting.jpg',
+        url: '/photos/kaua-portrait-seated.jpg',
         width: 1200,
         height: 630,
         alt: 'Wealth & Wellness Connect — Keynote',
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
     title: 'Wealth & Wellness Connect — A Era do CEO Quantificado',
     description:
       'Evento exclusivo para 40 CEOs e executivos. Saúde baseada em dados, wearables e alta performance.',
-    images: ['/photos/presenting.jpg'],
+    images: ['/photos/kaua-portrait-seated.jpg'],
   },
   icons: { icon: '/icon.svg' },
 };

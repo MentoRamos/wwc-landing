@@ -188,7 +188,7 @@ export function TopicsSection() {
     <section id="programacao" className="py-28 md:py-40 relative overflow-hidden">
       {/* Background — presenting photo, faded */}
       <div className="absolute inset-0">
-        <Image src="/photos/presenting.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.03]" quality={40} />
+        <Image src="/photos/kaua-presenting.jpg" alt="" fill sizes="100vw" className="object-cover opacity-[0.03]" quality={40} />
         <div className="absolute inset-0 bg-[var(--bg)]/95" />
       </div>
 
