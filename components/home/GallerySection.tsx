@@ -147,63 +147,67 @@ export function GallerySection() {
       `}</style>
 
       <div className="container-lp relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+        {/* Header + context — full width, no empty space */}
+        <div className="grid md:grid-cols-2 gap-8 md:gap-16 mb-12">
+          {/* Left — title + narrative */}
           <div>
             <ScrollReveal>
-              <p className="text-[10px] tracking-[0.3em] uppercase text-[var(--accent)] mb-6 flex items-center gap-3">
+              <p className="text-[10px] tracking-[0.3em] uppercase text-[var(--accent)] mb-5 flex items-center gap-3">
                 <span className="inline-block w-10 h-px bg-[var(--accent)]" />
                 1ª Edição — Goiânia
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={0.1}>
-              <h2 className="font-display text-3xl md:text-5xl lg:text-6xl leading-[0.96] tracking-[-0.03em]">
+              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl leading-[0.96] tracking-[-0.03em] mb-8">
                 O que{' '}
                 <em className="italic text-[var(--accent)]">aconteceu.</em>
               </h2>
             </ScrollReveal>
-          </div>
 
-          <ScrollReveal delay={0.2}>
-            <p className="text-[var(--text-3)] text-sm max-w-sm leading-[1.8]">
-              13 de março de 2026 — Legado, Goiânia.
-              <br />40 convidados, 3h15 de conteúdo premium.
-            </p>
-          </ScrollReveal>
-        </div>
-
-        {/* Context block — strategic content */}
-        <ScrollReveal delay={0.25}>
-          <div className="grid md:grid-cols-3 gap-6 md:gap-10 mb-14 pb-10 border-b border-[var(--border)]">
-            <div>
-              <p className="text-[var(--text-2)] text-sm md:text-[15px] leading-[1.85]">
+            <ScrollReveal delay={0.2}>
+              <p className="text-[var(--text-2)] text-base md:text-lg leading-[1.85] mb-6">
                 Uma noite que reuniu os principais nomes de Goiânia em torno de uma premissa simples:
                 {' '}<strong className="text-[var(--text-1)] font-medium">quem mede, performa melhor.</strong>
               </p>
-            </div>
-            <div className="flex flex-col gap-4">
-              {[
-                { value: '40', label: 'CEOs e executivos presentes' },
-                { value: '6', label: 'Blocos de conteúdo prático' },
-                { value: '92%', label: 'Querem voltar na 2ª edição' },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-baseline gap-3">
-                  <span className="font-display text-xl text-[var(--accent)] leading-none">{stat.value}</span>
-                  <span className="text-[var(--text-3)] text-xs leading-snug">{stat.label}</span>
-                </div>
-              ))}
-            </div>
-            <div>
-              <blockquote className="text-[var(--text-3)] text-sm leading-[1.85] italic border-l-2 border-[var(--accent)]/30 pl-5">
+              <p className="text-[var(--text-3)] text-base leading-[1.85]">
+                13 de março de 2026 — Legado, Ricardo Paranhos.
+                3h15 de conteúdo prático, dados reais e conexões que transcenderam o evento.
+              </p>
+            </ScrollReveal>
+          </div>
+
+          {/* Right — stats + quote */}
+          <div className="flex flex-col justify-between gap-8">
+            <ScrollReveal delay={0.25}>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { value: '40', label: 'CEOs e executivos presentes' },
+                  { value: '6', label: 'Blocos de conteúdo prático' },
+                  { value: '92%', label: 'Querem voltar na 2ª edição' },
+                ].map((stat) => (
+                  <div key={stat.label} className="text-center md:text-left">
+                    <span className="font-display text-3xl md:text-4xl text-[var(--accent)] leading-none">{stat.value}</span>
+                    <p className="text-[var(--text-3)] text-xs mt-2 leading-snug">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.3}>
+              <blockquote className="text-[var(--text-2)] text-base md:text-lg leading-[1.75] italic border-l-2 border-[var(--accent)]/40 pl-6">
                 &ldquo;Não foi palestra motivacional — foi dado real, protocolo aplicável
                 e gente que realmente faz acontecer na mesma sala.&rdquo;
               </blockquote>
-              <p className="text-[var(--text-4)] text-[10px] tracking-[0.2em] uppercase mt-3">
+              <p className="text-[var(--text-4)] text-[10px] tracking-[0.2em] uppercase mt-4 pl-6">
                 — Participante, CEO setor imobiliário
               </p>
-            </div>
+            </ScrollReveal>
           </div>
-        </ScrollReveal>
+        </div>
+
+        {/* Divider */}
+        <div className="w-full h-px bg-[var(--border)] mb-10" />
 
         {/* Dynamic grid — asymmetric, editorial layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[180px] sm:auto-rows-[250px] lg:auto-rows-[280px] gap-3 md:gap-4">
