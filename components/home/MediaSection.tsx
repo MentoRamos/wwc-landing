@@ -13,9 +13,6 @@ const MEDIA = [
   { src: '/photos/audience-view.jpg', alt: 'Plateia e palco', type: 'photo' as const },
   { src: '/photos/networking.jpg', alt: 'Networking pós-palestra', type: 'photo' as const },
   { src: '/photos/conversation.jpg', alt: 'Conversas entre convidados', type: 'photo' as const },
-  { src: '/photos/participants-grid.jpg', alt: 'Participantes do WWC', type: 'photo' as const },
-  { src: '/photos/badge-official.jpg', alt: 'Crachá oficial WWC', type: 'photo' as const },
-  { src: '/photos/flyer-event.jpg', alt: 'Flyer — Trackers & Performance', type: 'photo' as const },
   { src: '/video/wwc-highlight.mp4', alt: 'Vídeo highlight da 1ª edição', type: 'video' as const },
 ];
 
