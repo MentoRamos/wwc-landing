@@ -202,7 +202,7 @@ export function SpeakerSection() {
           viewport={{ once: true, margin: '-10%' }}
         >
           {others.map((speaker, i) => {
-            const photos = ['/photos/speaker-dr-amir.jpg', '/photos/evento-palco-rogerio.jpg'];
+            const photos = ['/photos/speaker-dr-amir.jpg', '/photos/speaker-rogerio.jpg'];
             return (
             <motion.div key={speaker.name} variants={cardVariants}>
               <TiltCard>

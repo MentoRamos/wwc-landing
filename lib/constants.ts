@@ -81,13 +81,13 @@ export const SPEAKERS = [
     photo: '/photos/presenting.jpg',
   },
   {
-    name: 'Dr. Amir',
+    name: 'Dr. Amir Saado',
     role: 'Médico',
     bio: 'Médico com foco em medicina preventiva e longevidade baseada em dados e biomarcadores.',
     featured: false,
   },
   {
-    name: 'Rogério',
+    name: 'Rogério Damásio',
     role: 'IBBRA',
     bio: 'Representante da IBBRA — Instituto Brasileiro de Biohacking e Reprogramação Avançada. Protocolos práticos baseados em evidência.',
     featured: false,
