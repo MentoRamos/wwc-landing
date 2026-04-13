@@ -193,44 +193,45 @@ export function SpeakerSection() {
           </div>
         </ScrollReveal>
 
-        {/* Other speakers — cinematic stagger + 3D tilt */}
+        {/* Other speakers — stacked vertically below featured */}
         <motion.div
-          className="grid sm:grid-cols-2 gap-4 md:gap-5 max-w-2xl"
+          className="flex flex-col gap-4 md:gap-5"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-10%' }}
         >
           {others.map((speaker, i) => {
-            const photos = ['/photos/speaker-palco-left.jpg', '/photos/speaker-palco-right.jpg'];
+            const photos = ['/photos/speaker-dr-amir.jpg', '/photos/evento-palco-rogerio.jpg'];
             return (
             <motion.div key={speaker.name} variants={cardVariants}>
-              <TiltCard className="h-full">
+              <TiltCard>
                 <motion.div
                   whileHover={{ borderColor: 'rgba(201, 168, 76, 0.22)' }}
                   transition={{ duration: 0.4, ease }}
-                  className="bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden flex flex-col cursor-default h-full"
+                  className="bg-[var(--bg-card)] border border-[var(--border)] overflow-hidden cursor-default grid md:grid-cols-[280px_1fr]"
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   {/* Speaker photo from event */}
-                  <div className="relative h-48 md:h-56 w-full">
+                  <div className="relative h-56 md:h-auto w-full">
                     <Image
                       src={photos[i] || photos[0]}
                       alt={`${speaker.name} no palco`}
                       fill
-                      sizes="(max-width: 640px) 100vw, 50vw"
+                      sizes="(max-width: 768px) 100vw, 280px"
                       className="object-cover"
                       quality={85}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent" />
+                    <div className="absolute inset-0 md:hidden bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent" />
+                    <div className="hidden md:block absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-[var(--bg-card)] to-transparent" />
                   </div>
-                  <div className="p-7 md:p-9 pt-4">
-                    <h3 className="font-display text-xl mb-1.5 text-[var(--text-1)]">
-                      {speaker.name}
-                    </h3>
-                    <div className="text-[10px] tracking-[0.25em] uppercase text-[var(--accent)] mb-4">
+                  <div className="p-7 md:p-9 flex flex-col justify-center">
+                    <div className="text-[10px] tracking-[0.25em] uppercase text-[var(--accent)] mb-2">
                       {speaker.role}
                     </div>
+                    <h3 className="font-display text-2xl mb-3 text-[var(--text-1)]">
+                      {speaker.name}
+                    </h3>
                     <p className="text-[var(--text-3)] text-sm leading-[1.75]">
                       {speaker.bio}
                     </p>
