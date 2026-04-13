@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D4B85C"/>
+      <stop offset="35%" stop-color="#C9A84C"/>
+      <stop offset="65%" stop-color="#B8943E"/>
+      <stop offset="100%" stop-color="#A68A3A"/>
+    </linearGradient>
+    <linearGradient id="goldLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8D48A"/>
+      <stop offset="50%" stop-color="#D4B85C"/>
+      <stop offset="100%" stop-color="#C9A84C"/>
+    </linearGradient>
+    <linearGradient id="goldText" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E0C870"/>
+      <stop offset="50%" stop-color="#C9A84C"/>
+      <stop offset="100%" stop-color="#A68A3A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer ellipse ring -->
+  <ellipse cx="300" cy="145" rx="130" ry="75" stroke="url(#gold)" stroke-width="3.5" fill="none" transform="rotate(-8 300 145)"/>
+  <!-- Inner ellipse ring (thinner, offset) -->
+  <ellipse cx="300" cy="145" rx="118" ry="65" stroke="url(#goldLight)" stroke-width="1.8" fill="none" transform="rotate(-5 300 145)"/>
+  <!-- Decorative swirl tail left -->
+  <path d="M172 158 Q155 170 158 185 Q162 195 175 192" stroke="url(#goldLight)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <!-- Decorative swirl tail right -->
+  <path d="M428 132 Q445 120 442 105 Q438 95 425 98" stroke="url(#goldLight)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+  <!-- W letter -->
+  <path d="M238 100 L262 195 L288 130 L300 130 L312 130 L338 195 L362 100 L348 100 L330 175 L308 110 L300 110 L292 110 L270 175 L252 100 Z" fill="url(#goldText)"/>
+
+  <!-- WEALTH AND WELLNESS text -->
+  <text x="300" y="290" text-anchor="middle" font-family="'Playfair Display', 'Georgia', serif" font-size="32" font-weight="400" letter-spacing="8" fill="#D4C5A0">
+    <tspan>WEALTH</tspan>
+    <tspan dx="8" font-size="20" fill="#B8A880"> AND </tspan>
+    <tspan dx="8" font-size="32" fill="#D4C5A0">WELLNESS</tspan>
+  </text>
+
+  <!-- Decorative lines around CONNECT -->
+  <line x1="175" y1="325" x2="255" y2="325" stroke="#B8A880" stroke-width="0.8"/>
+  <line x1="345" y1="325" x2="425" y2="325" stroke="#B8A880" stroke-width="0.8"/>
+
+  <!-- CONNECT text -->
+  <text x="300" y="332" text-anchor="middle" font-family="'Playfair Display', 'Georgia', serif" font-size="22" font-weight="400" letter-spacing="12" fill="#B8A880">CONNECT</text>
+</svg>
