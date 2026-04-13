@@ -82,14 +82,14 @@ export const SPEAKERS = [
   },
   {
     name: 'Dr. Amir Saado',
-    role: 'Médico',
-    bio: 'Médico com foco em medicina preventiva e longevidade baseada em dados e biomarcadores.',
+    role: 'Médico Endocrinologista',
+    bio: 'Médico endocrinologista com foco em medicina preventiva e longevidade baseada em dados e biomarcadores.',
     featured: false,
   },
   {
     name: 'Rogério Damásio',
-    role: 'IBBRA',
-    bio: 'Representante da IBBRA — Instituto Brasileiro de Biohacking e Reprogramação Avançada. Protocolos práticos baseados em evidência.',
+    role: 'Planejador Financeiro',
+    bio: 'Planejador financeiro que une saúde financeira e performance pessoal. Estratégias de wealth management para quem busca longevidade nos negócios e na vida.',
     featured: false,
   },
 ] as const;
