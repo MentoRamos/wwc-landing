@@ -206,8 +206,39 @@ export function GallerySection() {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="w-full h-px bg-[var(--border)] mb-10" />
+        {/* ── Event Timeline ── */}
+        <ScrollReveal delay={0.2}>
+          <div className="mb-14">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-[var(--accent)] mb-8 flex items-center gap-3">
+              <span className="inline-block w-8 h-px bg-[var(--accent)]" />
+              Linha do tempo
+            </p>
+
+            <div className="relative">
+              {/* Horizontal line */}
+              <div className="absolute top-5 left-0 right-0 h-px bg-[var(--border)]" />
+
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                {[
+                  { time: '15:45', title: 'Welcome', desc: 'Recepção com coquetel premium e networking inicial' },
+                  { time: '16:15', title: 'Keynote', desc: 'Saúde Mensurável — por que dados importam mais que intuição' },
+                  { time: '17:00', title: 'Trackers', desc: 'Oura, Whoop, Garmin — análise honesta do que funciona' },
+                  { time: '17:45', title: 'Biohacking', desc: 'Ice bath, breathwork, sauna — protocolos baseados em evidência' },
+                  { time: '18:30', title: 'Painel', desc: 'Empresários que medem: dados reais, rotinas reais, resultados reais' },
+                  { time: '19:00', title: 'Encerramento', desc: 'Plano de ação personalizado e próximos passos' },
+                ].map((item, i) => (
+                  <div key={i} className="relative pt-8">
+                    {/* Dot on timeline */}
+                    <div className="absolute top-[14px] left-3 w-2.5 h-2.5 rounded-full bg-[var(--accent)] border-2 border-[var(--bg)]" />
+                    <span className="font-display text-lg text-[var(--accent)]">{item.time}</span>
+                    <h4 className="text-[var(--text-1)] text-sm font-medium mt-1 mb-1">{item.title}</h4>
+                    <p className="text-[var(--text-3)] text-xs leading-[1.7]">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
 
         {/* Dynamic grid — asymmetric, editorial layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[180px] sm:auto-rows-[250px] lg:auto-rows-[280px] gap-3 md:gap-4">
