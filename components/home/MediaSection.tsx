@@ -8,11 +8,17 @@ import { ScrollReveal } from '@/components/animations/ScrollReveal';
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const MEDIA = [
-  { src: '/photos/hero-keynote.jpg', alt: 'Keynote — CEO Quantificado', type: 'photo' as const },
-  { src: '/photos/presenting.jpg', alt: 'Apresentação no palco', type: 'photo' as const },
-  { src: '/photos/audience-view.jpg', alt: 'Plateia e palco', type: 'photo' as const },
-  { src: '/photos/networking.jpg', alt: 'Networking pós-palestra', type: 'photo' as const },
-  { src: '/photos/conversation.jpg', alt: 'Conversas entre convidados', type: 'photo' as const },
+  { src: '/photos/evento-plateia-legado.jpg', alt: 'Plateia — Espaço Legado', type: 'photo' as const },
+  { src: '/photos/evento-painel.jpg', alt: 'Painel de discussão', type: 'photo' as const },
+  { src: '/photos/evento-aplausos.jpg', alt: 'Aplausos da plateia', type: 'photo' as const },
+  { src: '/photos/evento-grupo.jpg', alt: 'Networking VIP', type: 'photo' as const },
+  { src: '/photos/evento-palco-tela.jpg', alt: 'Palco & apresentação', type: 'photo' as const },
+  { src: '/photos/evento-celular.jpg', alt: 'Registrando o momento', type: 'photo' as const },
+  { src: '/photos/evento-kaua-convidado.jpg', alt: 'Host & convidado', type: 'photo' as const },
+  { src: '/photos/evento-trio-gift.jpg', alt: 'Entrega de gifts', type: 'photo' as const },
+  { src: '/photos/evento-kaua-networking.jpg', alt: 'Networking pós-evento', type: 'photo' as const },
+  { src: '/photos/evento-trio.jpg', alt: 'Conexões que ficam', type: 'photo' as const },
+  { src: '/photos/evento-plateia-close.jpg', alt: 'Convidados atentos', type: 'photo' as const },
   { src: '/video/wwc-highlight.mp4', alt: 'Vídeo highlight da 1ª edição', type: 'video' as const },
 ];
 

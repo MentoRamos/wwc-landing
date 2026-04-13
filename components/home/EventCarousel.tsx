@@ -5,18 +5,21 @@ import { useRef, useEffect, useState } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 
 const SLIDES = [
+  { src: '/photos/evento-plateia-legado.jpg', alt: 'Plateia — Legado' },
+  { src: '/photos/evento-painel.jpg', alt: 'Painel de discussão' },
+  { src: '/photos/evento-aplausos.jpg', alt: 'Aplausos da plateia' },
+  { src: '/photos/evento-grupo.jpg', alt: 'Networking VIP' },
+  { src: '/photos/evento-palco-tela.jpg', alt: 'Palco & apresentação' },
+  { src: '/photos/evento-celular.jpg', alt: 'Registrando o momento' },
+  { src: '/photos/evento-kaua-convidado.jpg', alt: 'Host & convidado' },
+  { src: '/photos/evento-plateia-close.jpg', alt: 'Convidados atentos' },
+  { src: '/photos/evento-trio-gift.jpg', alt: 'Entrega de gifts' },
+  { src: '/photos/evento-kaua-networking.jpg', alt: 'Networking pós-evento' },
+  { src: '/photos/evento-trio.jpg', alt: 'Conexões que ficam' },
   { src: '/photos/hero-keynote.jpg', alt: 'Keynote WWC' },
   { src: '/photos/presenting.jpg', alt: 'Apresentação no palco' },
-  { src: '/photos/audience-view.jpg', alt: 'Plateia do evento' },
   { src: '/photos/networking.jpg', alt: 'Networking premium' },
   { src: '/photos/conversation.jpg', alt: 'Conversas estratégicas' },
-  { src: '/photos/participants-grid.jpg', alt: 'Participantes' },
-  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Host' },
-  { src: '/photos/kaua-presenting.jpg', alt: 'Host apresentando' },
-  { src: '/photos/kaua-laughing.jpg', alt: 'Momentos do evento' },
-  { src: '/photos/kaua-fullbody.jpg', alt: 'Bastidores' },
-  { src: '/photos/kaua-hands.jpg', alt: 'Conexões' },
-  { src: '/photos/kaua-pointing.jpg', alt: 'Engajamento' },
 ];
 
 export function EventCarousel() {
