@@ -7,51 +7,46 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 const TARGET_VOLUME = 0.35;
 
 export function AudioToggle() {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Ref callback — runs once when the hidden <video> mounts
-  const setVideoEl = useCallback((el: HTMLVideoElement | null) => {
+  const setAudioEl = useCallback((el: HTMLAudioElement | null) => {
     if (!el) return;
-    videoRef.current = el;
+    audioRef.current = el;
     el.volume = 0;
-    // Mark ready as soon as browser has enough data
-    el.addEventListener('canplay', () => setReady(true), { once: true });
+    el.addEventListener('canplaythrough', () => setReady(true), { once: true });
   }, []);
 
   const toggle = useCallback(() => {
-    const vid = videoRef.current;
-    if (!vid) return;
+    const audio = audioRef.current;
+    if (!audio) return;
 
     if (playing) {
-      // Fade out then pause
-      let vol = vid.volume;
+      let vol = audio.volume;
       const fade = setInterval(() => {
         vol = Math.max(0, vol - 0.025);
-        vid.volume = vol;
+        audio.volume = vol;
         if (vol <= 0) {
           clearInterval(fade);
-          vid.pause();
+          audio.pause();
           setPlaying(false);
         }
       }, 25);
     } else {
-      vid.volume = 0;
-      vid.play()
+      audio.volume = 0;
+      audio.play()
         .then(() => {
-          // Fade in
           let vol = 0;
           const fade = setInterval(() => {
             vol = Math.min(TARGET_VOLUME, vol + 0.02);
-            vid.volume = vol;
+            audio.volume = vol;
             if (vol >= TARGET_VOLUME) clearInterval(fade);
           }, 25);
           setPlaying(true);
         })
         .catch(() => {
-          // Browser blocked — tooltip hint
           setShowTooltip(true);
           setTimeout(() => setShowTooltip(false), 3000);
         });
@@ -60,20 +55,12 @@ export function AudioToggle() {
 
   return (
     <>
-      {/* Hidden video — only the audio track matters.
-          Rendered in DOM (not createElement) so the click event
-          on the button counts as a user gesture for autoplay policy. */}
-      {/* Hidden via size+position, NOT display:none —
-          display:none prevents the browser from loading/playing the media */}
-      <video
-        ref={setVideoEl}
-        src="/video/wwc-highlight.mp4"
+      {/* Audio element — MP3 extracted from event video */}
+      <audio
+        ref={setAudioEl}
+        src="/audio/wwc-audio.mp3"
         loop
-        playsInline
         preload="auto"
-        muted={false}
-        style={{ position: 'fixed', width: 1, height: 1, top: -9999, left: -9999, opacity: 0, pointerEvents: 'none' }}
-        aria-hidden="true"
       />
 
       <div className="fixed bottom-6 left-6 z-50 flex items-center gap-3">

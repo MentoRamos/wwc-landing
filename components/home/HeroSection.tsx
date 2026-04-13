@@ -214,7 +214,7 @@ export function HeroSection() {
         </div>
 
         {/* H1 line 2 — clip-path reveal, staggered */}
-        <div className="overflow-hidden mb-8 md:mb-14">
+        <div className="overflow-hidden mb-8 md:mb-14 pb-3">
           <motion.h1
             custom={0.88}
             initial="hidden"
