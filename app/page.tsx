@@ -18,8 +18,8 @@ export default function Home() {
       <AboutSection />
       <NumbersStrip />
       <TopicsSection />
-      <GallerySection />
       <EventCarousel />
+      <GallerySection />
       <SpeakerSection />
       <IcpSection />
       <TestimonialsSection />

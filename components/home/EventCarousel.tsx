@@ -6,13 +6,17 @@ import { motion, useAnimationControls } from 'framer-motion';
 
 const SLIDES = [
   { src: '/photos/hero-keynote.jpg', alt: 'Keynote WWC' },
-  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Host' },
+  { src: '/photos/presenting.jpg', alt: 'Apresentação no palco' },
   { src: '/photos/audience-view.jpg', alt: 'Plateia do evento' },
-  { src: '/photos/kaua-pointing.jpg', alt: 'Engajamento' },
-  { src: '/photos/networking.jpg', alt: 'Networking' },
+  { src: '/photos/networking.jpg', alt: 'Networking premium' },
+  { src: '/photos/conversation.jpg', alt: 'Conversas estratégicas' },
+  { src: '/photos/participants-grid.jpg', alt: 'Participantes' },
+  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Host' },
+  { src: '/photos/kaua-presenting.jpg', alt: 'Host apresentando' },
   { src: '/photos/kaua-laughing.jpg', alt: 'Momentos do evento' },
-  { src: '/photos/conversation.jpg', alt: 'Conversas pós-evento' },
-  { src: '/photos/presenting.jpg', alt: 'Apresentação' },
+  { src: '/photos/kaua-fullbody.jpg', alt: 'Bastidores' },
+  { src: '/photos/kaua-hands.jpg', alt: 'Conexões' },
+  { src: '/photos/kaua-pointing.jpg', alt: 'Engajamento' },
 ];
 
 export function EventCarousel() {
