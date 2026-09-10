@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prebuild": "node scripts/check-no-middleware.mjs"
+    "prebuild": "node scripts/check-no-middleware.mjs",
+    "test:rls": "vitest run --config vitest.rls.config.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
