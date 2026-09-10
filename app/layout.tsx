@@ -1,12 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { ScrollProgress } from '@/components/ui/ScrollProgress';
-import { WhatsAppFloat } from '@/components/ui/WhatsAppFloat';
-import { AudioToggle } from '@/components/ui/AudioToggle';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { resolveSiteUrl } from '@/lib/core/site.core';
 
 const display = Playfair_Display({
   subsets: ['latin'],
@@ -23,75 +18,28 @@ const body = Inter({
   weight: ['300', '400', '500', '600'],
 });
 
+const siteUrl = resolveSiteUrl({
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+});
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://wwc.ae.club'),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'Wealth & Wellness Connect — O evento premium de saúde e alta performance para CEOs',
-    template: '%s | WWC',
+    default: 'Wealth & Wellness',
+    template: '%s | Wealth & Wellness',
   },
   description:
-    'Evento exclusivo para 40 CEOs e executivos sobre saúde baseada em dados, wearables, biohacking e alta performance. 2ª edição em breve.',
-  keywords: [
-    'evento premium',
-    'CEO',
-    'saúde',
-    'wearables',
-    'biohacking',
-    'alta performance',
-    'Oura Ring',
-    'Whoop',
-    'networking executivo',
-    'longevidade',
-    'CEO quantificado',
-  ],
-  authors: [{ name: 'Wealth & Wellness Connect' }],
-  creator: 'UWell Health Club',
-  publisher: 'UWell Health Club',
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  alternates: { canonical: '/' },
-  openGraph: {
-    type: 'website',
-    locale: 'pt_BR',
-    url: '/',
-    siteName: 'Wealth & Wellness Connect',
-    title: 'Wealth & Wellness Connect — A Era do CEO Quantificado',
-    description:
-      'Evento exclusivo para 40 CEOs e executivos. Saúde baseada em dados, wearables e biohacking. 2ª edição em breve.',
-    images: [
-      {
-        url: '/photos/kaua-portrait-seated.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Wealth & Wellness Connect — Keynote',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Wealth & Wellness Connect — A Era do CEO Quantificado',
-    description:
-      'Evento exclusivo para 40 CEOs e executivos. Saúde baseada em dados, wearables e alta performance.',
-    images: ['/photos/kaua-portrait-seated.jpg'],
-  },
+    'Saúde mensurável e performance previsível. Acompanhamento, comunidade e o evento Wealth & Wellness Connect.',
+  authors: [{ name: 'Kauã Ramos' }],
+  creator: 'Kauã Ramos',
+  publisher: 'Wealth & Wellness',
   icons: { icon: '/icon.svg' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${display.variable} ${body.variable}`}>
-      <head>
-        <JsonLd />
-      </head>
       <body>
         <a
           href="#main"
@@ -99,12 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Pular para o conteúdo
         </a>
-        <ScrollProgress />
-        <Header />
         <main id="main">{children}</main>
-        <Footer />
-        <AudioToggle />
-        <WhatsAppFloat />
       </body>
     </html>
   );
