@@ -76,7 +76,8 @@ export const SPEAKERS = [
   {
     name: 'Kauã Ramos',
     role: 'Host & Curador',
-    bio: 'CEO da UWell Health Club. Especialista em performance baseada em dados, wearables e protocolos de saúde para executivos.',
+    bio: 'Criador do Wealth & Wellness Protocol. Especialista em performance baseada em dados, wearables e protocolos de saúde para executivos.',
+    affiliation: 'Wealth & Wellness',
     featured: true,
     photo: '/photos/presenting.jpg',
   },
