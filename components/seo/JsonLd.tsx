@@ -9,7 +9,7 @@ export function JsonLd() {
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     organizer: {
       '@type': 'Organization',
-      name: 'UWell Health Club',
+      name: 'Wealth & Wellness',
     },
     previousStartDate: '2026-03-13T15:45:00-03:00',
     offers: {
