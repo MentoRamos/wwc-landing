@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
+import { formatDate } from '@/lib/core/format.core';
 
 export const metadata: Metadata = {
   title: 'Início',
@@ -57,7 +58,7 @@ export default async function InicioPage() {
                 <p className="mt-1 text-sm text-[var(--text-2)]">{product.blurb}</p>
                 <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
                   {row.expires_at
-                    ? `Vale até ${new Date(row.expires_at).toLocaleDateString('pt-BR')}`
+                    ? `Vale até ${formatDate(row.expires_at)}`
                     : 'Acesso vitalício'}
                 </p>
               </li>

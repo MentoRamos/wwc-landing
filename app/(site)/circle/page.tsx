@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { currentUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { CIRCLE_PLANS, checkoutUrl, nextMeeting, priceLabel } from '@/lib/core/circle.core';
+import { formatDateTime } from '@/lib/core/format.core';
 
 export const metadata: Metadata = {
   title: 'W&W Circle',
@@ -43,16 +44,7 @@ export default async function CirclePage() {
 }
 
 function MeetingLine() {
-  const meeting = nextMeeting(new Date());
-  const when = meeting.toLocaleString('pt-BR', {
-    timeZone: 'America/Sao_Paulo',
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-  return <>{when}</>;
+  return <>{formatDateTime(nextMeeting(new Date()))}</>;
 }
 
 function MemberView() {

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { LEGAL, pending } from '@/lib/legal';
+import { formatDate } from '@/lib/core/format.core';
 
 export const metadata: Metadata = {
   title: 'Sua conta',
@@ -38,8 +39,7 @@ export default async function ContaPage() {
   ]);
 
   const contact = pending(LEGAL.contactEmail, 'e-mail de contato');
-  const fmt = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString('pt-BR') : null;
+  const fmt = (iso: string | null) => formatDate(iso) || null;
 
   return (
     <div className="max-w-2xl">

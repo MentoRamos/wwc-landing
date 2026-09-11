@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { LEGAL_IS_DRAFT, LEGAL_UPDATED } from '@/lib/legal';
+import { formatDate } from '@/lib/core/format.core';
 
 /**
  * The shared frame for the privacy policy and the terms.
@@ -23,7 +24,7 @@ export function LegalPage({
         <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">{eyebrow}</p>
         <h1 className="mt-4 text-4xl">{title}</h1>
         <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
-          Atualizada em {new Date(`${LEGAL_UPDATED}T12:00:00Z`).toLocaleDateString('pt-BR')}
+          Atualizada em {formatDate(`${LEGAL_UPDATED}T12:00:00Z`)}
         </p>
 
         {LEGAL_IS_DRAFT && (

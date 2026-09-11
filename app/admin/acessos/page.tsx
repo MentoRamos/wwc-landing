@@ -3,6 +3,7 @@ import { GrantForm } from '@/components/admin/GrantForm';
 import { RevokeButton } from '@/components/admin/RevokeButton';
 import { requireAdmin } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
+import { formatDate } from '@/lib/core/format.core';
 
 export const metadata: Metadata = {
   title: 'Acessos',
@@ -40,7 +41,7 @@ function standing(row: Row): { label: string; live: boolean } {
   return { label: 'Vitalício', live: true };
 }
 
-const fmt = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
+const fmt = (iso: string) => formatDate(iso);
 
 export default async function AcessosPage() {
   await requireAdmin();
