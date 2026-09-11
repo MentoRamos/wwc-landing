@@ -36,9 +36,26 @@ const segmentsOf = (file: string) => relative(APP, file).split('/').slice(0, -1)
 
 const files = walk(APP);
 
+/**
+ * A page refuses either by calling `notFound()` itself or by calling a guard
+ * that does it for them.
+ *
+ * The first version of this test matched only the literal, and that made it
+ * blind exactly where it mattered: `app/admin/acessos/page.tsx` refuses
+ * through `requireAdmin()`, so `app/admin/loading.tsx` sat above a refusing
+ * page and the suite stayed green. It was saved by the layout above the
+ * boundary also refusing — an accident, not a design, and one that would not
+ * repeat for the next route somebody adds.
+ *
+ * `requireUser()` counts too: it calls `redirect()`, and the Next docs are
+ * clear that a redirect after the headers are flushed becomes a client-side
+ * one under a 200. Same class of bug, same silence.
+ */
+const REFUSES = /\bnotFound\(\)|\brequireAdmin\(|\brequireUser\(/;
+
 const callsNotFound = files
   .filter((f) => /\/(page|layout)\.tsx$/.test(f))
-  .filter((f) => /\bnotFound\(\)/.test(readFileSync(f, 'utf8')));
+  .filter((f) => REFUSES.test(readFileSync(f, 'utf8')));
 
 const loadingDirs = files
   .filter((f) => f.endsWith('/loading.tsx'))
