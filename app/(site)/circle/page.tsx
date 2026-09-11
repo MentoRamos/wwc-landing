@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { SectionHeading } from '@/components/ui/SectionHeading';
+import { InterestForm } from '@/components/interest/InterestForm';
 import { currentUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { CIRCLE_PLANS, checkoutUrl, nextMeeting, priceLabel } from '@/lib/core/circle.core';
@@ -216,8 +217,8 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
                     : `${priceLabel(plan.priceCents)} a cada 3 meses`}
                 </p>
 
-                <div className="mt-auto pt-8">
-                  {plan.href ? (
+                {plan.href && (
+                  <div className="mt-auto pt-8">
                     <Button
                       href={plan.href}
                       variant={isFeatured ? 'primary' : 'secondary'}
@@ -226,14 +227,31 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
                     >
                       Assinar
                     </Button>
-                  ) : (
-                    <p className="meta">As assinaturas abrem em breve.</p>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
+
+        {/*
+          The page said "as assinaturas abrem em breve" in both plan cards and
+          then asked for nothing. That is the single most expensive sentence on
+          the platform: it is shown to somebody who has just read the whole
+          pitch and decided, and it sends them away with no way back.
+        */}
+        {!anyCheckout && (
+          <section className="mt-14 max-w-xl border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
+            <h2 className="section-title">As assinaturas abrem em breve.</h2>
+            <p className="prose-body mt-3">
+              Deixe o seu e-mail e você entra antes de a vaga virar anúncio. Os
+              primeiros assinantes definem o tema das primeiras quintas.
+            </p>
+            <div className="mt-8">
+              <InterestForm product="circle" source="circle-sem-checkout" />
+            </div>
+          </section>
+        )}
 
         {!user && (
           <p className="prose-body mt-8">

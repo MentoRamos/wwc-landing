@@ -32,6 +32,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           <div className="flex items-center gap-6">
             <Link
+              href="/admin/acessos"
+              className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+            >
+              Acessos
+            </Link>
+            <Link
+              href="/admin/interesse"
+              className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+            >
+              Interesse
+            </Link>
+            <Link
               href="/inicio"
               className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
             >
