@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardGrid } from '@/components/ui/Card';
+import { Meta } from '@/components/ui/Meta';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { buildShelf, formatDuration, type CatalogItem } from '@/lib/core/library.core';
@@ -25,6 +29,10 @@ const COLLECTION_LABEL: Record<string, string> = {
  * Showing the locked ones is deliberate: a member who sees six replays they
  * cannot open knows what the Circle is for. Showing them is a sales argument;
  * showing the video id would be a leak.
+ *
+ * What the sales argument was missing was the sentence that completes it. A
+ * locked card said "Bloqueado" and stopped there, so the one moment where
+ * somebody actively wants what the Circle sells had no way to buy it.
  */
 export default async function BibliotecaPage() {
   await requireUser();
@@ -48,77 +56,81 @@ export default async function BibliotecaPage() {
     (total, shelf) => total + shelf.items.filter((item) => !item.locked).length,
     0,
   );
+  const lockedCount = shelves.reduce(
+    (total, shelf) => total + shelf.items.filter((item) => item.locked).length,
+    0,
+  );
 
   return (
     <div className="flex flex-col gap-14">
-      <header className="max-w-2xl">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">Biblioteca</p>
-        <h1 className="mt-4 text-4xl">Tudo o que é seu, num lugar só.</h1>
-        {openCount === 0 && shelves.length > 0 && (
-          <p className="mt-6 text-sm leading-relaxed text-[var(--text-2)]">
-            Nada aqui está liberado para o seu acesso ainda. A prateleira fica à
-            vista de propósito — assim você sabe o que existe.
-          </p>
+      <SectionHeading
+        className="max-w-2xl"
+        eyebrow="Biblioteca"
+        title="Tudo o que é seu, num lugar só."
+        lede={
+          openCount === 0 && shelves.length > 0
+            ? 'Nada aqui está liberado para o seu acesso ainda. A prateleira fica à vista de propósito, assim você sabe o que existe.'
+            : undefined
+        }
+      >
+        {lockedCount > 0 && (
+          <div className="mt-8">
+            <Button href="/circle" variant="primary">
+              Liberar {lockedCount === 1 ? 'o item bloqueado' : `os ${lockedCount} bloqueados`}
+            </Button>
+          </div>
         )}
-      </header>
+      </SectionHeading>
 
       {shelves.length === 0 ? (
-        <p className="text-sm text-[var(--text-2)]">
+        <p className="prose-body">
           A biblioteca ainda está vazia. Os materiais entram aqui conforme saem.
         </p>
       ) : (
         shelves.map((shelf) => (
           <section key={shelf.collection}>
-            <h2 className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">
+            <h2 className="eyebrow">
               {COLLECTION_LABEL[shelf.collection] ?? shelf.collection}
             </h2>
 
-            <ul className="mt-6 grid gap-px overflow-hidden border border-[var(--border)] sm:grid-cols-2">
-              {shelf.items.map((item) => {
-                const duration = formatDuration(item.duration_seconds);
-
-                const body = (
-                  <>
+            <CardGrid className="mt-6" columns={2}>
+              {shelf.items.map((item) => (
+                <li key={item.id}>
+                  <Card
+                    href={item.locked ? '/circle' : `/biblioteca/${item.slug}`}
+                    locked={item.locked}
+                    className="flex flex-col"
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <p className="text-lg text-[var(--text-1)]">{item.title}</p>
-                      {item.locked && (
-                        <span
-                          aria-label="Bloqueado"
-                          className="shrink-0 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]"
-                        >
-                          Bloqueado
-                        </span>
-                      )}
+                      {item.locked && <Badge tone="muted">Bloqueado</Badge>}
                     </div>
-                    {item.description && (
-                      <p className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">
-                        {item.description}
+
+                    {item.description && <p className="prose-body mt-2">{item.description}</p>}
+
+                    <Meta
+                      className="mt-auto pt-4"
+                      parts={[
+                        item.kind === 'pdf' ? 'PDF' : 'Gravação',
+                        formatDuration(item.duration_seconds),
+                        item.season,
+                      ]}
+                    />
+
+                    {/* The locked card is the one place on the platform where
+                        somebody is looking straight at what they do not have.
+                        It is a link out, not a dead end. */}
+                    {item.locked && (
+                      <p className="mt-4">
+                        <span className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">
+                          Liberar com o Circle
+                        </span>
                       </p>
                     )}
-                    <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
-                      {item.kind === 'pdf' ? 'PDF' : 'Gravação'}
-                      {duration && ` · ${duration}`}
-                      {item.season && ` · ${item.season}`}
-                    </p>
-                  </>
-                );
-
-                return (
-                  <li key={item.id} className="bg-[var(--bg-card)]">
-                    {item.locked ? (
-                      <div className="h-full px-6 py-5 opacity-55">{body}</div>
-                    ) : (
-                      <Link
-                        href={`/biblioteca/${item.slug}`}
-                        className="block h-full px-6 py-5 transition hover:bg-[var(--bg-card-hover)]"
-                      >
-                        {body}
-                      </Link>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                  </Card>
+                </li>
+              ))}
+            </CardGrid>
           </section>
         ))
       )}

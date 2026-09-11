@@ -1,22 +1,53 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardGrid } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Meta } from '@/components/ui/Meta';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
-import { formatDate } from '@/lib/core/format.core';
+import { formatDate, formatDateTime } from '@/lib/core/format.core';
+import { nextMeeting } from '@/lib/core/circle.core';
 
 export const metadata: Metadata = {
   title: 'Início',
   robots: { index: false, follow: false },
 };
 
-const PRODUCTS: Record<string, { name: string; blurb: string }> = {
+/**
+ * Each product says where it goes.
+ *
+ * These cards used to be four inert boxes listing what somebody had bought,
+ * with no link on any of them — which is most of why the platform read as
+ * "difícil de procurar as coisas". A card that names a thing you own and
+ * cannot be opened is a worse version of no card at all.
+ */
+const PRODUCTS: Record<string, { name: string; blurb: string; href: string; cta: string }> = {
   protocol: {
     name: 'W&W Protocol',
-    blurb: 'Acompanhamento individual. A Library fica sua para sempre.',
+    blurb: 'Acompanhamento individual. A biblioteca fica sua para sempre.',
+    href: '/biblioteca',
+    cta: 'Abrir a biblioteca',
   },
-  circle: { name: 'W&W Circle', blurb: 'Encontro ao vivo toda quinta e a Library liberada.' },
-  connect: { name: 'W&W Connect', blurb: 'Convidado do evento.' },
-  face_a_face: { name: 'Face a Face', blurb: 'Sessão avulsa.' },
+  circle: {
+    name: 'W&W Circle',
+    blurb: 'Encontro ao vivo toda quinta e a biblioteca liberada.',
+    href: '/circle',
+    cta: 'Ver o próximo encontro',
+  },
+  connect: {
+    name: 'W&W Connect',
+    blurb: 'Convidado do evento.',
+    href: '/connect',
+    cta: 'Ver o evento',
+  },
+  face_a_face: {
+    name: 'Face a Face',
+    blurb: 'Sessão avulsa.',
+    href: '/conta',
+    cta: 'Ver na sua conta',
+  },
 };
 
 function firstName(full: string | null | undefined, email: string | undefined): string {
@@ -43,43 +74,82 @@ export default async function InicioPage() {
     (row) => row.expires_at === null || new Date(row.expires_at) > new Date(),
   );
 
-  return (
-    <div className="max-w-2xl">
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">Sua área</p>
-      <h1 className="mt-4 text-4xl">Olá, {firstName(profile?.full_name, user.email)}.</h1>
+  const hasCircle = live.some((row) => row.product === 'circle');
 
-      {live.length > 0 ? (
-        <ul className="mt-10 flex flex-col gap-px overflow-hidden border border-[var(--border)]">
-          {live.map((row) => {
-            const product = PRODUCTS[row.product] ?? { name: row.product, blurb: '' };
-            return (
-              <li key={row.product} className="bg-[var(--bg-card)] px-6 py-5">
-                <p className="text-lg text-[var(--text-1)]">{product.name}</p>
-                <p className="mt-1 text-sm text-[var(--text-2)]">{product.blurb}</p>
-                <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
-                  {row.expires_at
-                    ? `Vale até ${formatDate(row.expires_at)}`
-                    : 'Acesso vitalício'}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className="mt-10 border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
-          <p className="text-[var(--text-1)]">Ainda não há nenhum acesso ligado a este e-mail.</p>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--text-2)]">
-            Se você já comprou, provavelmente pagou com outro endereço.{' '}
-            <Link
-              href="/sem-acesso"
-              className="text-[var(--accent)] underline underline-offset-4"
-            >
-              Me avise aqui
-            </Link>{' '}
-            que eu ligo os dois.
+  return (
+    <div className="flex flex-col gap-14">
+      <SectionHeading
+        className="max-w-2xl"
+        eyebrow="Sua área"
+        title={`Olá, ${firstName(profile?.full_name, user.email)}.`}
+      />
+
+      {/* The one thing with a date on it goes first, because it is the only
+          thing on this page that expires. */}
+      {hasCircle && (
+        <section className="max-w-2xl border border-[var(--border)] bg-[var(--bg-card)] px-6 py-7">
+          <p className="eyebrow">Próximo encontro</p>
+          <p className="mt-3 text-lg text-[var(--text-1)]">
+            {formatDateTime(nextMeeting(new Date()))}
           </p>
-        </div>
+          <div className="mt-6">
+            <Button href="/circle" variant="primary">
+              Entrar na sala
+            </Button>
+          </div>
+        </section>
       )}
+
+      <section className="max-w-2xl">
+        <h2 className="section-title">Seus acessos</h2>
+
+        {live.length > 0 ? (
+          <CardGrid className="mt-6">
+            {live.map((row) => {
+              const product = PRODUCTS[row.product] ?? {
+                name: row.product,
+                blurb: '',
+                href: '/conta',
+                cta: 'Ver na sua conta',
+              };
+
+              return (
+                <li key={row.product}>
+                  <Card href={product.href}>
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-lg text-[var(--text-1)]">{product.name}</p>
+                      <Badge tone={row.expires_at ? 'neutral' : 'accent'}>
+                        {row.expires_at ? `Até ${formatDate(row.expires_at)}` : 'Vitalício'}
+                      </Badge>
+                    </div>
+                    {product.blurb && <p className="prose-body mt-2">{product.blurb}</p>}
+                    <Meta className="mt-4" parts={[product.cta]} />
+                  </Card>
+                </li>
+              );
+            })}
+          </CardGrid>
+        ) : (
+          <div className="mt-6">
+            <EmptyState
+              title="Ainda não há nenhum acesso ligado a este e-mail."
+              action={
+                <>
+                  <Button href="/circle" variant="primary">
+                    Conhecer o Circle
+                  </Button>
+                  <Button href="/sem-acesso" variant="quiet">
+                    Comprei e não apareceu
+                  </Button>
+                </>
+              }
+            >
+              Se você já comprou, provavelmente pagou com outro endereço. Me avise que eu
+              ligo os dois.
+            </EmptyState>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
