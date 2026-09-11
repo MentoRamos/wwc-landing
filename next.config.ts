@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   turbopack: { root: fileURLToPath(new URL('.', import.meta.url)) },
   images: {
     formats: ['image/avif', 'image/webp'],
+    // The logo asks for 95; Next 16 refuses any quality not listed here.
+    qualities: [75, 95],
     deviceSizes: [360, 414, 640, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
   },
 };
