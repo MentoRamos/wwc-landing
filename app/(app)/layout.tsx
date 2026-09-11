@@ -24,6 +24,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </span>
           </Link>
 
+          <nav className="ml-auto flex items-center gap-6">
+            <Link
+              href="/biblioteca"
+              className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+            >
+              Biblioteca
+            </Link>
+          </nav>
+
           <form action="/api/auth/sair" method="post" className="flex items-center gap-4">
             <span className="hidden text-xs text-[var(--text-4)] sm:inline">{user.email}</span>
             <button
