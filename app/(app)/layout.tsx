@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
+import { AppNav } from '@/components/layout/AppNav';
+import { AppTabBar } from '@/components/layout/AppTabBar';
 import { requireUser } from '@/lib/auth/guard';
 
 /**
@@ -17,33 +19,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur">
         <div className="container-lp flex h-16 items-center justify-between gap-4">
-          <Link href="/inicio" className="flex items-center gap-3">
-            <Logo size={32} />
-            <span className="text-sm tracking-[0.14em] uppercase text-[var(--text-2)]">
+          <Link href="/inicio" className="flex shrink-0 items-center gap-3">
+            <Logo size={40} />
+            <span className="hidden text-xs uppercase tracking-[0.18em] text-[var(--text-2)] sm:inline">
               Wealth &amp; Wellness
             </span>
           </Link>
 
-          <nav className="ml-auto flex items-center gap-6">
-            <Link
-              href="/biblioteca"
-              className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
-            >
-              Biblioteca
-            </Link>
-            <Link
-              href="/conta"
-              className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
-            >
-              Conta
-            </Link>
-          </nav>
+          <AppNav />
 
           <form action="/api/auth/sair" method="post" className="flex items-center gap-4">
-            <span className="hidden text-xs text-[var(--text-4)] sm:inline">{user.email}</span>
+            <span className="hidden text-xs text-[var(--text-4)] lg:inline">{user.email}</span>
             <button
               type="submit"
-              className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+              className="min-h-11 px-2 text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
             >
               Sair
             </button>
@@ -51,7 +40,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
 
-      <div className="container-lp py-12">{children}</div>
+      {/* The bottom bar is fixed, so the last card on the page needs room to
+          clear it — otherwise it is permanently half-covered on a phone. */}
+      <div className="container-lp pb-28 pt-12 md:pb-16">{children}</div>
+
+      <AppTabBar />
     </div>
   );
 }

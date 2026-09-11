@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur">
         <div className="container-lp flex h-16 items-center justify-between gap-4">
           <Link href="/admin/acessos" className="flex items-center gap-3">
-            <Logo size={32} />
+            <Logo size={40} />
             <span className="text-sm uppercase tracking-[0.14em] text-[var(--text-2)]">
               Admin
             </span>
