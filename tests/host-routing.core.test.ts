@@ -21,6 +21,14 @@ describe('routeOnEventHost', () => {
     expect(routeOnEventHost('/api/lead')).toEqual({ kind: 'pass' });
   });
 
+  it('lets the legal pages through, because that domain collects leads', () => {
+    // A form that takes a name and an email needs its privacy policy reachable
+    // on the same domain. Blocking them would leave /api/lead posting into a
+    // site with no policy a person can actually open.
+    expect(routeOnEventHost('/privacidade')).toEqual({ kind: 'pass' });
+    expect(routeOnEventHost('/termos')).toEqual({ kind: 'pass' });
+  });
+
   it('hides the platform', () => {
     for (const path of [
       '/circle',

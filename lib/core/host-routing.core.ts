@@ -12,8 +12,14 @@ export type ProxyDecision =
   | { kind: 'rewrite'; to: string }
   | { kind: 'block' };
 
-/** Exact paths and path prefixes the event domain answers. */
-const ALLOWED = ['/connect', '/api/lead'];
+/**
+ * Exact paths and path prefixes the event domain answers.
+ *
+ * The legal pages are here because that domain posts to /api/lead: a form that
+ * takes a name and an email needs its privacy policy reachable on the same
+ * host, not only on kauaramos.com.
+ */
+const ALLOWED = ['/connect', '/api/lead', '/privacidade', '/termos'];
 
 export function routeOnEventHost(pathname: string): ProxyDecision {
   if (pathname === '/') return { kind: 'rewrite', to: '/connect' };
