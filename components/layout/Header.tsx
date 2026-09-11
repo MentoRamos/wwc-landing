@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence, useMotionValue, useMotionValueEvent, useSpring } from 'framer-motion';
 import { Logo } from '@/components/ui/Logo';
 
@@ -85,7 +86,7 @@ export function Header() {
           the proxy, so it reads as "back to the top" there. One href, correct
           on both hosts.
         */}
-        <a href="/" className="flex items-center gap-3 group">
+        <Link href="/" className="flex items-center gap-3 group">
           <motion.div
             style={{ scale: logoScale, opacity: logoOpacity }}
             whileHover={{ scale: logoScale * 1.05 }}
@@ -93,7 +94,7 @@ export function Header() {
           >
             <Logo size={scrolled ? 100 : 120} />
           </motion.div>
-        </a>
+        </Link>
 
         <nav className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link, i) => {
