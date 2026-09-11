@@ -269,3 +269,105 @@ describe('a member who is not an admin', () => {
     expect(data ?? []).toHaveLength(0);
   });
 });
+
+/**
+ * The audit trail exists so that "who gave this person access, and when" has
+ * an answer months later. Its failure mode is silence: nobody reads it until
+ * something is disputed, and by then the missing rows cannot be recovered.
+ *
+ * So the trigger is asserted from both sides — that it records, and that a
+ * member cannot write into it to muddy the record.
+ */
+describe('the audit trail behind every access change', () => {
+  it('records a grant, naming the product and the address', async () => {
+    const email = uniqueEmail('auditada');
+
+    const { data: granted, error } = await admin
+      .from('entitlements')
+      .insert({
+        email_norm: email.toLowerCase(),
+        email_raw: email,
+        product: 'circle',
+        source: 'manual',
+      })
+      .select('id')
+      .single();
+    expect(error).toBeNull();
+
+    const { data: rows } = await admin
+      .from('admin_audit')
+      .select('action, target_email, payload')
+      .eq('target_email', email.toLowerCase());
+
+    expect(rows).toHaveLength(1);
+    expect(rows![0].action).toBe('entitlement.insert');
+    expect(rows![0].payload.product).toBe('circle');
+    expect(rows![0].payload.entitlement_id).toBe(granted!.id);
+  });
+
+  it('records a revoke, keeping what the value was before', async () => {
+    const email = uniqueEmail('revogada');
+    const { data: granted } = await admin
+      .from('entitlements')
+      .insert({
+        email_norm: email.toLowerCase(),
+        email_raw: email,
+        product: 'protocol',
+        source: 'manual',
+      })
+      .select('id')
+      .single();
+
+    await admin.from('entitlements').update({ status: 'revoked' }).eq('id', granted!.id);
+
+    const { data: rows } = await admin
+      .from('admin_audit')
+      .select('action, payload')
+      .eq('target_email', email.toLowerCase())
+      .order('created_at', { ascending: true });
+
+    expect(rows).toHaveLength(2);
+    expect(rows![1].action).toBe('entitlement.update');
+    expect(rows![1].payload.status).toBe('revoked');
+    expect(rows![1].payload.was.status).toBe('active');
+  });
+
+  it('survives the row being deleted, which is when it matters most', async () => {
+    const email = uniqueEmail('apagada');
+    const { data: granted } = await admin
+      .from('entitlements')
+      .insert({
+        email_norm: email.toLowerCase(),
+        email_raw: email,
+        product: 'connect',
+        source: 'manual',
+      })
+      .select('id')
+      .single();
+
+    await admin.from('entitlements').delete().eq('id', granted!.id);
+
+    const { data: rows } = await admin
+      .from('admin_audit')
+      .select('action')
+      .eq('target_email', email.toLowerCase())
+      .order('created_at', { ascending: true });
+
+    expect(rows!.map((r) => r.action)).toEqual(['entitlement.insert', 'entitlement.delete']);
+  });
+
+  it('cannot be read by a member who is not an admin', async () => {
+    const client = await signedInAs(uniqueEmail('curiosa'));
+    const { data } = await client.from('admin_audit').select('*');
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('cannot be forged by a member inventing a grant that never happened', async () => {
+    const client = await signedInAs(uniqueEmail('forjadora'));
+    const { error } = await client.from('admin_audit').insert({
+      action: 'entitlement.insert',
+      target_email: 'quem-quer-que-seja@exemplo.com',
+    });
+    expect(error).not.toBeNull();
+  });
+});
