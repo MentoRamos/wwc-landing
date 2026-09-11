@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import {
   serviceClient,
   anonClient,
@@ -74,6 +74,15 @@ async function grant(
 
 beforeAll(async () => {
   await seedContent();
+}, 60_000);
+
+/**
+ * A suite that leaves its fixtures behind is a suite that will fail
+ * mysteriously one day — and in the meantime its rows show up on the real
+ * Library shelf during local development.
+ */
+afterAll(async () => {
+  await admin.from('content_items').delete().in('id', [guideId, replayId]);
 }, 60_000);
 
 describe('a stranger with the public key', () => {

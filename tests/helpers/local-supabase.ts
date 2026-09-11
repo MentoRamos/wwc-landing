@@ -23,10 +23,22 @@ export function localConfig() {
     return match[1];
   };
 
+  // Prefer the new-format keys. The CLI still exports the legacy JWT pair, but
+  // once a project is on the new format those no longer verify — and the
+  // hosted project is on the new format too, so testing with `sb_publishable_`
+  // is the shape production actually uses.
+  const readEither = (preferred: string, legacy: string) => {
+    const match =
+      raw.match(new RegExp(`^${preferred}="?([^"\\n]+)"?$`, 'm')) ??
+      raw.match(new RegExp(`^${legacy}="?([^"\\n]+)"?$`, 'm'));
+    if (!match) throw new Error(`supabase status did not report ${preferred} nor ${legacy}`);
+    return match[1];
+  };
+
   cached = {
     url: read('API_URL'),
-    anonKey: read('ANON_KEY'),
-    serviceKey: read('SERVICE_ROLE_KEY'),
+    anonKey: readEither('PUBLISHABLE_KEY', 'ANON_KEY'),
+    serviceKey: readEither('SECRET_KEY', 'SERVICE_ROLE_KEY'),
   };
   return cached;
 }
