@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { serverClient } from '@/lib/supabase/server';
 import { DEFAULT_AFTER_LOGIN, safeNextPath } from '@/lib/core/auth.core';
@@ -33,4 +33,26 @@ export async function requireUser(): Promise<User> {
   const next = from === DEFAULT_AFTER_LOGIN ? '' : `?next=${encodeURIComponent(from)}`;
 
   redirect(`/entrar${next}`);
+}
+
+/**
+ * Signed in *and* an admin, or the route does not exist.
+ *
+ * `notFound()` rather than a redirect on purpose: a redirect to the sign-in
+ * page tells a stranger that `/admin/acessos` is a real address worth coming
+ * back to. A 404 tells them nothing.
+ *
+ * This asks the database, through `is_admin()`, rather than reading a claim
+ * off the session. `admin_users` is unreadable by everyone and membership is
+ * only ever observed through that function — so there is no value in the
+ * cookie for anyone to forge.
+ */
+export async function requireAdmin(): Promise<User> {
+  const user = await requireUser();
+  const supabase = await serverClient();
+
+  const { data, error } = await supabase.rpc('is_admin');
+  if (error || data !== true) notFound();
+
+  return user;
 }
