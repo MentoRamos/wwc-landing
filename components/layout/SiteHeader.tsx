@@ -14,8 +14,8 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
     <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur">
       <div className="container-lp flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex shrink-0 items-center gap-3">
-          <Logo size={40} />
-          <span className="hidden text-xs uppercase tracking-[0.18em] text-[var(--text-2)] sm:inline">
+          <Logo size={44} />
+          <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.14em] text-[var(--text-2)] sm:text-xs sm:tracking-[0.18em]">
             Wealth &amp; Wellness
           </span>
         </Link>

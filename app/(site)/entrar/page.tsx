@@ -35,7 +35,6 @@ export default async function EntrarPage({
     <div className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <SectionHeading
-          eyebrow={'Wealth & Wellness'}
           title="Entrar"
           lede="Use o mesmo e-mail da sua compra. Se o acesso ainda não aparecer, entre assim mesmo: eu libero pelo seu endereço."
         />

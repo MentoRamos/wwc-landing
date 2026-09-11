@@ -22,7 +22,6 @@ export default function SemAcessoPage() {
     <div className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md">
         <SectionHeading
-          eyebrow={'Wealth & Wellness'}
           title="Esse conteúdo não está no seu acesso."
           lede="Duas razões cobrem quase todos os casos: a compra foi feita com um e-mail diferente do que você usou para entrar, ou a assinatura chegou ao fim do período pago."
         />
