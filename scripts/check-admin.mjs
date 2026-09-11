@@ -11,13 +11,13 @@
  * ANON_KEY / SERVICE_ROLE_KEY:
  *
  *   eval "$(supabase status -o env | sed 's/^/export /')"
- *   APP=http://127.0.0.1:3001 node scripts/check-admin.mjs
+ *   APP_URL=http://127.0.0.1:3001 node scripts/check-admin.mjs
  */
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 
-const APP = process.env.APP ?? 'http://127.0.0.1:3001';
-const SUPA = process.env.API_URL ?? 'http://127.0.0.1:54321';
+const APP = process.env.APP_URL ?? 'http://127.0.0.1:3001';
+const SUPA = process.env.SUPABASE_URL ?? process.env.API_URL ?? 'http://127.0.0.1:54321';
 const ANON = process.env.ANON_KEY;
 const SERVICE = process.env.SERVICE_ROLE_KEY;
 
