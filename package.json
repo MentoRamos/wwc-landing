@@ -14,7 +14,8 @@
     "check:auth": "node scripts/check-auth.mjs",
     "check:admin": "node scripts/check-admin.mjs",
     "check:library": "node scripts/check-library.mjs",
-    "seed:library": "node scripts/seed-library.mjs"
+    "seed:library": "node scripts/seed-library.mjs",
+    "check:kiwify": "node scripts/check-kiwify.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
