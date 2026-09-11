@@ -145,6 +145,52 @@ check(
   String(expired.status),
 );
 
+/**
+ * 10. /conta shows a person their own data and nobody else's.
+ *
+ * The page reads `entitlements` with no `where user_id = ...` anywhere in it,
+ * because RLS is the filter. That is the design — but it means a loosened
+ * policy would leak one member's purchases onto another's account page with
+ * no error and no sign, so it is asserted with two real accounts.
+ */
+const otherEmail = `fase2.outra.${Date.now()}@teste.local`;
+const { data: other } = await admin.auth.admin.createUser({
+  email: otherEmail,
+  password,
+  email_confirm: true,
+  user_metadata: { full_name: 'Outra Pessoa' },
+});
+await admin.from('entitlements').insert({
+  email_norm: otherEmail,
+  email_raw: otherEmail,
+  product: 'protocol',
+  source: 'manual',
+  user_id: other.user.id,
+});
+
+const jar3 = new Map();
+const supabase3 = createServerClient(SUPA, ANON, {
+  cookies: {
+    getAll: () => [...jar3.entries()].map(([name, value]) => ({ name, value })),
+    setAll: (toSet) => toSet.forEach(({ name, value }) => jar3.set(name, value)),
+  },
+});
+await supabase3.auth.signInWithPassword({ email, password });
+const cookie3 = [...jar3.entries()].map(([n, v]) => `${n}=${encodeURIComponent(v)}`).join('; ');
+
+const conta = await fetch(`${APP}/conta`, { headers: { cookie: cookie3 }, redirect: 'manual' });
+const contaHtml = await conta.text();
+check('/conta opens for a signed-in member', conta.status === 200, String(conta.status));
+check('it shows their own address', contaHtml.includes(email));
+check('it does not show another member address', !contaHtml.includes(otherEmail));
+check('it does not show another member product', !contaHtml.includes('W&amp;W Protocol'));
+
+const contaOut = await fetch(`${APP}/conta`, { redirect: 'manual' });
+check('signed out, /conta sends you to the door', contaOut.status === 307, String(contaOut.status));
+
+await admin.from('entitlements').delete().eq('user_id', other.user.id);
+await admin.auth.admin.deleteUser(other.user.id);
+
 await admin.auth.admin.deleteUser(userId);
 
 let failed = 0;

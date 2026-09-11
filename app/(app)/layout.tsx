@@ -31,6 +31,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             >
               Biblioteca
             </Link>
+            <Link
+              href="/conta"
+              className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+            >
+              Conta
+            </Link>
           </nav>
 
           <form action="/api/auth/sair" method="post" className="flex items-center gap-4">
