@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routeOnEventHost } from '@/lib/core/host-routing.core';
+import { robotsFor, routeOnEventHost } from '@/lib/core/host-routing.core';
 
 /**
  * The event gets its own domain pointed at this same app. That domain is a
@@ -59,5 +59,44 @@ describe('routeOnEventHost', () => {
 
   it('blocks any route nobody has written yet', () => {
     expect(routeOnEventHost('/qualquer-coisa-nova')).toEqual({ kind: 'block' });
+  });
+});
+
+describe('robotsFor', () => {
+  it('shuts a preview deployment out entirely', () => {
+    // Every push gets its own hostname; indexed, they become a dozen copies of
+    // the same site competing with the real one.
+    expect(robotsFor('wwc-landing-git-abc123.vercel.app')).toEqual({
+      allow: [],
+      disallow: ['/'],
+      indexable: false,
+    });
+  });
+
+  it('treats an unknown host as a preview rather than guessing', () => {
+    expect(robotsFor(null).indexable).toBe(false);
+    expect(robotsFor('').indexable).toBe(false);
+    expect(robotsFor('   ').indexable).toBe(false);
+  });
+
+  it('lets a real host be indexed', () => {
+    expect(robotsFor('kauaramos.com').indexable).toBe(true);
+    expect(robotsFor('KauaRamos.com:443').indexable).toBe(true);
+  });
+
+  it('keeps the member area out of search results on every real host', () => {
+    for (const host of ['kauaramos.com', 'wwconnect.com.br']) {
+      const plan = robotsFor(host);
+      for (const path of ['/admin', '/inicio', '/biblioteca', '/entrar', '/api/']) {
+        expect(plan.disallow).toContain(path);
+      }
+    }
+  });
+
+  it('does not disallow the pages that sell', () => {
+    const plan = robotsFor('kauaramos.com');
+    for (const path of ['/connect', '/circle', '/privacidade', '/termos']) {
+      expect(plan.disallow).not.toContain(path);
+    }
   });
 });
