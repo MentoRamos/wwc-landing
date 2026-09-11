@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { LEGAL_IS_DRAFT, LEGAL_UPDATED } from '@/lib/legal';
 import { formatDate } from '@/lib/core/format.core';
 
@@ -21,11 +20,9 @@ export function LegalPage({
   return (
     <div className="px-6 py-16">
       <article className="mx-auto w-full max-w-2xl">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">{eyebrow}</p>
-        <h1 className="mt-4 text-4xl">{title}</h1>
-        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
-          Atualizada em {formatDate(`${LEGAL_UPDATED}T12:00:00Z`)}
-        </p>
+        <p className="eyebrow">{eyebrow}</p>
+        <h1 className="page-title mt-4">{title}</h1>
+        <p className="meta mt-4">Atualizada em {formatDate(`${LEGAL_UPDATED}T12:00:00Z`)}</p>
 
         {LEGAL_IS_DRAFT && (
           <div
@@ -40,14 +37,6 @@ export function LegalPage({
 
         <div className="legal mt-12 flex flex-col gap-10">{children}</div>
 
-        <footer className="mt-16 border-t border-[var(--border)] pt-8">
-          <Link
-            href="/"
-            className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
-          >
-            Voltar ao início
-          </Link>
-        </footer>
       </article>
     </div>
   );

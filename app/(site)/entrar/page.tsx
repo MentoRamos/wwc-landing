@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { GoogleButton } from '@/components/auth/GoogleButton';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { currentUser } from '@/lib/auth/guard';
 import { safeNextPath } from '@/lib/core/auth.core';
 
@@ -31,16 +32,13 @@ export default async function EntrarPage({
   const error = params.erro ? ERRORS[params.erro] : undefined;
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-16">
+    <div className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">
-          Wealth &amp; Wellness
-        </p>
-        <h1 className="mt-4 text-4xl">Entrar</h1>
-        <p className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">
-          Use o mesmo e-mail da sua compra. Se o acesso ainda não aparecer, entre
-          assim mesmo — eu libero pelo seu e-mail.
-        </p>
+        <SectionHeading
+          eyebrow={'Wealth & Wellness'}
+          title="Entrar"
+          lede="Use o mesmo e-mail da sua compra. Se o acesso ainda não aparecer, entre assim mesmo: eu libero pelo seu endereço."
+        />
 
         {error && (
           <p
@@ -56,11 +54,18 @@ export default async function EntrarPage({
         </div>
 
         <p className="mt-8 text-xs leading-relaxed text-[var(--text-4)]">
-          Entrando, você concorda com os termos de uso e com a política de
-          privacidade.{' '}
-          <Link href="/connect" className="underline underline-offset-4 hover:text-[var(--text-2)]">
-            Voltar ao site
+          Entrando, você concorda com os{' '}
+          <Link href="/termos" className="underline underline-offset-4 hover:text-[var(--text-2)]">
+            termos de uso
+          </Link>{' '}
+          e com a{' '}
+          <Link
+            href="/privacidade"
+            className="underline underline-offset-4 hover:text-[var(--text-2)]"
+          >
+            política de privacidade
           </Link>
+          .
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { WHATSAPP_NUMBER } from '@/lib/constants';
 
 export const metadata: Metadata = {
@@ -18,39 +19,25 @@ export const metadata: Metadata = {
  */
 export default function SemAcessoPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-16">
+    <div className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">
-          Wealth &amp; Wellness
-        </p>
-        <h1 className="mt-4 text-4xl">Esse conteúdo não está no seu acesso.</h1>
+        <SectionHeading
+          eyebrow={'Wealth & Wellness'}
+          title="Esse conteúdo não está no seu acesso."
+          lede="Duas razões cobrem quase todos os casos: a compra foi feita com um e-mail diferente do que você usou para entrar, ou a assinatura chegou ao fim do período pago."
+        />
 
-        <p className="mt-6 text-sm leading-relaxed text-[var(--text-2)]">
-          Duas razões cobrem quase todos os casos: a compra foi feita com um
-          e-mail diferente do que você usou para entrar, ou a assinatura chegou
-          ao fim do período pago.
-        </p>
-
-        <p className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">
-          Me manda uma mensagem com o e-mail da compra que eu ligo os dois na
-          hora.
+        <p className="prose-body mt-4">
+          Me manda uma mensagem com o e-mail da compra que eu ligo os dois na hora.
         </p>
 
         <div className="mt-8 flex flex-col gap-3">
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-glow border border-[var(--border-hover)] bg-[var(--bg-card)] px-6 py-4 text-center text-sm font-medium transition hover:bg-[var(--bg-card-hover)]"
-          >
+          <Button href={`https://wa.me/${WHATSAPP_NUMBER}`} variant="primary" size="lg">
             Falar no WhatsApp
-          </a>
-          <Link
-            href="/inicio"
-            className="px-6 py-3 text-center text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]"
-          >
+          </Button>
+          <Button href="/inicio" variant="quiet" size="lg">
             Voltar para a minha área
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

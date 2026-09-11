@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Logo } from '@/components/ui/Logo';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardGrid } from '@/components/ui/Card';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { currentUser } from '@/lib/auth/guard';
 
 export const metadata: Metadata = {
@@ -24,6 +26,14 @@ export const metadata: Metadata = {
  */
 const DOORS = [
   {
+    href: '/circle',
+    eyebrow: 'Assinatura',
+    title: 'W&W Circle',
+    blurb:
+      'Encontro ao vivo toda quinta, 20h, e a biblioteca liberada enquanto a assinatura estiver em dia.',
+    open: true,
+  },
+  {
     href: '/connect',
     eyebrow: 'Evento',
     title: 'W&W Connect',
@@ -32,11 +42,11 @@ const DOORS = [
     open: true,
   },
   {
-    href: '/circle',
-    eyebrow: 'Assinatura',
-    title: 'W&W Circle',
+    href: '/biblioteca',
+    eyebrow: 'Conteúdo',
+    title: 'Biblioteca',
     blurb:
-      'Encontro ao vivo toda quinta, 20h, e a biblioteca liberada enquanto a assinatura estiver em dia.',
+      'Os guias e as gravações, liberados conforme o seu acesso. Entre para ver o que é seu.',
     open: true,
   },
   {
@@ -47,88 +57,41 @@ const DOORS = [
       'Acompanhamento individual por ciclo, com leitura dos seus próprios dados. Vagas por indicação.',
     open: false,
   },
-  {
-    href: '/biblioteca',
-    eyebrow: 'Conteúdo',
-    title: 'Biblioteca',
-    blurb:
-      'Os guias e as gravações, liberados conforme o seu acesso. Entre para ver o que é seu.',
-    open: true,
-  },
 ];
 
 export default async function HubPage() {
   const user = await currentUser();
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 py-16">
-      <header className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Logo size={36} />
-          <span className="text-sm uppercase tracking-[0.14em] text-[var(--text-2)]">
-            Wealth &amp; Wellness
-          </span>
-        </div>
+    <div className="container-lp w-full py-16 md:py-24">
+      <SectionHeading
+        className="max-w-3xl"
+        eyebrow={'Wealth & Wellness'}
+        title="Saúde baseada em dados, para quem decide o dia inteiro e esquece de decidir sobre si."
+        lede="Quatro portas para a mesma coisa: entender o que o seu corpo já está medindo e saber o que fazer com isso na semana que vem."
+      />
 
-        <Link
-          href={user ? '/inicio' : '/entrar'}
-          className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
-        >
-          {user ? 'Sua área' : 'Entrar'}
-        </Link>
-      </header>
+      {/* The one gold gesture on this page. */}
+      <div className="mt-10">
+        <Button href={user ? '/inicio' : '/circle'} variant="primary" size="lg">
+          {user ? 'Ir para a sua área' : 'Conhecer o Circle'}
+        </Button>
+      </div>
 
-      <h1 className="mt-16 max-w-xl text-4xl leading-tight">
-        Saúde baseada em dados, para quem decide o dia inteiro e esquece de decidir sobre si.
-      </h1>
-
-      <ul className="mt-14 flex flex-col gap-px overflow-hidden border border-[var(--border)]">
-        {DOORS.map((door) => {
-          const body = (
-            <>
-              <p className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
-                {door.eyebrow}
-              </p>
-              <p className="mt-2 text-lg text-[var(--text-1)]">
-                {door.title}
-                {!door.open && (
-                  <span className="ml-3 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
-                    em breve
-                  </span>
-                )}
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{door.blurb}</p>
-            </>
-          );
-
-          return (
-            <li key={door.title} className="bg-[var(--bg-card)]">
-              {door.href ? (
-                <Link
-                  href={door.href}
-                  className="block px-6 py-6 transition hover:bg-[var(--bg-card-hover)]"
-                >
-                  {body}
-                </Link>
-              ) : (
-                <div className="px-6 py-6 opacity-60">{body}</div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-
-      <footer className="mt-16 flex flex-wrap gap-x-6 gap-y-2 border-t border-[var(--border)] pt-8 text-xs text-[var(--text-4)]">
-        <Link href="/privacidade" className="transition hover:text-[var(--text-2)]">
-          Privacidade
-        </Link>
-        <Link href="/termos" className="transition hover:text-[var(--text-2)]">
-          Termos
-        </Link>
-        <Link href="/sem-acesso" className="transition hover:text-[var(--text-2)]">
-          Comprou e não apareceu?
-        </Link>
-      </footer>
+      <CardGrid className="mt-16 max-w-4xl" columns={2}>
+        {DOORS.map((door) => (
+          <li key={door.title}>
+            <Card href={door.href} locked={!door.open}>
+              <p className="eyebrow">{door.eyebrow}</p>
+              <div className="mt-2 flex items-start justify-between gap-3">
+                <p className="section-title">{door.title}</p>
+                {!door.open && <Badge tone="muted">Em breve</Badge>}
+              </div>
+              <p className="prose-body mt-3">{door.blurb}</p>
+            </Card>
+          </li>
+        ))}
+      </CardGrid>
     </div>
   );
 }
