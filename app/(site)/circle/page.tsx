@@ -1,14 +1,53 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { currentUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { CIRCLE_PLANS, checkoutUrl, nextMeeting, priceLabel } from '@/lib/core/circle.core';
 import { formatDateTime } from '@/lib/core/format.core';
 
+/**
+ * This page is shared as a link, and almost always on WhatsApp.
+ *
+ * Without an `openGraph` block the preview card falls back to whatever the
+ * root layout says, which is the platform's generic description — so the one
+ * page that sells arrived in the conversation looking like a link to a site
+ * rather than to an offer. The image is the same 3:2 studio frame used on the
+ * page itself, so the card and the page agree.
+ */
+const OG_IMAGE = '/photos/kaua-presenting.jpg';
+const DESCRIPTION =
+  'Assinatura mensal do Wealth & Wellness: encontro ao vivo toda quinta, 20h, e a biblioteca liberada enquanto a assinatura estiver em dia.';
+
 export const metadata: Metadata = {
   title: 'W&W Circle',
-  description:
-    'Assinatura mensal do Wealth & Wellness: encontro ao vivo toda quinta e a biblioteca liberada.',
+  description: DESCRIPTION,
+  alternates: { canonical: '/circle' },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: '/circle',
+    siteName: 'Wealth & Wellness',
+    title: 'W&W Circle — uma hora por semana sobre os seus próprios dados',
+    description: DESCRIPTION,
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: 'Kauã Ramos conduzindo um encontro do Wealth & Wellness',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'W&W Circle — uma hora por semana sobre os seus próprios dados',
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 /**
@@ -43,49 +82,39 @@ export default async function CirclePage() {
   return hasCircle ? <MemberView /> : <SalesView user={user} />;
 }
 
-function MeetingLine() {
-  return <>{formatDateTime(nextMeeting(new Date()))}</>;
-}
-
 function MemberView() {
   const meetUrl = process.env.CIRCLE_MEET_URL?.trim();
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-6 py-16">
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">W&amp;W Circle</p>
-      <h1 className="mt-4 text-4xl">Seu próximo encontro</h1>
+    <div className="container-lp w-full py-16">
+      <div className="max-w-2xl">
+        <SectionHeading eyebrow="W&W Circle" title="Seu próximo encontro" />
 
-      <div className="mt-10 border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
-        <p className="text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
-          Ao vivo, no Google Meet
-        </p>
-        <p className="mt-3 text-lg text-[var(--text-1)]">
-          <MeetingLine />
-        </p>
-
-        {meetUrl ? (
-          <a
-            href={meetUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-glow mt-6 inline-block border border-[var(--border-hover)] px-6 py-4 text-sm font-medium transition hover:bg-[var(--bg-card-hover)]"
-          >
-            Entrar na sala
-          </a>
-        ) : (
-          <p className="mt-6 text-sm leading-relaxed text-[var(--text-2)]">
-            O link da sala chega por e-mail na véspera.
+        <div className="mt-10 border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
+          <p className="eyebrow">Ao vivo, no Google Meet</p>
+          <p className="mt-3 text-lg text-[var(--text-1)]">
+            {formatDateTime(nextMeeting(new Date()))}
           </p>
-        )}
-      </div>
 
-      <p className="mt-8 text-sm leading-relaxed text-[var(--text-2)]">
-        As gravações e os materiais ficam na{' '}
-        <Link href="/biblioteca" className="text-[var(--accent)] underline underline-offset-4">
-          biblioteca
-        </Link>
-        , liberados enquanto a assinatura estiver em dia.
-      </p>
+          {meetUrl ? (
+            <div className="mt-6">
+              <Button href={meetUrl} variant="primary" size="lg">
+                Entrar na sala
+              </Button>
+            </div>
+          ) : (
+            <p className="prose-body mt-6">O link da sala chega por e-mail na véspera.</p>
+          )}
+        </div>
+
+        <p className="prose-body mt-8">
+          As gravações e os materiais ficam na{' '}
+          <Link href="/biblioteca" className="text-[var(--accent)] underline underline-offset-4">
+            biblioteca
+          </Link>
+          , liberados enquanto a assinatura estiver em dia.
+        </p>
+      </div>
     </div>
   );
 }
@@ -100,83 +129,158 @@ const INCLUDED = [
 function SalesView({ user }: { user: { id: string; email?: string } | null }) {
   const who = user ? { userId: user.id, email: user.email } : {};
 
+  const plans = CIRCLE_PLANS.map((plan) => {
+    const monthly = CIRCLE_PLANS.find((other) => other.months === 1);
+    const savingCents = monthly ? monthly.priceCents * plan.months - plan.priceCents : 0;
+
+    return {
+      ...plan,
+      href: checkoutUrl(process.env[plan.envKey], who),
+      perMonth: plan.months > 1 ? priceLabel(plan.priceCents / plan.months) : null,
+      savingCents,
+    };
+  });
+
+  // The one plan the page argues for. Everything about the layout below — the
+  // badge, the order, the single gold button — follows from picking it here
+  // rather than laying two equal options side by side and leaving the reader
+  // to do the arithmetic.
+  const featured = plans.find((plan) => plan.savingCents > 0) ?? plans[0];
+  const anyCheckout = plans.some((plan) => plan.href);
+
   return (
-    <div className="mx-auto w-full max-w-2xl px-6 py-16">
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">W&amp;W Circle</p>
-      <h1 className="mt-4 text-4xl">
-        O acompanhamento que cabe em quem ainda não quer um acompanhamento.
-      </h1>
+    <>
+      <div className="container-lp w-full py-16">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <SectionHeading
+              eyebrow="W&W Circle"
+              title="O acompanhamento que cabe em quem ainda não quer um acompanhamento."
+              lede="Uma hora por semana, ao vivo, sobre o que os seus dados estão dizendo e o que fazer na semana seguinte. Sem consulta, sem ficha, sem compromisso de arco."
+            />
 
-      <p className="mt-6 text-sm leading-relaxed text-[var(--text-2)]">
-        Uma hora por semana, ao vivo, sobre o que os seus dados estão dizendo — e o que
-        fazer na semana seguinte. Sem consulta, sem ficha, sem compromisso de arco.
-      </p>
+            <ul className="mt-10 flex flex-col gap-3">
+              {INCLUDED.map((line) => (
+                <li key={line} className="prose-body flex gap-3">
+                  <span aria-hidden="true" className="text-[var(--accent)]">
+                    &mdash;
+                  </span>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-      <ul className="mt-10 flex flex-col gap-3">
-        {INCLUDED.map((line) => (
-          <li key={line} className="flex gap-3 text-sm leading-relaxed text-[var(--text-2)]">
-            <span aria-hidden="true" className="text-[var(--accent)]">
-              —
-            </span>
-            {line}
-          </li>
-        ))}
-      </ul>
+          <div className="relative aspect-[3/2] overflow-hidden border border-[var(--border)] lg:aspect-[4/5]">
+            <Image
+              src={OG_IMAGE}
+              alt="Kauã Ramos conduzindo um encontro do Wealth &amp; Wellness"
+              fill
+              priority
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              className="object-cover object-center"
+            />
+          </div>
+        </div>
 
-      <div className="mt-12 grid gap-px overflow-hidden border border-[var(--border)] sm:grid-cols-2">
-        {CIRCLE_PLANS.map((plan) => {
-          const href = checkoutUrl(process.env[plan.envKey], who);
-          const perMonth = plan.months > 1 ? priceLabel(plan.priceCents / plan.months) : null;
+        <div className="mt-16 grid max-w-3xl gap-px overflow-hidden border border-[var(--border)] sm:grid-cols-2">
+          {plans.map((plan) => {
+            const isFeatured = plan.id === featured?.id;
 
-          return (
-            <div key={plan.id} className="flex flex-col bg-[var(--bg-card)] px-6 py-8">
-              <p className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
-                {plan.label}
-              </p>
-              <p className="mt-3 text-3xl text-[var(--text-1)]">{priceLabel(plan.priceCents)}</p>
-              <p className="mt-1 text-xs text-[var(--text-4)]">
-                {plan.months === 1 ? 'por mês' : `a cada 3 meses · ${perMonth} por mês`}
-              </p>
+            return (
+              <div
+                key={plan.id}
+                className={`flex flex-col px-6 py-8 ${
+                  isFeatured ? 'bg-[var(--bg-card-hover)]' : 'bg-[var(--bg-card)]'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="eyebrow">{plan.label}</p>
+                  {isFeatured && plan.savingCents > 0 && (
+                    <Badge tone="accent">
+                      Economize {priceLabel(plan.savingCents)}
+                    </Badge>
+                  )}
+                </div>
 
-              <div className="mt-auto pt-8">
-                {href ? (
-                  <a
-                    href={href}
-                    className="btn-glow block border border-[var(--border-hover)] px-6 py-4 text-center text-sm font-medium transition hover:bg-[var(--bg-card-hover)]"
-                  >
-                    Assinar
-                  </a>
-                ) : (
-                  <p className="text-xs text-[var(--text-4)]">
-                    As assinaturas abrem em breve.
-                  </p>
-                )}
+                {/* The number a monthly subscription is compared against is
+                    always the monthly one, so the quarterly plan leads with
+                    its per-month price and puts the total underneath. */}
+                <p className="mt-4 text-3xl text-[var(--text-1)]">
+                  {plan.perMonth ?? priceLabel(plan.priceCents)}
+                  <span className="ml-2 text-sm text-[var(--text-3)]">por mês</span>
+                </p>
+                <p className="meta mt-2">
+                  {plan.months === 1
+                    ? 'Cobrado todo mês'
+                    : `${priceLabel(plan.priceCents)} a cada 3 meses`}
+                </p>
+
+                <div className="mt-auto pt-8">
+                  {plan.href ? (
+                    <Button
+                      href={plan.href}
+                      variant={isFeatured ? 'primary' : 'secondary'}
+                      size="lg"
+                      className="w-full"
+                    >
+                      Assinar
+                    </Button>
+                  ) : (
+                    <p className="meta">As assinaturas abrem em breve.</p>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {!user && (
+          <p className="prose-body mt-8">
+            Já assina?{' '}
+            <Link
+              href="/entrar?next=%2Fcircle"
+              className="text-[var(--accent)] underline underline-offset-4"
+            >
+              Entre com o Google
+            </Link>{' '}
+            para ver o seu próximo encontro.
+          </p>
+        )}
+
+        <p className="mt-10 max-w-2xl text-xs leading-relaxed text-[var(--text-4)]">
+          Cancele quando quiser: o acesso vale até o fim do período já pago e não renova.{' '}
+          <Link href="/circle/termos" className="underline underline-offset-4">
+            Condições da assinatura
+          </Link>
+          .
+        </p>
       </div>
 
-      {!user && (
-        <p className="mt-8 text-sm leading-relaxed text-[var(--text-2)]">
-          Já assina?{' '}
-          <Link
-            href="/entrar?next=%2Fcircle"
-            className="text-[var(--accent)] underline underline-offset-4"
-          >
-            Entre com o Google
-          </Link>{' '}
-          para ver o seu próximo encontro.
-        </p>
-      )}
+      {/* On a phone the prices scroll away and never come back. The bar keeps
+          the decision one tap away without taking a second gold gesture: it is
+          the same button, following you.
 
-      <p className="mt-10 text-xs leading-relaxed text-[var(--text-4)]">
-        Cancele quando quiser: o acesso vale até o fim do período já pago e não renova.{' '}
-        <Link href="/circle/termos" className="underline underline-offset-4">
-          Condições da assinatura
-        </Link>
-        .
-      </p>
-    </div>
+          A signed-in member already has the tab bar pinned to the bottom, so
+          this one sits on top of it rather than over it — the hottest lead on
+          the platform is somebody logged in who has not subscribed, and
+          burying either bar under the other would cost exactly them. */}
+      {featured?.href && anyCheckout && (
+        <>
+          <div aria-hidden="true" className="h-24 md:hidden" />
+          <div
+            className={`fixed inset-x-0 z-40 border-t border-[var(--border)] bg-[var(--bg)]/95 px-4 py-3 backdrop-blur md:hidden ${
+              user
+                ? 'bottom-[calc(3.5rem+env(safe-area-inset-bottom))]'
+                : 'bottom-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]'
+            }`}
+          >
+            <Button href={featured.href} variant="primary" size="lg" className="w-full">
+              Assinar por {featured.perMonth ?? priceLabel(featured.priceCents)} por mês
+            </Button>
+          </div>
+        </>
+      )}
+    </>
   );
 }
