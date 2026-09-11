@@ -15,6 +15,8 @@
 
 # next.js
 /.next/
+# Any build directory NEXT_DIST_DIR points at (see next.config.ts).
+/.next-*/
 /out/
 
 # production

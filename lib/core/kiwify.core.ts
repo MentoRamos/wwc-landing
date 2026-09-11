@@ -152,31 +152,51 @@ function readPeriodEnd(raw: string | undefined): Date | null {
  */
 export function readEvent(payload: unknown): KiwifyEvent | null {
   if (!payload || typeof payload !== 'object') return null;
-  const body = payload as Record<string, any>;
 
   const id =
-    str(body.order_id) ?? str(body.id) ?? str(body.webhook_event_id) ?? str(body.event_id);
-  const type = (str(body.webhook_event_type) ?? str(body.event_type) ?? str(body.type)) as
-    | KiwifyEventType
-    | undefined;
+    str(pick(payload, 'order_id')) ??
+    str(pick(payload, 'id')) ??
+    str(pick(payload, 'webhook_event_id')) ??
+    str(pick(payload, 'event_id'));
+
+  const type = (str(pick(payload, 'webhook_event_type')) ??
+    str(pick(payload, 'event_type')) ??
+    str(pick(payload, 'type'))) as KiwifyEventType | undefined;
+
   const email =
-    str(body.Customer?.email) ?? str(body.customer?.email) ?? str(body.email) ?? '';
-  const productId =
-    str(body.Product?.product_id) ??
-    str(body.product?.id) ??
-    str(body.product_id) ??
-    str(body.Subscription?.plan?.product_id) ??
+    str(pick(payload, 'Customer', 'email')) ??
+    str(pick(payload, 'customer', 'email')) ??
+    str(pick(payload, 'email')) ??
     '';
+
+  const productId =
+    str(pick(payload, 'Product', 'product_id')) ??
+    str(pick(payload, 'product', 'id')) ??
+    str(pick(payload, 'product_id')) ??
+    str(pick(payload, 'Subscription', 'plan', 'product_id')) ??
+    '';
+
   const subscriptionId =
-    str(body.Subscription?.id) ?? str(body.subscription_id) ?? id ?? '';
+    str(pick(payload, 'Subscription', 'id')) ?? str(pick(payload, 'subscription_id')) ?? id ?? '';
+
   const periodEnd =
-    str(body.Subscription?.next_payment) ??
-    str(body.Subscription?.current_period_end) ??
-    str(body.next_payment) ??
-    str(body.access_until);
+    str(pick(payload, 'Subscription', 'next_payment')) ??
+    str(pick(payload, 'Subscription', 'current_period_end')) ??
+    str(pick(payload, 'next_payment')) ??
+    str(pick(payload, 'access_until'));
 
   if (!id || !type) return null;
   return { id, type, email, productId, subscriptionId, periodEnd };
+}
+
+/** Walks a path through a value of unknown shape without ever asserting one. */
+function pick(source: unknown, ...path: string[]): unknown {
+  let cursor = source;
+  for (const key of path) {
+    if (!cursor || typeof cursor !== 'object') return undefined;
+    cursor = (cursor as Record<string, unknown>)[key];
+  }
+  return cursor;
 }
 
 /** The keys a payload carried, and nothing it contained. Safe to log. */
