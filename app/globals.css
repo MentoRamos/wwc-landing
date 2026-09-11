@@ -18,12 +18,13 @@
     --text-1: #F2F3F5;
     --text-2: #B4B8BF;
     --text-3: #8A8E96;
-    --text-4: #6B6F78;
+    --text-4: #7E838B;
 
     --accent: #C9A84C;
     --accent-dim: #A68A3A;
     --accent-glow: rgba(201, 168, 76, 0.14);
 
+    --bg-locked: #121212;
     --border: rgba(255, 255, 255, 0.06);
     --border-hover: rgba(201, 168, 76, 0.25);
 
@@ -77,6 +78,69 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--text-4); border-radius: 2px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   EDITORIAL SCALE — the platform pages
+   The event page keeps its bespoke type; these are for everything else, so a
+   heading is the same size on /circle as it is on /conta. Before this each
+   page reached for `text-4xl` and a hand-written eyebrow, which is how six
+   pages end up with six different ideas of the same level.
+───────────────────────────────────────────────────────────────────────────── */
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--text-3);
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.125rem, 1.55rem + 2.4vw, 3.25rem);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+/* The one opening paragraph under a page title. */
+.lede {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--text-2);
+  max-width: 58ch;
+}
+
+.prose-body {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--text-2);
+  max-width: 66ch;
+}
+
+/* The line under a thing that says what it is: kind, duration, valid until. */
+.meta {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-4);
 }
 
 /* Container */
