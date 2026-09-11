@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Meta } from '@/components/ui/Meta';
 import { SectionHeading } from '@/components/ui/SectionHeading';
+import { RemoveInterestButton } from '@/components/admin/RemoveInterestButton';
 import { requireAdmin } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { formatDate } from '@/lib/core/format.core';
@@ -109,16 +110,19 @@ export default async function InteressePage() {
                 />
               </div>
 
-              {row.whatsapp && (
-                <a
-                  href={`https://wa.me/${row.whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 text-xs uppercase tracking-[0.16em] text-[var(--text-3)] underline underline-offset-4 transition hover:text-[var(--accent)]"
-                >
-                  WhatsApp
-                </a>
-              )}
+              <div className="flex shrink-0 items-center gap-5">
+                {row.whatsapp && (
+                  <a
+                    href={`https://wa.me/${row.whatsapp}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs uppercase tracking-[0.16em] text-[var(--text-3)] underline underline-offset-4 transition hover:text-[var(--accent)]"
+                  >
+                    WhatsApp
+                  </a>
+                )}
+                <RemoveInterestButton id={row.id} who={row.name || row.email_norm} />
+              </div>
             </li>
           ))}
         </ul>
