@@ -12,7 +12,9 @@
     "prebuild": "node scripts/check-no-middleware.mjs",
     "test:rls": "vitest run --config vitest.rls.config.ts",
     "check:auth": "node scripts/check-auth.mjs",
-    "check:admin": "node scripts/check-admin.mjs"
+    "check:admin": "node scripts/check-admin.mjs",
+    "check:library": "node scripts/check-library.mjs",
+    "seed:library": "node scripts/seed-library.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
