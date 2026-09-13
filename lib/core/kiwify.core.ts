@@ -58,6 +58,8 @@ export type KiwifyEvent = {
   productId: string;
   subscriptionId: string;
   periodEnd?: string;
+  /** The account id we put in the checkout link, when it came back. */
+  userId?: string;
 };
 
 export type Decision =
@@ -68,6 +70,7 @@ export type Decision =
       expiresAt: Date;
       externalId: string;
       status: 'active' | 'past_due';
+      userId?: string;
     }
   | { kind: 'revoke'; email: string; product: Product; externalId: string }
   | { kind: 'ignore'; reason: string };
@@ -122,7 +125,15 @@ export function interpret(input: {
     return { kind: 'ignore', reason: 'fim de período já passou' };
   }
 
-  return { kind: 'grant', email, product, expiresAt, externalId: event.subscriptionId, status };
+  return {
+    kind: 'grant',
+    email,
+    product,
+    expiresAt,
+    externalId: event.subscriptionId,
+    status,
+    userId: event.userId,
+  };
 }
 
 /**
@@ -185,8 +196,31 @@ export function readEvent(payload: unknown): KiwifyEvent | null {
     str(pick(payload, 'next_payment')) ??
     str(pick(payload, 'access_until'));
 
+  const userId = accountId(
+    str(pick(payload, 'TrackingParameters', 'sck')) ??
+      str(pick(payload, 'tracking_parameters', 'sck')) ??
+      str(pick(payload, 'sck')),
+  );
+
   if (!id || !type) return null;
-  return { id, type, email, productId, subscriptionId, periodEnd };
+  return { id, type, email, productId, subscriptionId, periodEnd, userId };
+}
+
+/**
+ * `sck` rides on a public URL, so its contents are whatever the buyer's
+ * browser happened to carry: our account id, an affiliate's tag, a leftover
+ * campaign string, or nothing.
+ *
+ * It is written into a uuid column, so anything that is not a uuid is thrown
+ * away here rather than becoming a failed insert that costs somebody the
+ * access they just paid for. Falling back to matching by e-mail is the
+ * behaviour we already had, and it is the right floor.
+ */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function accountId(raw: string | undefined): string | undefined {
+  const value = raw?.trim();
+  return value && UUID.test(value) ? value.toLowerCase() : undefined;
 }
 
 /** Walks a path through a value of unknown shape without ever asserting one. */

@@ -279,6 +279,50 @@ describe('readEvent', () => {
     ).toMatchObject({ id: 'o-2', subscriptionId: 'o-2', productId: 'p-2' });
   });
 
+  /**
+   * The account id we put in the checkout link comes back inside
+   * `TrackingParameters`, which is the only part of the payload we chose the
+   * contents of. Reading it is what turns "paid with one address, signed in
+   * with another" from a support message into nothing at all.
+   */
+  it('reads back the account id we sent in the checkout link', () => {
+    expect(
+      readEvent({
+        order_id: 'o-4',
+        webhook_event_type: 'order_approved',
+        Customer: { email: 'a@x.com' },
+        Product: { product_id: 'p-1' },
+        Subscription: { id: 's-4', next_payment: '2026-10-11T12:00:00Z' },
+        TrackingParameters: {
+          src: null,
+          sck: '11111111-2222-3333-4444-555555555555',
+          utm_source: null,
+        },
+      }),
+    ).toMatchObject({ userId: '11111111-2222-3333-4444-555555555555' });
+  });
+
+  /**
+   * `sck` is a query parameter on a public link, so anybody can put anything
+   * in it. It is written straight into a uuid column, and a buyer who typed
+   * nonsense — or pasted an affiliate's tag — must not make the grant fail.
+   * Anything that is not a uuid is simply not an account id, and we fall back
+   * to matching by email, which is exactly what happened before this existed.
+   */
+  it('ignores an sck that is not a uuid rather than trusting it', () => {
+    const base = {
+      order_id: 'o-5',
+      webhook_event_type: 'order_approved',
+      Customer: { email: 'a@x.com' },
+      Product: { product_id: 'p-1' },
+      Subscription: { id: 's-5', next_payment: '2026-10-11T12:00:00Z' },
+    };
+
+    for (const sck of ['instagram', '', '   ', 'u-1', '11111111-2222-3333-4444-5555555555']) {
+      expect(readEvent({ ...base, TrackingParameters: { sck } })?.userId).toBeUndefined();
+    }
+  });
+
   it('returns null rather than a half-filled event', () => {
     expect(readEvent(null)).toBeNull();
     expect(readEvent('{}')).toBeNull();

@@ -82,6 +82,12 @@ export async function POST(request: Request) {
     if (decision.kind === 'grant') {
       // One row per subscription, not one per payment: the renewal moves the
       // date on the row that already exists.
+      //
+      // `user_id` is spread in only when the checkout gave one back, never as
+      // an explicit undefined. An upsert sets every column it is handed, so
+      // naming the key on a renewal that arrived without tracking parameters
+      // would wipe the link that `handle_new_user()` had already made — and
+      // the person would lose the Library on the very payment that renewed it.
       const { error } = await admin.from('entitlements').upsert(
         {
           email_norm: decision.email,
@@ -91,6 +97,7 @@ export async function POST(request: Request) {
           source: 'kiwify',
           external_id: decision.externalId,
           expires_at: decision.expiresAt.toISOString(),
+          ...(decision.userId ? { user_id: decision.userId } : {}),
         },
         { onConflict: 'external_id,product' },
       );
