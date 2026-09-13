@@ -49,6 +49,13 @@ export function priceLabel(cents: number): string {
  * Passing the account id through the checkout lets the webhook match on the
  * id instead of hoping the two addresses agree.
  *
+ * It travels as `sck`, and the name is not cosmetic. Kiwify keeps exactly ten
+ * URL parameters — `src`, `sck`, the five `utm_*`, and `s1`-`s3` — stores them
+ * against the order, and discards anything else. The first version of this
+ * sent `ww_uid`, which rendered fine, clicked fine, and was gone by the time
+ * the webhook fired: a gap that looked closed and was not. `sck` is the
+ * free-form one Kiwify has no other use for.
+ *
  * Returns null for anything that is not an https URL. The base comes from the
  * environment, so a typo becomes a link on a page that sells — and a
  * `javascript:` or somebody else's host must never be what renders.
@@ -69,7 +76,7 @@ export function checkoutUrl(
 
   if (!who.userId) return url.toString();
 
-  url.searchParams.set('ww_uid', who.userId);
+  url.searchParams.set('sck', who.userId);
   if (who.email) url.searchParams.set('email', who.email);
   return url.toString();
 }

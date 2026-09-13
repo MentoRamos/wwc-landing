@@ -33,26 +33,66 @@ describe('priceLabel', () => {
  * account id into the checkout is what closes most of that gap before it
  * opens — the webhook can then match on the id instead of hoping the two
  * addresses agree.
+ *
+ * The id has to travel in a parameter Kiwify actually keeps. Their checkout
+ * accepts exactly `src`, `sck`, `utm_source`, `utm_medium`, `utm_campaign`,
+ * `utm_term`, `utm_content`, `s1`, `s2` and `s3`, stores them against the
+ * order, and drops everything else. A homemade `ww_uid` would render on the
+ * page, survive the click, and then simply not exist by the time the money
+ * moved — which is the same as not carrying the id at all, except it looks
+ * like it works. `sck` is the free-form one, so `sck` is what we use.
  */
 describe('checkoutUrl', () => {
   const base = 'https://pay.kiwify.com.br/abc123';
 
   it('carries the account id into the checkout', () => {
     expect(checkoutUrl(base, { userId: 'u-1' })).toBe(
-      'https://pay.kiwify.com.br/abc123?ww_uid=u-1',
+      'https://pay.kiwify.com.br/abc123?sck=u-1',
     );
   });
 
   it('keeps query parameters the link already had', () => {
     expect(checkoutUrl(`${base}?afid=parceiro`, { userId: 'u-1' })).toBe(
-      'https://pay.kiwify.com.br/abc123?afid=parceiro&ww_uid=u-1',
+      'https://pay.kiwify.com.br/abc123?afid=parceiro&sck=u-1',
     );
   });
 
   it('pre-fills the address when we know it, so the two match by default', () => {
     expect(checkoutUrl(base, { userId: 'u-1', email: 'alguem@exemplo.com' })).toBe(
-      'https://pay.kiwify.com.br/abc123?ww_uid=u-1&email=alguem%40exemplo.com',
+      'https://pay.kiwify.com.br/abc123?sck=u-1&email=alguem%40exemplo.com',
     );
+  });
+
+  /**
+   * The guard that would have caught the original bug. `ww_uid` passed every
+   * test above while being silently discarded by Kiwify, because the tests
+   * only ever asserted our own spelling back at us.
+   */
+  it('only uses parameter names Kiwify keeps', () => {
+    const KIWIFY_KEEPS = new Set([
+      'src',
+      'sck',
+      'utm_source',
+      'utm_medium',
+      'utm_campaign',
+      'utm_term',
+      'utm_content',
+      's1',
+      's2',
+      's3',
+      // Prefill fields, documented separately from the tracking ones.
+      'name',
+      'email',
+      'phone',
+      'cpf',
+      'region',
+    ]);
+
+    const link = checkoutUrl(base, { userId: 'u-1', email: 'alguem@exemplo.com' });
+    const added = [...new URL(link!).searchParams.keys()];
+
+    expect(added.length).toBeGreaterThan(0);
+    expect(added.filter((key) => !KIWIFY_KEEPS.has(key))).toEqual([]);
   });
 
   it('leaves the link alone for someone who is not signed in', () => {
