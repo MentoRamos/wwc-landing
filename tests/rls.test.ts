@@ -380,3 +380,124 @@ describe('the audit trail behind every access change', () => {
     expect(error).not.toBeNull();
   });
 });
+
+/**
+ * Fase 9 — a área do aluno.
+ *
+ * O que muda de natureza: até aqui a plataforma guardava direito de acesso e
+ * conteúdo de prateleira, iguais para todo mundo que comprou o mesmo produto.
+ * Um report semanal é de uma pessoa só, e o conteúdo dele é dado de saúde.
+ *
+ * Uma política frouxa aqui não levanta erro nem exceção: ela devolve o
+ * prontuário do aluno A para o aluno B, e ninguém percebe até alguém contar.
+ */
+describe('a área do aluno', () => {
+  let docA: string;
+  let docB: string;
+  let emailA: string;
+  let emailB: string;
+
+  beforeAll(async () => {
+    emailA = uniqueEmail('aluno-a');
+    emailB = uniqueEmail('aluno-b');
+
+    const insert = async (email: string, title: string) => {
+      const { data, error } = await admin
+        .from('student_documents')
+        .insert({
+          email_norm: email.toLowerCase().trim(),
+          email_raw: email,
+          kind: 'weekly_report',
+          title,
+          storage_path: `alunos/${email}/${Date.now()}-${Math.random()}.pdf`,
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
+      return data.id as string;
+    };
+
+    docA = await insert(emailA, 'Report semanal do aluno A');
+    docB = await insert(emailB, 'Report semanal do aluno B');
+  }, 60_000);
+
+  afterAll(async () => {
+    await admin.from('student_documents').delete().in('id', [docA, docB]);
+  }, 60_000);
+
+  it('não existe para quem não entrou', async () => {
+    const { data } = await anonClient().from('student_documents').select('*');
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('entrega ao aluno o documento dele', async () => {
+    const client = await signedInAs(emailA);
+    const { data } = await client.from('student_documents').select('id, title');
+
+    expect(data).toHaveLength(1);
+    expect(data![0].id).toBe(docA);
+  });
+
+  /** O critério de aceite da fase, escrito como teste. */
+  it('não entrega ao aluno A nada do aluno B', async () => {
+    const client = await signedInAs(emailA);
+
+    const { data: byId } = await client
+      .from('student_documents')
+      .select('*')
+      .eq('id', docB);
+    expect(byId ?? []).toHaveLength(0);
+
+    const { data: all } = await client.from('student_documents').select('id');
+    expect((all ?? []).map((row) => row.id)).not.toContain(docB);
+  });
+
+  /**
+   * Apagar é o que alguém faria para sumir com um contrato do próprio arco.
+   * O aluno lê o que é dele e não escreve nada — nem o que é dele.
+   */
+  it('não deixa o aluno apagar nem alterar o próprio documento', async () => {
+    const client = await signedInAs(emailA);
+
+    await client.from('student_documents').delete().eq('id', docA);
+    await client.from('student_documents').update({ title: 'outro' }).eq('id', docA);
+
+    const { data } = await admin
+      .from('student_documents')
+      .select('title')
+      .eq('id', docA)
+      .single();
+
+    expect(data!.title).toBe('Report semanal do aluno A');
+  });
+
+  it('não deixa o aluno criar documento para ninguém', async () => {
+    const client = await signedInAs(emailA);
+    const { error } = await client.from('student_documents').insert({
+      email_norm: emailB.toLowerCase().trim(),
+      email_raw: emailB,
+      kind: 'contract',
+      title: 'contrato forjado',
+      storage_path: `alunos/forjado-${Date.now()}.pdf`,
+    });
+    expect(error).not.toBeNull();
+  });
+
+  /**
+   * A trilha responde "quem abriu o report de quem, e quando". Se o próprio
+   * aluno pudesse escrevê-la ou apagá-la, ela não responderia nada.
+   */
+  it('não deixa ninguém escrever nem ler a trilha de acesso', async () => {
+    const client = await signedInAs(emailA);
+
+    const { error } = await client.from('document_access_log').insert({
+      document_id: docA,
+      actor_role: 'own',
+      action: 'download',
+    });
+    expect(error).not.toBeNull();
+
+    const { data } = await client.from('document_access_log').select('*');
+    expect(data ?? []).toHaveLength(0);
+  });
+});
