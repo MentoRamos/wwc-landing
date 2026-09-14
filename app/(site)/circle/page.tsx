@@ -178,6 +178,11 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
             </ul>
           </div>
 
+          {/* A foto terminava num retângulo de borda dura sobre o preto: a
+              imagem parava, o fundo começava, e a emenda era o elemento mais
+              visível da dobra. O degradê do próprio `--bg` na base dissolve a
+              aresta, que é como uma peça impressa resolve foto sobre fundo
+              chapado. */}
           <div className="relative aspect-[3/2] overflow-hidden border border-[var(--border)] lg:aspect-[4/5]">
             <Image
               src={OG_IMAGE}
@@ -187,10 +192,35 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
               sizes="(min-width: 1024px) 40vw, 100vw"
               className="object-cover object-center"
             />
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[var(--bg)] to-transparent"
+            />
           </div>
         </div>
 
-        <div className="mt-16 grid max-w-3xl gap-px overflow-hidden border border-[var(--border)] sm:grid-cols-2">
+      {/*
+        O bloco de preços era `max-w-3xl` dentro de um container de 1440px:
+        ocupava pouco mais da metade e deixava 40% da largura em preto ao lado,
+        que é o defeito que o design system chama de falha de enquadramento. A
+        correção não é esticar os dois cartões até a borda (dois cartões de
+        700px leem como banner), e sim dar à faixa a coluna editorial que ela
+        não tinha: o título da decisão à esquerda, os planos à direita.
+      */}
+      <section className="mt-20 border-t border-[var(--border)] pt-14">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14">
+          <div>
+            <p className="eyebrow">A assinatura</p>
+            <h2 className="section-title mt-4">Duas formas de entrar.</h2>
+            <div className="rule-gold mt-6" aria-hidden="true" />
+            <p className="prose-body mt-6">
+              A mesma coisa nos dois planos. O trimestral só reconhece que
+              três meses é o tempo em que um hábito começa a aparecer nos
+              dados.
+            </p>
+          </div>
+
+          <div className="grid gap-px self-start overflow-hidden border border-[var(--border)] sm:grid-cols-2">
           {plans.map((plan) => {
             const isFeatured = plan.id === featured?.id;
 
@@ -238,7 +268,9 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
               </div>
             );
           })}
+          </div>
         </div>
+      </section>
 
         {/*
           The page said "as assinaturas abrem em breve" in both plan cards and
@@ -247,38 +279,53 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
           pitch and decided, and it sends them away with no way back.
         */}
         {!anyCheckout && (
-          <section className="mt-14 max-w-xl border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
-            <h2 className="section-title">As assinaturas abrem em breve.</h2>
-            <p className="prose-body mt-3">
-              Deixe o seu e-mail e você entra antes de a vaga virar anúncio. Os
-              primeiros assinantes definem o tema das primeiras quintas.
-            </p>
-            <div className="mt-8">
-              <InterestForm product="circle" source="circle-sem-checkout" />
+          <section className="mt-20 border-t border-[var(--border)] pt-14">
+            <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14">
+              <div>
+                <p className="eyebrow">Lista de espera</p>
+                <h2 className="section-title mt-4">As assinaturas abrem em breve.</h2>
+                <div className="rule-gold mt-6" aria-hidden="true" />
+                <p className="prose-body mt-6">
+                  Deixe o seu e-mail e você entra antes de a vaga virar anúncio. Os
+                  primeiros assinantes definem o tema das primeiras quintas.
+                </p>
+              </div>
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
+                <InterestForm product="circle" source="circle-sem-checkout" />
+              </div>
             </div>
           </section>
         )}
 
-        {!user && (
-          <p className="prose-body mt-8">
-            Já assina?{' '}
-            <Link
-              href="/entrar?next=%2Fcircle"
-              className="text-[var(--accent)] underline underline-offset-4"
-            >
-              Entre com o Google
-            </Link>{' '}
-            para ver o seu próximo encontro.
-          </p>
-        )}
+        {/*
+          A página terminava com duas frases soltas empilhadas à esquerda e
+          depois um vão até o rodapé: ela parava de falar em vez de fechar. As
+          duas respondem à mesma coisa — "e se eu não quiser?" — então viram
+          uma faixa de fecho, lado a lado, com a régua que marca fim de
+          assunto em todas as outras seções.
+        */}
+        <section className="mt-20 border-t border-[var(--border)] pt-10">
+          <div className="grid gap-8 sm:grid-cols-2 sm:items-start">
+            {!user && (
+              <p className="prose-body">
+                Já assina?{' '}
+                <Link href="/entrar?next=%2Fcircle" className="link-draw">
+                  Entre com o Google
+                </Link>{' '}
+                para ver o seu próximo encontro.
+              </p>
+            )}
 
-        <p className="mt-10 max-w-2xl text-xs leading-relaxed text-[var(--text-4)]">
-          Cancele quando quiser: o acesso vale até o fim do período já pago e não renova.{' '}
-          <Link href="/circle/termos" className="underline underline-offset-4">
-            Condições da assinatura
-          </Link>
-          .
-        </p>
+            <p className="text-xs leading-relaxed text-[var(--text-4)] sm:col-start-2">
+              Cancele quando quiser: o acesso vale até o fim do período já pago e não
+              renova.{' '}
+              <Link href="/circle/termos" className="underline underline-offset-4">
+                Condições da assinatura
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
       </div>
 
       {/* On a phone the prices scroll away and never come back. The bar keeps
