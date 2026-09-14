@@ -168,10 +168,15 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
 
             <ul className="mt-10 flex flex-col gap-3">
               {INCLUDED.map((line) => (
-                <li key={line} className="prose-body flex gap-3">
-                  <span aria-hidden="true" className="text-[var(--text-4)]">
-                    &mdash;
-                  </span>
+                <li key={line} className="prose-body flex items-baseline gap-4">
+                  {/* Era um `&mdash;`, ou seja, travessão em texto visível com
+                      outro nome. Como marcador ele também não era pontuação:
+                      uma régua curta diz "item da lista" sem fingir ser
+                      palavra, e é o mesmo gesto do resto da página. */}
+                  <span
+                    aria-hidden="true"
+                    className="mt-2 h-px w-4 shrink-0 bg-[var(--text-4)]"
+                  />
                   {line}
                 </li>
               ))}

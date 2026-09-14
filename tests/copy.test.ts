@@ -21,6 +21,7 @@ import { describe, expect, it } from 'vitest';
  */
 const ROOTS = ['app', 'components', 'lib'];
 const EXTENSIONS = ['.ts', '.tsx'];
+const ENTITIES = ['&mdash;', '&ndash;', '&#8212;', '&#8211;'];
 
 /** Marca cada caractere que está dentro de `//` ou de `/* *\/`. */
 function commentMask(source: string): boolean[] {
@@ -65,9 +66,24 @@ function offenders(): string[] {
   for (const root of ROOTS) {
     for (const path of walk(join(process.cwd(), root))) {
       const source = readFileSync(path, 'utf8');
-      if (!source.includes('—') && !source.includes('–')) continue;
-
       const mask = commentMask(source);
+
+      // A entidade HTML é travessão escrito por outro nome, e foi exatamente
+      // assim que um sobreviveu à primeira varredura: o marcador de lista do
+      // /circle passou verde porque o caractere literal não estava no arquivo.
+      // Passa pela mesma máscara que o resto, senão um comentário que explica
+      // a regra reprova a regra.
+      for (const entity of ENTITIES) {
+        let at = source.indexOf(entity);
+        while (at !== -1) {
+          if (!mask[at]) {
+            const line = source.slice(0, at).split('\n').length;
+            hits.push(`${path.replace(process.cwd(), '.')}:${line} entidade ${entity}`);
+          }
+          at = source.indexOf(entity, at + 1);
+        }
+      }
+
       for (let i = 0; i < source.length; i += 1) {
         const char = source[i];
         if ((char === '—' || char === '–') && !mask[i]) {
