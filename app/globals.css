@@ -571,3 +571,141 @@ a:focus-visible {
   color: var(--accent);
   letter-spacing: -0.01em;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   VOCABULÁRIO DE INTERAÇÃO DA PLATAFORMA
+
+   A área logada tinha um único gesto: trocar `--bg-card` por `--bg-card-hover`.
+   Dois cinzas separados por 7% de luminância, sem nada mais acontecendo — e é
+   por isso que a plataforma lia como estática mesmo com dezesseis utilitários
+   premium já escritos neste arquivo (tilt 3D, magnetic, glass, parallax). Eles
+   foram feitos para a landing do evento e nenhuma página logada os usa.
+
+   Não é para usá-los aqui. Tilt e sombra grande são o gesto de dashboard que o
+   DESIGN.md proíbe por nome. A profundidade de uma peça editorial vem de outro
+   lugar: régua, escala de tipo, imagem e tempo.
+
+   O gesto desta camada é UM só, e é emprestado da própria marca: o design
+   system do report define "uma régua dourada curta ancorada à esquerda" como
+   assinatura do cabeçalho. Aqui ela deixa de ser ornamento parado e vira o
+   evento de interação — ela DESENHA quando você aponta. Um gesto repetido em
+   toda superfície clicável ensina a mão o que é clicável sem nenhuma borda
+   nova.
+───────────────────────────────────────────────────────────────────────────── */
+
+/*
+ * A régua que desenha. `scaleX` com `transform-origin:left` anima na GPU e não
+ * reflui nada — de propósito, porque isto roda em cima de cada card de uma
+ * grade e `width` aqui custaria layout em todos eles.
+ */
+.rule-draw {
+  position: relative;
+}
+.rule-draw::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1px;
+  width: 52px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.55s var(--ease-out-expo);
+  pointer-events: none;
+}
+/*
+ * `:focus-visible` junto com `:hover` porque quem navega por teclado precisa
+ * do mesmo sinal. O anel de foco global (utilitário 8) diz "estou aqui"; a
+ * régua diz "e isto abre alguma coisa".
+ */
+.rule-draw:hover::before,
+.rule-draw:focus-visible::before {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rule-draw::before { transition: none; }
+}
+
+/*
+ * A seta que anda. Fica em `--text-4` parada e vira ouro andando 4px — o
+ * suficiente para o olho registrar direção sem nada se mexer de lugar.
+ */
+.nudge-x {
+  display: inline-block;
+  transition: transform 0.45s var(--ease-out-expo), color 0.3s ease;
+}
+.rule-draw:hover .nudge-x,
+.rule-draw:focus-visible .nudge-x {
+  transform: translateX(4px);
+  color: var(--accent);
+}
+
+/*
+ * Sublinhado que desenha, para link de texto. Mesmo gesto da régua, em corpo
+ * de parágrafo: o link não muda de cor no repouso (cor em texto corrido é o
+ * que o DESIGN.md chama de ouro virando base), só ganha a linha ao apontar.
+ */
+.link-draw {
+  position: relative;
+  color: var(--text-1);
+}
+.link-draw::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s var(--ease-out-expo);
+}
+.link-draw:hover::after,
+.link-draw:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ESCALA EDITORIAL QUE FALTAVA
+
+   Todo card da plataforma escrevia seu título em `text-lg` — a mesma medida
+   do parágrafo ao lado, na fonte do parágrafo. Com display e corpo no mesmo
+   tamanho e na mesma família, não existe hierarquia dentro do card, e é a
+   segunda razão de a tela ler como lista de texto em caixas.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* O título de um card: a serif, no tamanho em que ela ainda é serif. */
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.3125rem;
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+/*
+ * O número grande. É a assinatura editorial que o design system do report usa
+ * (`.ig-num`, `.tv`) e que a plataforma nunca teve: um dado sozinho, grande,
+ * em serif, com o rótulo pequeno e espaçado embaixo. É o que diferencia
+ * relatório de private bank de tabela de app.
+ */
+.stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 1.8rem + 1.8vw, 3rem);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A régua dourada parada, como divisor de seção ancorado à esquerda. */
+.rule-gold {
+  width: 52px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}

@@ -14,6 +14,14 @@ import { twMerge } from 'tailwind-merge';
  * against the surface — the "Bloqueado" state was announced by making the
  * words hard to read. A locked card now sits on its own darker ground and says
  * so in a badge.
+ *
+ * What a linked card does when you point at it used to be the whole of the
+ * platform's interaction vocabulary: `bg-card` became `bg-card-hover`, two
+ * greys 7% apart, and nothing else moved. That is a state change you can only
+ * notice by comparing two screenshots. It now draws the brand's gold rule
+ * along its top edge (`.rule-draw`), which is a gesture you see from the
+ * corner of your eye — and the same gesture answers the keyboard, because the
+ * rule is bound to `:focus-visible` too.
  */
 export function Card({
   href,
@@ -27,13 +35,16 @@ export function Card({
   children: React.ReactNode;
 }) {
   const surface = locked ? 'bg-[var(--bg-locked)]' : 'bg-[var(--bg-card)]';
-  const classes = twMerge(clsx('block h-full px-6 py-5', surface, className));
+  const classes = twMerge(clsx('block h-full px-6 py-6', surface, className));
 
   if (href) {
     return (
       <Link
         href={href}
-        className={twMerge(classes, 'transition hover:bg-[var(--bg-card-hover)]')}
+        className={twMerge(
+          classes,
+          'rule-draw transition-colors duration-300 hover:bg-[var(--bg-card-hover)]',
+        )}
       >
         {children}
       </Link>
@@ -41,6 +52,27 @@ export function Card({
   }
 
   return <div className={classes}>{children}</div>;
+}
+
+/**
+ * The line a linked card ends on: what the click does, and an arrow that walks
+ * when the card is pointed at.
+ *
+ * It exists because every linked card on the platform ended in a `Meta` line
+ * that read like a caption — "Abrir a biblioteca" set in the same faint,
+ * spaced caps as "PDF · 12 min". One of those is a description and the other
+ * is a promise about what happens next, and they were typographically
+ * identical.
+ */
+export function CardAction({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="mt-5 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)]">
+      {children}
+      <span aria-hidden="true" className="nudge-x text-[var(--text-4)]">
+        &rarr;
+      </span>
+    </span>
+  );
 }
 
 /**
