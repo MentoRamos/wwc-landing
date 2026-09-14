@@ -10,8 +10,13 @@ export const metadata: Metadata = {
 };
 
 const controller = () => pending(LEGAL.controller, 'razão social ou nome do controlador');
-const taxId = () => pending(LEGAL.taxId, 'CNPJ ou CPF');
 const contact = () => pending(LEGAL.contactEmail, 'e-mail de contato');
+
+/**
+ * O documento é opcional (ver `lib/legal.ts`), então ele aparece como oração
+ * inteira ou não aparece — nunca como um "inscrito sob" pendurado no vazio.
+ */
+const registration = () => (LEGAL.taxId ? `, inscrito sob ${LEGAL.taxId},` : '');
 
 /**
  * The other half of the Google Branding gate.
@@ -26,7 +31,7 @@ export default function TermosPage() {
       <Section n={1} title="Do que se trata">
         <p>
           Estes termos regem o uso da plataforma Wealth &amp; Wellness, operada
-          por {controller()}, inscrito sob {taxId()}. Ao entrar com sua conta
+          por {controller()}{registration()}. Ao entrar com sua conta
           Google, você concorda com o que está escrito aqui. Se não concordar,
           não entre — e, se já entrou, peça o encerramento pela seção 11.
         </p>
