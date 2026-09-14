@@ -89,3 +89,26 @@ export function resumePosition(
 
   return at;
 }
+
+/**
+ * Quanto da gravação já foi vista, em 0-100.
+ *
+ * Deriva de `resumePosition` de propósito, em vez de refazer a conta. As duas
+ * respondem à mesma pergunta em linguagens diferentes — uma para o player,
+ * outra para o olho — e se discordarem a tela mente: uma barra em 98% num item
+ * que, ao clicar, recomeça do zero é pior do que não mostrar barra nenhuma.
+ * Toda regra de "isto não conta" (concluído, posição além do fim, duração
+ * desconhecida) já está lá e não é reescrita aqui.
+ */
+export function progressPercent(
+  progress: ProgressRow | null | undefined,
+  durationSeconds: number | null | undefined,
+): number {
+  if (progress?.completed_at) return 100;
+  if (!durationSeconds || durationSeconds <= 0) return 0;
+
+  const at = resumePosition(progress, durationSeconds);
+  if (at <= 0) return 0;
+
+  return Math.min(100, Math.round((at / durationSeconds) * 100));
+}

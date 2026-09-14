@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildShelf,
   formatDuration,
+  progressPercent,
   resumePosition,
   type CatalogItem,
 } from '@/lib/core/library.core';
@@ -125,5 +126,38 @@ describe('resumePosition', () => {
 
   it('trusts the saved position when the duration is unknown', () => {
     expect(resumePosition({ position_seconds: 742, completed_at: null }, null)).toBe(742);
+  });
+});
+
+describe('progressPercent', () => {
+  /**
+   * A barra tem que concordar com `resumePosition`, senão a tela mente: uma
+   * barra em 98% num item que, ao clicar, volta para o começo é pior do que
+   * barra nenhuma.
+   */
+  it('mostra 100 para o que foi concluído', () => {
+    expect(progressPercent({ position_seconds: 10, completed_at: '2026-09-14T00:00:00Z' }, 600)).toBe(100);
+  });
+
+  it('mostra a fração assistida', () => {
+    expect(progressPercent({ position_seconds: 150, completed_at: null }, 600)).toBe(25);
+  });
+
+  it('devolve 0 quando não há progresso nenhum', () => {
+    expect(progressPercent(null, 600)).toBe(0);
+  });
+
+  it('devolve 0 sem duração conhecida, porque fração de nada não existe', () => {
+    expect(progressPercent({ position_seconds: 150, completed_at: null }, null)).toBe(0);
+  });
+
+  it('concorda com resumePosition na cauda: quem volta ao começo mostra 0', () => {
+    const progress = { position_seconds: 595, completed_at: null };
+    expect(resumePosition(progress, 600)).toBe(0);
+    expect(progressPercent(progress, 600)).toBe(0);
+  });
+
+  it('nunca passa de 100 quando a gravação encurtou', () => {
+    expect(progressPercent({ position_seconds: 9000, completed_at: null }, 600)).toBe(0);
   });
 });

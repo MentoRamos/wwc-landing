@@ -41,3 +41,42 @@ export function formatDateTime(value: string | Date | null | undefined): string 
     minute: '2-digit',
   });
 }
+
+/**
+ * `Hoje`, `Amanhã`, `Em 3 dias` — a distância até uma data, em dias de calendário.
+ *
+ * O ponto é o calendário, não a duração. Faltar 26 horas para o encontro pode
+ * ser "amanhã" ou "depois de amanhã" dependendo da hora do dia, e é o dia que
+ * a pessoa usa para se organizar. Então a conta é feita sobre a data civil de
+ * São Paulo dos dois lados.
+ *
+ * É a mesma armadilha de fuso do resto do arquivo, virada do avesso: às 22:00
+ * de quarta em São Paulo o servidor em UTC já está na quinta, e um encontro de
+ * quinta apareceria como "Hoje" para quem ainda está na quarta.
+ */
+function civilDay(date: Date): number {
+  // `en-CA` é o único locale que sai em YYYY-MM-DD, que é o que torna a
+  // comparação aritmética em vez de textual.
+  const [year, month, day] = date
+    .toLocaleDateString('en-CA', { timeZone: ZONE })
+    .split('-')
+    .map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export function countdownLabel(
+  value: string | Date | null | undefined,
+  now: Date,
+): string {
+  const target = parse(value);
+  if (!target) return '';
+
+  const days = Math.round((civilDay(target) - civilDay(now)) / DAY_MS);
+
+  if (days < 0) return '';
+  if (days === 0) return 'Hoje';
+  if (days === 1) return 'Amanhã';
+  return `Em ${days} dias`;
+}

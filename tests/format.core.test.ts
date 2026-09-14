@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatDateTime } from '@/lib/core/format.core';
+import { countdownLabel, formatDate, formatDateTime } from '@/lib/core/format.core';
 
 /**
  * Every date the platform shows belongs to a person living in Brazil, and the
@@ -50,5 +50,40 @@ describe('formatDateTime', () => {
   it('says nothing for nothing', () => {
     expect(formatDateTime(null)).toBe('');
     expect(formatDateTime('não é data')).toBe('');
+  });
+});
+
+describe('countdownLabel', () => {
+  /**
+   * O fuso é o ponto inteiro desta função, e é a mesma armadilha que o resto
+   * deste arquivo documenta: "faltam 0 dias" tem que ser calculado sobre o dia
+   * de São Paulo, não o do servidor. Às 22:00 de quarta em São Paulo já é
+   * quinta em UTC, e um encontro de quinta viraria "Hoje" um dia antes.
+   */
+  it('diz Hoje quando o alvo cai no mesmo dia de São Paulo', () => {
+    // Quinta 17/09 às 20:00 em São Paulo = 23:00 UTC.
+    const meeting = new Date('2026-09-17T23:00:00Z');
+    // Quinta 17/09 às 09:00 em São Paulo.
+    expect(countdownLabel(meeting, new Date('2026-09-17T12:00:00Z'))).toBe('Hoje');
+  });
+
+  it('não antecipa o Hoje quando o servidor já virou o dia e São Paulo não', () => {
+    const meeting = new Date('2026-09-17T23:00:00Z');
+    // 22:00 de quarta em São Paulo, que em UTC já é quinta 01:00.
+    expect(countdownLabel(meeting, new Date('2026-09-17T01:00:00Z'))).toBe('Amanhã');
+  });
+
+  it('diz Amanhã na véspera', () => {
+    const meeting = new Date('2026-09-17T23:00:00Z');
+    expect(countdownLabel(meeting, new Date('2026-09-16T12:00:00Z'))).toBe('Amanhã');
+  });
+
+  it('conta os dias quando falta mais que um', () => {
+    const meeting = new Date('2026-09-17T23:00:00Z');
+    expect(countdownLabel(meeting, new Date('2026-09-14T12:00:00Z'))).toBe('Em 3 dias');
+  });
+
+  it('devolve string vazia para data ilegível, como o resto do módulo', () => {
+    expect(countdownLabel(null, new Date('2026-09-14T12:00:00Z'))).toBe('');
   });
 });
