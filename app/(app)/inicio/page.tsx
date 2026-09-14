@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Card, CardGrid } from '@/components/ui/Card';
+import { Card, CardAction, CardGrid } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Meta } from '@/components/ui/Meta';
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
-import { formatDate, formatDateTime } from '@/lib/core/format.core';
+import { countdownLabel, formatDate, formatDateTime } from '@/lib/core/format.core';
 import { nextMeeting } from '@/lib/core/circle.core';
+import { formatDuration, progressPercent, resumePosition } from '@/lib/core/library.core';
 
 export const metadata: Metadata = {
   title: 'Início',
@@ -55,19 +56,49 @@ function firstName(full: string | null | undefined, email: string | undefined): 
   return name || email?.split('@')[0] || 'por aqui';
 }
 
+/**
+ * O item embutido volta como objeto numa relação para-um e como array em
+ * algumas versões do cliente. Normalizar aqui é mais barato que descobrir em
+ * produção que a tela some porque a forma mudou numa atualização de patch.
+ */
+type ResumeItem = {
+  slug: string;
+  title: string;
+  kind: string;
+  duration_seconds: number | null;
+  season: string | null;
+};
+
+function one<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
 export default async function InicioPage() {
   const user = await requireUser();
   const supabase = await serverClient();
+  const now = new Date();
 
   // Read as the person, not around them: the policy returns their own rows and
-  // nothing else, so there is no ownership check here to get wrong.
-  const [{ data: profile }, { data: entitlements }] = await Promise.all([
+  // nothing else, so there is no ownership check here to get wrong. The same
+  // holds for the embedded content item — `!inner` drops the progress row when
+  // RLS refuses the recording, so a replay that stopped being theirs stops
+  // being offered without any status check on this page.
+  const [{ data: profile }, { data: entitlements }, { data: resumeRows }] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
     supabase
       .from('entitlements')
       .select('product, status, expires_at')
       .in('status', ['active', 'past_due'])
       .order('product'),
+    supabase
+      .from('progress')
+      .select(
+        'position_seconds, completed_at, content_items!inner(slug, title, kind, duration_seconds, season)',
+      )
+      .is('completed_at', null)
+      .order('last_seen_at', { ascending: false })
+      .limit(1),
   ]);
 
   const live = (entitlements ?? []).filter(
@@ -75,24 +106,59 @@ export default async function InicioPage() {
   );
 
   const hasCircle = live.some((row) => row.product === 'circle');
+  const meeting = nextMeeting(now);
+
+  // Só vira cartão quando de fato há onde retomar. `resumePosition` já derruba
+  // a posição na cauda da gravação, e oferecer "continuar" num item que
+  // recomeçaria do zero é a mentira que o `progressPercent` existe para evitar.
+  const resumeRow = (resumeRows ?? [])[0];
+  const resumeItem = resumeRow ? one<ResumeItem>(resumeRow.content_items as never) : null;
+  const resumeAt = resumeRow
+    ? resumePosition(
+        { position_seconds: resumeRow.position_seconds, completed_at: resumeRow.completed_at },
+        resumeItem?.duration_seconds,
+      )
+    : 0;
+  const resume =
+    resumeItem && resumeAt > 0
+      ? {
+          item: resumeItem,
+          at: resumeAt,
+          percent: progressPercent(
+            {
+              position_seconds: resumeRow.position_seconds,
+              completed_at: resumeRow.completed_at,
+            },
+            resumeItem.duration_seconds,
+          ),
+        }
+      : null;
 
   return (
-    <div className="flex flex-col gap-14">
-      <SectionHeading
-        className="max-w-2xl"
-        eyebrow="Sua área"
-        title={`Olá, ${firstName(profile?.full_name, user.email)}.`}
-      />
+    <div className="flex flex-col gap-16">
+      <div>
+        <SectionHeading
+          className="max-w-2xl"
+          eyebrow="Sua área"
+          title={
+            <>
+              Olá, <em className="accent-word">{firstName(profile?.full_name, user.email)}</em>.
+            </>
+          }
+        />
+        <div className="rule-gold mt-7" aria-hidden="true" />
+      </div>
 
       {/* The one thing with a date on it goes first, because it is the only
-          thing on this page that expires. */}
+          thing on this page that expires. What it shows first is the distance,
+          not the date: "Em 3 dias" is the part somebody acts on, and the full
+          weekday and hour is the detail they confirm underneath. */}
       {hasCircle && (
-        <section className="max-w-2xl border border-[var(--border)] bg-[var(--bg-card)] px-6 py-7">
+        <section className="max-w-2xl border-t border-[var(--border)] pt-8">
           <p className="eyebrow">Próximo encontro</p>
-          <p className="mt-3 text-lg text-[var(--text-1)]">
-            {formatDateTime(nextMeeting(new Date()))}
-          </p>
-          <div className="mt-6">
+          <p className="stat-num mt-4">{countdownLabel(meeting, now)}</p>
+          <p className="meta mt-3 text-[var(--text-3)]">{formatDateTime(meeting)}</p>
+          <div className="mt-7">
             <Button href="/circle" variant="primary">
               Entrar na sala
             </Button>
@@ -100,7 +166,25 @@ export default async function InicioPage() {
         </section>
       )}
 
-      <section className="max-w-2xl">
+      {resume && (
+        <section className="max-w-2xl border-t border-[var(--border)] pt-8">
+          <p className="eyebrow">Continuar de onde parou</p>
+          <div className="mt-6 border border-[var(--border)]">
+            <Card href={`/biblioteca/${resume.item.slug}`}>
+              <p className="card-title">{resume.item.title}</p>
+              <div className="mt-5">
+                <ProgressBar
+                  percent={resume.percent}
+                  label={`Progresso em ${resume.item.title}`}
+                />
+              </div>
+              <CardAction>Retomar em {formatDuration(resume.at)}</CardAction>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      <section className="max-w-2xl border-t border-[var(--border)] pt-8">
         <h2 className="section-title">Seus acessos</h2>
 
         {live.length > 0 ? (
@@ -117,13 +201,13 @@ export default async function InicioPage() {
                 <li key={row.product}>
                   <Card href={product.href}>
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-lg text-[var(--text-1)]">{product.name}</p>
+                      <p className="card-title">{product.name}</p>
                       <Badge tone={row.expires_at ? 'neutral' : 'accent'}>
                         {row.expires_at ? `Até ${formatDate(row.expires_at)}` : 'Vitalício'}
                       </Badge>
                     </div>
-                    {product.blurb && <p className="prose-body mt-2">{product.blurb}</p>}
-                    <Meta className="mt-4" parts={[product.cta]} />
+                    {product.blurb && <p className="prose-body mt-3">{product.blurb}</p>}
+                    <CardAction>{product.cta}</CardAction>
                   </Card>
                 </li>
               );

@@ -1,12 +1,18 @@
 import type { Metadata } from 'next';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Card, CardGrid } from '@/components/ui/Card';
+import { Card, CardAction, CardGrid } from '@/components/ui/Card';
 import { Meta } from '@/components/ui/Meta';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
-import { buildShelf, formatDuration, type CatalogItem } from '@/lib/core/library.core';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import {
+  buildShelf,
+  formatDuration,
+  progressPercent,
+  type CatalogItem,
+} from '@/lib/core/library.core';
 
 export const metadata: Metadata = {
   title: 'Biblioteca',
@@ -38,14 +44,24 @@ export default async function BibliotecaPage() {
   await requireUser();
   const supabase = await serverClient();
 
-  const [{ data: catalog }, { data: entitled }] = await Promise.all([
+  const [{ data: catalog }, { data: entitled }, { data: progress }] = await Promise.all([
     supabase
       .from('content_catalog')
       .select(
         'id, slug, kind, collection, title, description, duration_seconds, season, required_products, sort_order',
       ),
     supabase.from('content_items').select('id'),
+    // A terceira leitura é o que faz a prateleira parar de ser um índice: sem
+    // ela, um item já começado é visualmente idêntico a um nunca aberto.
+    supabase.from('progress').select('content_item_id, position_seconds, completed_at'),
   ]);
+
+  const seen = new Map(
+    (progress ?? []).map((row) => [
+      row.content_item_id as string,
+      { position_seconds: row.position_seconds as number, completed_at: row.completed_at as string | null },
+    ]),
+  );
 
   const shelves = buildShelf(
     (catalog ?? []) as CatalogItem[],
@@ -94,7 +110,12 @@ export default async function BibliotecaPage() {
             </h2>
 
             <CardGrid className="mt-6" columns={2}>
-              {shelf.items.map((item) => (
+              {shelf.items.map((item) => {
+                const percent = item.locked
+                  ? 0
+                  : progressPercent(seen.get(item.id), item.duration_seconds);
+
+                return (
                 <li key={item.id}>
                   <Card
                     href={item.locked ? '/circle' : `/biblioteca/${item.slug}`}
@@ -102,7 +123,7 @@ export default async function BibliotecaPage() {
                     className="flex flex-col"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <p className="text-lg text-[var(--text-1)]">{item.title}</p>
+                      <p className="card-title">{item.title}</p>
                       {item.locked && <Badge tone="muted">Bloqueado</Badge>}
                     </div>
 
@@ -117,19 +138,31 @@ export default async function BibliotecaPage() {
                       ]}
                     />
 
+                    {/* Uma régua só aparece quando há o que ela conte. Barra
+                        em zero em toda a prateleira é ruído: ela passa a
+                        significar "item", não "progresso". */}
+                    {percent > 0 && (
+                      <div className="mt-4">
+                        <ProgressBar percent={percent} label={`Progresso em ${item.title}`} />
+                      </div>
+                    )}
+
                     {/* The locked card is the one place on the platform where
                         somebody is looking straight at what they do not have.
                         It is a link out, not a dead end. */}
-                    {item.locked && (
-                      <p className="mt-4">
-                        <span className="text-xs uppercase tracking-[0.16em] text-[var(--accent)]">
-                          Liberar com o Circle
-                        </span>
-                      </p>
-                    )}
+                    <CardAction>
+                      {item.locked
+                        ? 'Liberar com o Circle'
+                        : percent > 0
+                          ? 'Continuar'
+                          : item.kind === 'pdf'
+                            ? 'Abrir o PDF'
+                            : 'Assistir'}
+                    </CardAction>
                   </Card>
                 </li>
-              ))}
+                );
+              })}
             </CardGrid>
           </section>
         ))
