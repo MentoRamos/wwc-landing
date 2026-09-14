@@ -38,6 +38,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Acessos
             </Link>
             <Link
+              href="/admin/conteudo"
+              className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+            >
+              Conteúdo
+            </Link>
+            <Link
               href="/admin/interesse"
               className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
             >
