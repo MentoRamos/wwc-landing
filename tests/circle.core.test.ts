@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CIRCLE_PLANS, checkoutUrl, nextMeeting, priceLabel } from '@/lib/core/circle.core';
+import { CIRCLE_PLANS, checkoutUrl, holdsCircle, nextMeeting, priceLabel } from '@/lib/core/circle.core';
 
 describe('CIRCLE_PLANS', () => {
   it('carries the two prices Kauã set, in cents', () => {
@@ -141,5 +141,55 @@ describe('nextMeeting', () => {
     expect(at('2026-12-25T12:00:00Z').toISOString()).toBe('2026-12-31T23:00:00.000Z');
     // Friday 2027-01-01 -> Thursday 2027-01-07
     expect(at('2027-01-01T12:00:00Z').toISOString()).toBe('2027-01-07T23:00:00.000Z');
+  });
+});
+
+/**
+ * Quem vê o encontro e quem vê o preço.
+ *
+ * Esta decisão morava solta dentro de `/circle`, sem teste, e é a que decide
+ * se um assinante em dia leva na cara uma página tentando vender o que ele já
+ * paga — ou pior, se alguém sem assinatura enxerga o link da sala.
+ *
+ * O RLS já devolve só linhas de quem tem direito; isto é o segundo filtro,
+ * sobre a data, e ele fecha por padrão: qualquer forma estranha vira "não
+ * tem".
+ */
+describe('holdsCircle', () => {
+  const future = new Date(Date.now() + 864e5).toISOString();
+  const past = new Date(Date.now() - 864e5).toISOString();
+
+  it('abre para quem está em dia', () => {
+    expect(holdsCircle([{ expires_at: future }])).toBe(true);
+  });
+
+  it('abre para o vitalício, que é expires_at nulo', () => {
+    expect(holdsCircle([{ expires_at: null }])).toBe(true);
+  });
+
+  it('fecha quando a data já passou', () => {
+    expect(holdsCircle([{ expires_at: past }])).toBe(false);
+  });
+
+  it('fecha quando o RLS não devolveu nada', () => {
+    expect(holdsCircle([])).toBe(false);
+    expect(holdsCircle(null)).toBe(false);
+    expect(holdsCircle(undefined)).toBe(false);
+  });
+
+  /**
+   * O caso do cancelamento: a Kiwify manda `subscription_canceled` e nós
+   * gravamos a linha com a data já paga. A pessoa continua entrando até lá.
+   */
+  it('mantém aberto depois de cancelar, até a data já paga', () => {
+    expect(holdsCircle([{ expires_at: future }])).toBe(true);
+  });
+
+  it('basta uma linha viva entre várias mortas', () => {
+    expect(holdsCircle([{ expires_at: past }, { expires_at: future }])).toBe(true);
+  });
+
+  it('fecha se a data for ilegível, em vez de confiar', () => {
+    expect(holdsCircle([{ expires_at: 'nao-e-data' }])).toBe(false);
   });
 });

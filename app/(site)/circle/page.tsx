@@ -7,7 +7,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { InterestForm } from '@/components/interest/InterestForm';
 import { currentUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
-import { CIRCLE_PLANS, checkoutUrl, nextMeeting, priceLabel } from '@/lib/core/circle.core';
+import { CIRCLE_PLANS, checkoutUrl, holdsCircle, nextMeeting, priceLabel } from '@/lib/core/circle.core';
 import { formatDateTime } from '@/lib/core/format.core';
 
 /**
@@ -75,9 +75,10 @@ export default async function CirclePage() {
       .eq('product', 'circle')
       .in('status', ['active', 'past_due']);
 
-    hasCircle = (data ?? []).some(
-      (row) => row.expires_at === null || new Date(row.expires_at) > new Date(),
-    );
+    // A regra da data mora em `holdsCircle`, testada. Aqui ela era uma linha
+    // solta dentro do componente — e é a linha que decide se um assinante em
+    // dia leva na cara uma página tentando vender o que ele já paga.
+    hasCircle = holdsCircle(data);
   }
 
   return hasCircle ? <MemberView /> : <SalesView user={user} />;

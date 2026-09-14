@@ -109,3 +109,29 @@ export function nextMeeting(now: Date): Date {
   }
   return candidate;
 }
+
+export type EntitlementRow = { expires_at: string | null };
+
+/**
+ * Quem vê o encontro e quem vê o preço.
+ *
+ * A consulta que alimenta isto roda com o cliente do próprio usuário, então o
+ * RLS já devolveu só o que é dele e só com status vivo. O que sobra para
+ * decidir aqui é a data — e ela fecha por padrão: linha nenhuma, data ilegível
+ * ou data vencida são todas "não tem".
+ *
+ * `expires_at` nulo é vitalício, e é a mesma regra que sustenta a plataforma
+ * inteira. Uma assinatura cancelada chega aqui com a data já paga no futuro,
+ * porque cancelar mantém o período — por isso não existe checagem de status
+ * repetida neste ponto: ela viveria em dois lugares e discordaria num deles.
+ */
+export function holdsCircle(rows: EntitlementRow[] | null | undefined): boolean {
+  if (!rows?.length) return false;
+
+  const now = Date.now();
+  return rows.some((row) => {
+    if (row.expires_at === null) return true;
+    const at = new Date(row.expires_at).getTime();
+    return Number.isFinite(at) && at > now;
+  });
+}
