@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-display: "Playfair Display", "Playfair Display Fallback", serif;
-  --font-body: "Inter", "Inter Fallback", sans-serif;
+  /*
+   * Didot é a serif da marca; Playfair é o fallback que o DESIGN.md nomeia, e
+   * é o que existe no Google Fonts. Didot vem primeiro para quem tiver.
+   */
+  --font-display: Didot, "Playfair Display", "Playfair Display Fallback", Georgia, serif;
+  /*
+   * O corpo era Inter, que o design system proíbe por nome ("Proibido cair em
+   * Inter/Roboto/Arial genérico"). A pilha do sistema é o que o doc pede, e
+   * tem o efeito colateral de tirar uma fonte da rede do caminho crítico.
+   */
+  --font-body: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "Segoe UI", sans-serif;
   --color-gold: #C9A84C;
   --color-gold-dim: #A68A3A;
   --color-gold-glow: rgba(201, 168, 76, 0.14);
@@ -10,22 +19,34 @@
 
 @layer base {
   :root {
-    --bg: #0C0C0C;
-    --bg-elevated: #111111;
-    --bg-card: #161616;
-    --bg-card-hover: #1C1C1C;
+    /*
+     * A família inteira do texto era cinza-azulada (#F2F3F5 / #B4B8BF), fria,
+     * e é a razão de a plataforma ler como app em vez de impresso. O DESIGN.md
+     * pede ivory quente (#F4F2EE) e as opacidades derivadas dela: assim toda
+     * palavra na tela pertence à mesma tinta, que é o que dá o ar editorial.
+     */
+    --bg: #0D0D0D;
+    --bg-elevated: #121212;
+    --bg-card: #181818;
+    --bg-card-hover: #1F1F1F;
     --surface: #232323;
-    --text-1: #F2F3F5;
-    --text-2: #B4B8BF;
-    --text-3: #8A8E96;
-    --text-4: #7E838B;
+    --text-1: #F4F2EE;
+    --text-2: rgba(244, 242, 238, 0.66);
+    /*
+     * O doc diz "faint .40" para legenda. `--text-3` carrega rótulo e dado
+     * acionável em 61 lugares, e a .40 sobre este fundo reprova AA — é o mesmo
+     * erro que o design system do report já documenta sobre `--ink-3`. Fica em
+     * .52 (~4,6:1, passa AA) e a .40 real vive em `--text-4`, que é legenda.
+     */
+    --text-3: rgba(244, 242, 238, 0.52);
+    --text-4: rgba(244, 242, 238, 0.4);
 
     --accent: #C9A84C;
     --accent-dim: #A68A3A;
     --accent-glow: rgba(201, 168, 76, 0.14);
 
     --bg-locked: #121212;
-    --border: rgba(255, 255, 255, 0.06);
+    --border: rgba(244, 242, 238, 0.11);
     --border-hover: rgba(201, 168, 76, 0.25);
 
     --header-height: 80px;
@@ -95,7 +116,7 @@
   line-height: 1.4;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: var(--text-3);
+  color: var(--accent);
 }
 
 .page-title {
@@ -531,4 +552,22 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ÊNFASE DA MARCA
+   O DESIGN.md define a assinatura em uma linha: "Itálico serif = ênfase (a
+   palavra-acento em dourado)". Não existia na plataforma, então toda ênfase
+   virava negrito — que é o gesto de app, não de impresso.
+
+   Uma por bloco. Duas deixam de ser ênfase e viram decoração, que é a mesma
+   regra do "um gesto de destaque por página".
+───────────────────────────────────────────────────────────────────────────── */
+
+.accent-word {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: -0.01em;
 }
