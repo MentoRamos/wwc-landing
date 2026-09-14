@@ -13,7 +13,12 @@ export function SectionHeading({
   children,
 }: {
   eyebrow?: string;
-  title: string;
+  /**
+   * Texto ou JSX. Aceita nó porque a assinatura da marca é uma palavra em
+   * itálico serif dourado dentro do título, e com `string` ela era impossível
+   * — toda ênfase acabava caindo em negrito, que é gesto de app.
+   */
+  title: React.ReactNode;
   lede?: React.ReactNode;
   level?: 1 | 2;
   className?: string;

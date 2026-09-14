@@ -157,14 +157,19 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
           <div>
             <SectionHeading
               eyebrow="W&W Circle"
-              title="O acompanhamento que cabe em quem ainda não quer um acompanhamento."
+              title={
+                <>
+                  O acompanhamento que cabe em quem{' '}
+                  <em className="accent-word">ainda não quer</em> um acompanhamento.
+                </>
+              }
               lede="Uma hora por semana, ao vivo, sobre o que os seus dados estão dizendo e o que fazer na semana seguinte. Sem consulta, sem ficha, sem compromisso de arco."
             />
 
             <ul className="mt-10 flex flex-col gap-3">
               {INCLUDED.map((line) => (
                 <li key={line} className="prose-body flex gap-3">
-                  <span aria-hidden="true" className="text-[var(--accent)]">
+                  <span aria-hidden="true" className="text-[var(--text-4)]">
                     &mdash;
                   </span>
                   {line}
@@ -197,7 +202,7 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <p className="eyebrow">{plan.label}</p>
+                  <p className="meta">{plan.label}</p>
                   {isFeatured && plan.savingCents > 0 && (
                     <Badge tone="accent">
                       Economize {priceLabel(plan.savingCents)}
