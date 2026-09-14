@@ -61,29 +61,48 @@ export default async function AcessosPage() {
   const rows = (data ?? []) as Row[];
 
   return (
-    <div className="flex flex-col gap-16">
-      <section className="max-w-2xl">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">Acessos</p>
-        <h1 className="mt-4 text-4xl">Conceder</h1>
-        <p className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">
+    <div className="flex flex-col gap-12">
+      <header className="max-w-2xl">
+        <p className="eyebrow">Acessos</p>
+        <h1 className="page-title mt-4">Conceder</h1>
+        <div className="rule-gold mt-6" aria-hidden="true" />
+        <p className="prose-body mt-6">
           O acesso pode ser concedido a quem nunca entrou na plataforma. Ele casa por
-          e-mail e já está lá no primeiro login — não existe passo de resgate.
+          e-mail e já está lá no primeiro login: não existe passo de resgate.
         </p>
+      </header>
 
-        <div className="mt-10">
-          <GrantForm />
-        </div>
+      {/*
+        As duas metades ficam lado a lado, e não é só para preencher a largura.
+        Conceder e conferir são o mesmo gesto: cola a lista de e-mails, aperta,
+        e as linhas novas têm que aparecer no campo de visão. Empilhado, o
+        resultado da ação nascia abaixo da dobra.
+
+        E resolve um defeito que era de uso, não de estética: a linha da lista
+        ocupava a largura inteira do container com `justify-between`, então
+        "Revogar" ficava a mais de mil pixels do e-mail que ele revoga. O
+        próprio `RevokeButton` já documenta que essa forma produz toque errado,
+        e um toque errado aqui corta o acesso de quem pagou.
+      */}
+      <div className="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
+      <section>
+        <GrantForm />
       </section>
 
       <section>
-        <h2 className="text-2xl">Concedidos</h2>
+        <h2 className="section-title">Concedidos</h2>
+        {rows.length > 0 && (
+          <p className="meta mt-3">
+            {rows.length === 1 ? '1 acesso' : `${rows.length} acessos`}
+          </p>
+        )}
 
         {error ? (
           <p className="mt-6 text-sm text-[var(--text-2)]">
             Não consegui ler a lista: {error.message}
           </p>
         ) : rows.length === 0 ? (
-          <p className="mt-6 text-sm text-[var(--text-2)]">
+          <p className="prose-body mt-6">
             Nada ainda. O primeiro acesso concedido aparece aqui.
           </p>
         ) : (
@@ -96,7 +115,7 @@ export default async function AcessosPage() {
                   className="flex flex-wrap items-center justify-between gap-4 bg-[var(--bg-card)] px-6 py-4"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm text-[var(--text-1)]">{row.email_raw}</p>
+                    <p className="truncate text-[15px] text-[var(--text-1)]">{row.email_raw}</p>
                     <p className="mt-1 text-xs text-[var(--text-3)]">
                       {PRODUCT_LABEL[row.product] ?? row.product} · {state.label} ·{' '}
                       {row.source === 'manual' ? 'na mão' : row.source}
@@ -114,6 +133,7 @@ export default async function AcessosPage() {
           </ul>
         )}
       </section>
+      </div>
     </div>
   );
 }

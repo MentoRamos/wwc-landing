@@ -62,30 +62,40 @@ export default async function ConteudoPage() {
 
   return (
     <div className="flex flex-col gap-16">
-      <section className="max-w-2xl">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">Conteúdo</p>
-        <h1 className="mt-4 text-4xl">Publicar</h1>
-        <p className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">
-          O que entra aqui aparece na Biblioteca de quem tem o produto exigido. Repetir um
-          endereço já existente atualiza aquele item, em vez de criar outro.
-        </p>
-      </section>
+      {/*
+        Cabeçalho e formulário lado a lado, como em `/circle` e em
+        `/admin/acessos`: a coluna que explica à esquerda, a que age à direita.
+        Empilhados e presos a `max-w-2xl`, os dois deixavam metade da largura
+        em preto, que é a falha de enquadramento que o design system reprova.
+        A tabela abaixo continua inteira, porque ali a largura é o conteúdo.
+      */}
+      <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-start lg:gap-16">
+        <header>
+          <p className="eyebrow">Conteúdo</p>
+          <h1 className="page-title mt-4">Publicar</h1>
+          <div className="rule-gold mt-6" aria-hidden="true" />
+          <p className="prose-body mt-6">
+            O que entra aqui aparece na Biblioteca de quem tem o produto exigido. Repetir um
+            endereço já existente atualiza aquele item, em vez de criar outro.
+          </p>
+        </header>
 
-      <section className="max-w-2xl">
-        <ContentForm />
-      </section>
+        <section>
+          <ContentForm />
+        </section>
+      </div>
 
-      <section className="flex flex-col gap-6">
+      <section className="flex flex-col gap-6 border-t border-[var(--border)] pt-12">
         <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-2xl">Na prateleira</h2>
-          <p className="text-xs text-[var(--text-4)]">
+          <h2 className="section-title">Na prateleira</h2>
+          <p className="meta">
             {rows.length} {rows.length === 1 ? 'item' : 'itens'}
             {drafts > 0 && ` · ${drafts} em rascunho`}
           </p>
         </div>
 
         {rows.length === 0 ? (
-          <p className="text-sm text-[var(--text-3)]">
+          <p className="prose-body">
             Nada publicado ainda. O primeiro item que você salvar aparece aqui.
           </p>
         ) : (

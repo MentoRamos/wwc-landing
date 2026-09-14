@@ -1,14 +1,21 @@
 'use client';
 
 import { useActionState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { Field, INPUT_CLASS, describedBy } from '@/components/ui/Field';
 import { grantAccess, type ActionState } from '@/app/admin/acessos/actions';
 import { PRODUCTS } from '@/lib/core/admin.core';
 
+/**
+ * O parêntese no lugar do travessão não é gosto: travessão em texto visível é
+ * proibido pela regra de copy PT-BR que os dois design systems listam em
+ * "Forbidden", e estes rótulos apareciam na tela.
+ */
 const PRODUCT_LABEL: Record<string, string> = {
-  protocol: 'Protocol — vitalício',
-  circle: 'Circle — assinatura',
-  connect: 'Connect — convidado do evento',
-  face_a_face: 'Face a Face — sessão avulsa',
+  protocol: 'Protocol (vitalício)',
+  circle: 'Circle (assinatura)',
+  connect: 'Connect (convidado do evento)',
+  face_a_face: 'Face a Face (sessão avulsa)',
 };
 
 const TERMS = [
@@ -20,93 +27,91 @@ const TERMS = [
 
 const EMPTY: ActionState = { ok: false, message: '' };
 
-const field =
-  'w-full border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--text-1)] ' +
-  'outline-none transition focus:border-[var(--accent)]';
-
 /**
  * One box, many addresses. The whole point of this screen is that Kauã can
  * paste what he already has — a column out of a sheet, a list out of
  * WhatsApp — instead of typing four people one at a time.
+ *
+ * A forma vem toda de `Field` e `INPUT_CLASS` agora. Antes esta tela tinha a
+ * própria constante `field` e o próprio `<label>` à mão, o que a deixava fora
+ * do sistema de duas maneiras que dá para ver no print: os campos ficavam num
+ * cinza diferente do resto da plataforma, e os rótulos não eram `.eyebrow`.
+ * Um admin que parece outro produto é um admin em que se erra mais.
  */
 export function GrantForm() {
   const [state, action, pending] = useActionState(grantAccess, EMPTY);
 
   return (
-    <form action={action} className="flex flex-col gap-5">
-      <label className="flex flex-col gap-2">
-        <span className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
-          E-mails — um por linha
-        </span>
+    <form action={action} className="flex flex-col gap-6">
+      <Field
+        id="emails"
+        label="E-mails, um por linha"
+        hint="Dá para colar direto de uma planilha. Um produto depois da vírgula vale só para aquela linha."
+      >
         <textarea
+          id="emails"
           name="emails"
-          rows={5}
+          rows={6}
           required
           spellCheck={false}
           placeholder={'alguem@exemplo.com\noutra@exemplo.com, circle'}
-          className={`${field} font-mono`}
+          // `resize-y` porque o punho nativo de redimensionar nos dois eixos
+          // deixa esticar o campo para fora da coluna e quebrar o layout.
+          className={`${INPUT_CLASS} resize-y font-mono leading-relaxed`}
+          {...describedBy('emails', { hint: true })}
         />
-        <span className="text-xs text-[var(--text-4)]">
-          Dá para colar direto de uma planilha. Um produto depois da vírgula vale só
-          para aquela linha.
-        </span>
-      </label>
+      </Field>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <label className="flex flex-col gap-2">
-          <span className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
-            Produto
-          </span>
-          <select name="product" defaultValue="circle" className={field}>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Field id="product" label="Produto">
+          <select id="product" name="product" defaultValue="circle" className={INPUT_CLASS}>
             {PRODUCTS.map((product) => (
               <option key={product} value={product}>
                 {PRODUCT_LABEL[product]}
               </option>
             ))}
           </select>
-        </label>
+        </Field>
 
-        <label className="flex flex-col gap-2">
-          <span className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
-            Prazo
-          </span>
-          <select name="term" defaultValue="lifetime" className={field}>
+        <Field id="term" label="Prazo">
+          <select id="term" name="term" defaultValue="lifetime" className={INPUT_CLASS}>
             {TERMS.map((term) => (
               <option key={term.value} value={term.value}>
                 {term.label}
               </option>
             ))}
           </select>
-        </label>
+        </Field>
       </div>
 
-      <label className="flex flex-col gap-2">
-        <span className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
-          Nota — opcional
-        </span>
+      <Field id="note" label="Nota (opcional)">
         <input
+          id="note"
           name="note"
           type="text"
           placeholder="cortesia, lote do evento, troca de e-mail…"
-          className={field}
+          className={INPUT_CLASS}
         />
-      </label>
+      </Field>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="btn-glow border border-[var(--border-hover)] bg-[var(--bg-card)] px-6 py-4 text-sm font-medium text-[var(--text-1)] transition hover:bg-[var(--bg-card-hover)] disabled:cursor-wait disabled:opacity-60"
-      >
+      {/*
+        A ação principal da tela era o elemento mais fraco dela: um botão com
+        fundo `--bg-card` sobre fundo `--bg-card`, sem ouro, esticado a 100% da
+        coluna. Botão de 660px lê como faixa, não como gesto. Agora é o
+        `primary` do sistema, no tamanho que ele tem em toda a plataforma, e
+        `self-start` devolve a ele a largura do próprio texto.
+      */}
+      <Button type="submit" variant="primary" size="lg" disabled={pending} className="self-start">
         {pending ? 'Concedendo…' : 'Conceder acesso'}
-      </button>
+      </Button>
 
       {state.message && (
         <div
           role="status"
-          className={`border px-4 py-3 text-sm ${
+          className={`border-l-2 bg-[var(--bg-card)] px-4 py-3 text-sm ${
             state.ok
               ? 'border-[var(--accent)] text-[var(--text-1)]'
-              : 'border-[var(--border-hover)] text-[var(--text-2)]'
+              : 'border-[var(--text-4)] text-[var(--text-2)]'
           }`}
         >
           <p>{state.message}</p>
