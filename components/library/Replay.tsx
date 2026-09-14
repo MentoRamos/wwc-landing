@@ -104,7 +104,7 @@ export function Replay({
   if (failed) {
     return (
       <p role="alert" className="text-sm text-[var(--text-2)]">
-        Não consegui carregar o player. Recarregue a página — se insistir, me chame
+        Não consegui carregar o player. Recarregue a página. Se insistir, me chame
         no WhatsApp.
       </p>
     );

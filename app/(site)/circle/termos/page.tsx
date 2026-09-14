@@ -24,7 +24,7 @@ export default function CircleTermosPage() {
       <Section n={1} title="Preço e periodicidade">
         <p>
           {priceLabel(monthly.priceCents)} por mês, ou{' '}
-          {priceLabel(quarterly.priceCents)} a cada três meses — o equivalente a{' '}
+          {priceLabel(quarterly.priceCents)} a cada três meses, o equivalente a{' '}
           {priceLabel(quarterly.priceCents / quarterly.months)} por mês. A cobrança é feita
           por um processador de pagamentos externo e renova automaticamente até você
           cancelar.
@@ -43,7 +43,7 @@ export default function CircleTermosPage() {
         </p>
         <p>
           O Circle não é acompanhamento individual e não substitui o Protocol. Não há
-          avaliação, prescrição nem plano pessoal — veja a seção 5.
+          avaliação, prescrição nem plano pessoal. Veja a seção 5.
         </p>
       </Section>
 

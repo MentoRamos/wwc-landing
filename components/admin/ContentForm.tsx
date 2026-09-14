@@ -17,8 +17,8 @@ const PRODUCT_LABEL: Record<string, string> = {
 };
 
 const KIND_LABEL: Record<string, string> = {
-  pdf: "PDF — arquivo no bucket privado",
-  video: "Gravação — vídeo não listado no YouTube",
+  pdf: "PDF (arquivo no bucket privado)",
+  video: "Gravação (vídeo não listado no YouTube)",
 };
 
 const field =
@@ -71,7 +71,7 @@ export function ContentForm() {
         />
         <span className="text-xs text-[var(--text-4)]">
           É a chave única da tabela. Repetir um endereço existente atualiza
-          aquele item em vez de criar outro — é assim que se corrige uma
+          aquele item em vez de criar outro. É assim que se corrige uma
           descrição errada.
         </span>
       </label>
@@ -124,7 +124,7 @@ export function ContentForm() {
             className={`${field} font-mono`}
           />
           <span className="text-xs text-[var(--text-4)]">
-            Pode colar a URL inteira — só o id é guardado. O vídeo precisa estar
+            Pode colar a URL inteira: só o id é guardado. O vídeo precisa estar
             como não listado, e o id é tratado como segredo: nunca aparece para
             quem não tem o produto.
           </span>
@@ -150,7 +150,7 @@ export function ContentForm() {
           ))}
         </div>
         <span className="text-xs text-[var(--text-4)]">
-          Sem nenhum marcado o item fica trancado até para quem pagou — a regra
+          Sem nenhum marcado o item fica trancado até para quem pagou. A regra
           de acesso compara listas, e lista vazia não casa com nada.
         </span>
       </fieldset>

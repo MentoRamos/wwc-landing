@@ -66,7 +66,7 @@ export function GoogleButton({ next }: { next: string }) {
 
       {state === 'error' && (
         <p role="alert" className="text-sm text-[var(--text-2)]">
-          Não consegui abrir o Google agora. Tente de novo em alguns segundos — se
+          Não consegui abrir o Google agora. Tente de novo em alguns segundos. Se
           continuar, me chame no WhatsApp.
         </p>
       )}

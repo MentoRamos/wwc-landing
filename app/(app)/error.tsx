@@ -23,7 +23,7 @@ export default function AppError({
     <div className="max-w-md">
       <h1 className="text-3xl">Alguma coisa quebrou aqui.</h1>
       <p className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">
-        Não foi culpa sua e nada do seu acesso se perdeu. Tente de novo — se
+        Não foi culpa sua e nada do seu acesso se perdeu. Tente de novo. Se
         insistir, me chame no WhatsApp.
       </p>
 

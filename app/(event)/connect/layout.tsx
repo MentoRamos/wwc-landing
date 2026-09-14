@@ -14,7 +14,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 export const metadata: Metadata = {
   title: {
     absolute:
-      'Wealth & Wellness Connect — O evento premium de saúde e alta performance para CEOs',
+      'Wealth & Wellness Connect: o evento premium de saúde e alta performance para CEOs',
   },
   description:
     'Evento exclusivo para 40 CEOs e executivos sobre saúde baseada em dados, wearables, biohacking e alta performance. 2ª edição em breve.',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: '/connect',
     siteName: 'Wealth & Wellness Connect',
-    title: 'Wealth & Wellness Connect — A Era do CEO Quantificado',
+    title: 'Wealth & Wellness Connect · A Era do CEO Quantificado',
     description:
       'Evento exclusivo para 40 CEOs e executivos. Saúde baseada em dados, wearables e biohacking. 2ª edição em breve.',
     images: [
@@ -56,13 +56,13 @@ export const metadata: Metadata = {
         url: '/photos/kaua-portrait-seated.jpg',
         width: 1200,
         height: 630,
-        alt: 'Wealth & Wellness Connect — Keynote',
+        alt: 'Keynote do Wealth & Wellness Connect',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Wealth & Wellness Connect — A Era do CEO Quantificado',
+    title: 'Wealth & Wellness Connect · A Era do CEO Quantificado',
     description:
       'Evento exclusivo para 40 CEOs e executivos. Saúde baseada em dados, wearables e alta performance.',
     images: ['/photos/kaua-portrait-seated.jpg'],

@@ -7,7 +7,7 @@ export const EVENT = {
   edition1: {
     date: '13 de março de 2026',
     city: 'Goiânia',
-    venue: 'Legado — Ricardo Paranhos',
+    venue: 'Legado · Ricardo Paranhos',
     attendees: 40,
     duration: '3h15',
     blocks: 6,
@@ -102,7 +102,7 @@ export const TESTIMONIALS = [
     role: 'CEO, Setor Imobiliário',
   },
   {
-    quote: 'Networking de altíssimo nível combinado com conteúdo prático. Não é mais um evento motivacional — é ciência aplicada.',
+    quote: 'Networking de altíssimo nível combinado com conteúdo prático. Não é mais um evento motivacional. É ciência aplicada.',
     name: 'Participante 1ª Edição',
     role: 'Fundador, Tecnologia',
   },

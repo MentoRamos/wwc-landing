@@ -5,7 +5,7 @@ import { LEGAL, LEGAL_IS_DRAFT, PROCESSORS, pending } from '@/lib/legal';
 export const metadata: Metadata = {
   title: 'Política de Privacidade',
   description:
-    'Quais dados o kauaramos.com trata — do material que você baixa à assinatura do Circle —, por quê, e como pedir para apagá-los.',
+    'Quais dados o kauaramos.com trata, do material que você baixa à assinatura do Circle, por quê, e como pedir para apagá-los.',
   robots: LEGAL_IS_DRAFT ? { index: false, follow: false } : undefined,
 };
 
@@ -34,7 +34,7 @@ export default function PrivacidadePage() {
           O responsável pelo tratamento descrito aqui é {controller()}, a quem a
           LGPD (Lei 13.709/2018) chama de controlador. Esta política vale para
           tudo que roda em kauaramos.com: as páginas públicas, os materiais, o
-          chat, o formulário de preparação e a plataforma com login — o W&amp;W
+          chat, o formulário de preparação e a plataforma com login: o W&amp;W
           Circle, a Biblioteca e a sua área.
         </p>
         <p>
@@ -46,7 +46,7 @@ export default function PrivacidadePage() {
       <Section n={2} title="O que é coletado, e quando">
         <p>
           <strong className="text-[var(--text-1)]">Quando você baixa um material.</strong>{' '}
-          Nome, e-mail, WhatsApp e a origem do clique — de qual campanha ou link
+          Nome, e-mail, WhatsApp e a origem do clique, de qual campanha ou link
           você veio. O WhatsApp serve para falar com você sobre o conteúdo e o
           acompanhamento. Não é vendido nem repassado, e é só pedir que eu apago.
         </p>
@@ -95,7 +95,7 @@ export default function PrivacidadePage() {
           por isso o tratamento é diferente do resto desta página.
         </p>
         <p>
-          A base legal é o seu <em>consentimento específico</em> — aquele quadrado
+          A base legal é o seu <em>consentimento específico</em>: aquele quadrado
           que você marca no fim do formulário, separado de qualquer outro aceite.
           O dado é usado só para analisar o seu caso e montar o seu plano. Fica
           em um arquivo próprio, separado da lista de contatos. Não é
@@ -160,7 +160,7 @@ export default function PrivacidadePage() {
           {PROCESSORS.map((processor) => (
             <li key={processor.id}>
               <strong className="text-[var(--text-1)]">{processor.name}</strong>{' '}
-              recebe {processor.gets} — {processor.why}.
+              recebe {processor.gets}, {processor.why}.
             </li>
           ))}
         </ul>
@@ -175,7 +175,7 @@ export default function PrivacidadePage() {
         </p>
         <p>
           Escreva para {contact()}. A resposta sai em até 15 dias. Para apagar a
-          conta inteira basta dizer isso na mensagem — não há formulário escondido
+          conta inteira basta dizer isso na mensagem. Não há formulário escondido
           nem etapa de retenção. Todo e-mail enviado tem link de descadastro em um
           clique, e o consentimento dos cookies você revoga limpando os dados do
           site no seu navegador.

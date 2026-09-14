@@ -137,7 +137,7 @@ export default async function ConteudoPage() {
                           // ninguém nota: a prateleira mostra o cadeado e ele não
                           // abre nem para quem pagou.
                           <span className="text-[var(--accent)]">
-                            ninguém — falta escolher o produto
+                            ninguém: falta escolher o produto
                           </span>
                         ) : (
                           row.required_products

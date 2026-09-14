@@ -111,7 +111,7 @@ export function HeroSection() {
         ) : (
           <Image
             src="/photos/kaua-portrait-seated.jpg"
-            alt="Kauã Ramos — Wealth & Wellness Connect"
+            alt="Kauã Ramos no Wealth & Wellness Connect"
             fill
             sizes="100vw"
             className="object-cover object-[center_30%]"
@@ -125,7 +125,7 @@ export function HeroSection() {
         {hasVideo && !videoReady && (
           <Image
             src="/photos/kaua-portrait-seated.jpg"
-            alt="Kauã Ramos — Wealth & Wellness Connect"
+            alt="Kauã Ramos no Wealth & Wellness Connect"
             fill
             sizes="100vw"
             className="object-cover object-[center_30%]"

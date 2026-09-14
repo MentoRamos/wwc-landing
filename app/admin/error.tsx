@@ -23,7 +23,7 @@ export default function AdminError({
     <div className="max-w-md">
       <h1 className="text-3xl">Alguma coisa quebrou aqui.</h1>
       <p className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">
-        Nenhuma concessão foi perdida — o que falhou foi a leitura, não a escrita.
+        Nenhuma concessão foi perdida: o que falhou foi a leitura, não a escrita.
         Confira a lista depois de tentar de novo.
       </p>
 

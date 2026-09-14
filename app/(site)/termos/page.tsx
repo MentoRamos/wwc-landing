@@ -33,7 +33,7 @@ export default function TermosPage() {
           Estes termos regem o uso da plataforma Wealth &amp; Wellness, operada
           por {controller()}{registration()}. Ao entrar com sua conta
           Google, você concorda com o que está escrito aqui. Se não concordar,
-          não entre — e, se já entrou, peça o encerramento pela seção 11.
+          não entre. E, se já entrou, peça o encerramento pela seção 11.
         </p>
       </Section>
 
@@ -42,7 +42,7 @@ export default function TermosPage() {
           O acesso é pessoal e intransferível, e a entrada é feita pela sua conta
           Google. Você precisa ter 18 anos ou mais. O acesso é ligado ao endereço
           de e-mail: se você comprar com um endereço e entrar com outro, o acesso
-          não aparece sozinho — fale com a gente que ligamos os dois.
+          não aparece sozinho. Fale com a gente que ligamos os dois.
         </p>
         <p>
           Compartilhar seu acesso, ou o conteúdo que ele abre, com quem não pagou
@@ -68,7 +68,7 @@ export default function TermosPage() {
         </p>
         <p>
           O que a plataforma entrega é acesso a conteúdo e a encontros. Nenhum
-          produto promete resultado de saúde, estética ou desempenho — veja a
+          produto promete resultado de saúde, estética ou desempenho. Veja a
           seção 8.
         </p>
       </Section>
@@ -90,7 +90,7 @@ export default function TermosPage() {
         <p>
           Você cancela quando quiser, sem multa e sem precisar justificar. O
           acesso continua até o fim do período que você já pagou e não renova
-          depois disso — não há corte no meio de um mês pago nem devolução
+          depois disso. Não há corte no meio de um mês pago nem devolução
           proporcional.
         </p>
       </Section>
@@ -134,7 +134,7 @@ export default function TermosPage() {
         </p>
         <p>
           Você é responsável pelas decisões que tomar sobre o próprio corpo.
-          Diante de emergência, procure atendimento médico — não a plataforma.
+          Diante de emergência, procure atendimento médico, não a plataforma.
         </p>
       </Section>
 
@@ -160,8 +160,8 @@ export default function TermosPage() {
         <p>
           Você pode encerrar sua conta a qualquer momento escrevendo para{' '}
           {contact()}. Podemos encerrar a sua em caso de descumprimento destes
-          termos — em especial o compartilhamento de acesso ou a redistribuição
-          de conteúdo — avisando você, salvo quando a lei exigir o contrário.
+          termos, em especial o compartilhamento de acesso ou a redistribuição
+          de conteúdo, avisando você, salvo quando a lei exigir o contrário.
         </p>
       </Section>
 

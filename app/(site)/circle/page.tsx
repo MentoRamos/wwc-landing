@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: '/circle',
     siteName: 'Wealth & Wellness',
-    title: 'W&W Circle — uma hora por semana sobre os seus próprios dados',
+    title: 'W&W Circle · uma hora por semana sobre os seus próprios dados',
     description: DESCRIPTION,
     images: [
       {
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'W&W Circle — uma hora por semana sobre os seus próprios dados',
+    title: 'W&W Circle · uma hora por semana sobre os seus próprios dados',
     description: DESCRIPTION,
     images: [OG_IMAGE],
   },

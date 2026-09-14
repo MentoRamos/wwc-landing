@@ -51,9 +51,9 @@ export default async function ContaPage() {
           O que guardamos
         </h2>
         <dl className="mt-5 flex flex-col gap-px overflow-hidden border border-[var(--border)]">
-          <Row label="E-mail" value={profile?.email ?? user.email ?? '—'} />
-          <Row label="Nome" value={profile?.full_name ?? '—'} />
-          <Row label="Entrou pela primeira vez" value={fmt(profile?.created_at ?? null) ?? '—'} />
+          <Row label="E-mail" value={profile?.email ?? user.email ?? 'não informado'} />
+          <Row label="Nome" value={profile?.full_name ?? 'não informado'} />
+          <Row label="Entrou pela primeira vez" value={fmt(profile?.created_at ?? null) ?? 'não informado'} />
           <Row label="Forma de entrada" value="Conta Google" />
         </dl>
         <p className="mt-4 text-xs leading-relaxed text-[var(--text-4)]">
@@ -107,7 +107,7 @@ export default async function ContaPage() {
         <p className="mt-5 text-sm leading-relaxed text-[var(--text-2)]">
           Você pode pedir correção, portabilidade ou a exclusão da conta a qualquer momento,
           sem custo e sem justificar. Escreva para{' '}
-          <strong className="text-[var(--text-1)]">{contact}</strong> — respondemos em até 15
+          <strong className="text-[var(--text-1)]">{contact}</strong>. Respondemos em até 15
           dias.
         </p>
         <p className="mt-3 text-xs leading-relaxed text-[var(--text-4)]">

@@ -159,7 +159,7 @@ export function Footer() {
           >
             <p className="text-[var(--text-4)] text-[10px] tracking-[0.25em] uppercase order-2 sm:order-1">
               &copy; {new Date().getFullYear()}{' '}
-              Wealth &amp; Wellness — Todos os direitos reservados
+              Wealth &amp; Wellness · Todos os direitos reservados
             </p>
             <div className="order-1 sm:order-2">
               <BackToTop />

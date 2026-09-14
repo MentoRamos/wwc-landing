@@ -53,7 +53,7 @@ export async function grantAccess(
     return {
       ok: false,
       message: `${errors.length} linha(s) não deu(ram) para ler. Nada foi gravado.`,
-      details: errors.map((e) => `linha ${e.line}: ${e.raw} — ${e.reason}`),
+      details: errors.map((e) => `linha ${e.line}: ${e.raw} · ${e.reason}`),
     };
   }
   if (entries.length === 0) return { ok: false, message: 'Nenhum e-mail na lista.' };
