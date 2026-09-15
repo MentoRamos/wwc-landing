@@ -773,3 +773,116 @@ a:focus-visible {
   height: 1px;
   background: linear-gradient(90deg, var(--accent), transparent);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Artigos do Circle.
+
+   A coluna de leitura é o único lugar da plataforma com texto corrido longo, e
+   é por isso que ela não usa `.prose-body` (15px, pensado para duas linhas sob
+   um título). Aqui a medida é de livro: ~68 caracteres, 1.0625rem, entrelinha
+   folgada. Ouro só no marcador de citação e no sublinhado do link, nunca no
+   corpo, como o DESIGN.md pede.
+───────────────────────────────────────────────────────────────────────────── */
+
+.article-prose {
+  max-width: 68ch;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--text-2);
+}
+
+.article-prose > * + * {
+  margin-top: 1.25em;
+}
+
+.article-prose h2 {
+  margin-top: 2.4em;
+  font-family: var(--font-display);
+  font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+.article-prose h3 {
+  margin-top: 2em;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-1);
+}
+
+.article-prose h2 + *,
+.article-prose h3 + * {
+  margin-top: 0.75em;
+}
+
+.article-prose strong {
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.article-prose a {
+  color: var(--text-1);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-dim);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.2s;
+}
+
+.article-prose a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.article-prose ul,
+.article-prose ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  padding-left: 1.25em;
+}
+
+.article-prose ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.article-prose ul > li {
+  position: relative;
+  padding-left: 1.75em;
+}
+
+/* A mesma régua curta que o /circle usa como marcador: diz "item" sem fingir
+   ser pontuação. */
+.article-prose ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.9em;
+  width: 1em;
+  height: 1px;
+  background: var(--text-4);
+}
+
+.article-prose ol > li::marker {
+  font-family: var(--font-display);
+  color: var(--text-3);
+}
+
+.article-prose blockquote {
+  border-left: 1px solid var(--accent);
+  padding-left: 1.25em;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.1875rem;
+  color: var(--text-1);
+}
+
+.article-prose hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin-block: 2.5em;
+}

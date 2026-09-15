@@ -28,6 +28,18 @@ export function formatDate(value: string | Date | null | undefined): string {
   return date.toLocaleDateString('pt-BR', { timeZone: ZONE });
 }
 
+/** `14 de setembro de 2026`, in São Paulo: the date line of a publication. */
+export function formatLongDate(value: string | Date | null | undefined): string {
+  const date = parse(value);
+  if (!date) return '';
+  return date.toLocaleDateString('pt-BR', {
+    timeZone: ZONE,
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 /** `quinta-feira, 17 de setembro às 20:00`, in São Paulo. */
 export function formatDateTime(value: string | Date | null | undefined): string {
   const date = parse(value);

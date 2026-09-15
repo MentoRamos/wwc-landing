@@ -18,6 +18,7 @@ const PUBLIC_PAGES = [
   { path: '/', priority: 1 },
   { path: '/connect', priority: 0.9 },
   { path: '/circle', priority: 0.9 },
+  { path: '/circle/artigos', priority: 0.8 },
   { path: '/circle/termos', priority: 0.3 },
   { path: '/privacidade', priority: 0.2 },
   { path: '/termos', priority: 0.2 },

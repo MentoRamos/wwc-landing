@@ -15,20 +15,32 @@ import { clsx } from 'clsx';
 const LINKS = [
   { href: '/connect', label: 'Connect' },
   { href: '/circle', label: 'Circle' },
+  { href: '/circle/artigos', label: 'Artigos' },
   { href: '/biblioteca', label: 'Biblioteca' },
 ];
 
-function isActive(pathname: string, href: string) {
+function matches(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/**
+ * O link mais específico que casa com a página. `/circle/artigos/x` casa com
+ * `/circle` e com `/circle/artigos`; só o segundo pode acender, senão o menu
+ * diz que você está em dois lugares.
+ */
+function activeHref(pathname: string): string | undefined {
+  return LINKS.filter((link) => matches(pathname, link.href))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
 export function SiteNav({ className }: { className?: string }) {
   const pathname = usePathname();
+  const current = activeHref(pathname);
 
   return (
     <nav className={clsx('flex items-center gap-6', className)} aria-label="Seções">
       {LINKS.map((link) => {
-        const active = isActive(pathname, link.href);
+        const active = link.href === current;
         return (
           <Link
             key={link.href}

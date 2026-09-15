@@ -10,6 +10,8 @@ import { currentUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { CIRCLE_PLANS, checkoutUrl, holdsCircle, nextMeeting, priceLabel } from '@/lib/core/circle.core';
 import { formatDateTime } from '@/lib/core/format.core';
+import { LatestArticles } from '@/components/articles/LatestArticles';
+import { listArticles } from '@/lib/articles/queries';
 
 /**
  * This page is shared as a link, and almost always on WhatsApp.
@@ -82,7 +84,14 @@ export default async function CirclePage() {
     hasCircle = holdsCircle(data);
   }
 
-  return hasCircle ? <MemberView /> : <SalesView user={user} />;
+  const latest = await listArticles(3);
+
+  return (
+    <>
+      {hasCircle ? <MemberView /> : <SalesView user={user} />}
+      <LatestArticles articles={latest} />
+    </>
+  );
 }
 
 function MemberView() {

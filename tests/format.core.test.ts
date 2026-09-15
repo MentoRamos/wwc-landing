@@ -87,3 +87,21 @@ describe('countdownLabel', () => {
     expect(countdownLabel(null, new Date('2026-09-14T12:00:00Z'))).toBe('');
   });
 });
+
+describe('formatLongDate', () => {
+  it('escreve a data por extenso, como numa publicação', async () => {
+    const { formatLongDate } = await import('@/lib/core/format.core');
+    expect(formatLongDate('2026-09-14T13:00:00Z')).toBe('14 de setembro de 2026');
+  });
+
+  it('usa o dia de São Paulo, não o do servidor em UTC', async () => {
+    const { formatLongDate } = await import('@/lib/core/format.core');
+    // 02:00 UTC do dia 15 ainda é 23:00 do dia 14 em São Paulo.
+    expect(formatLongDate('2026-09-15T02:00:00Z')).toBe('14 de setembro de 2026');
+  });
+
+  it('devolve vazio para o que não é data', async () => {
+    const { formatLongDate } = await import('@/lib/core/format.core');
+    expect(formatLongDate('ontem')).toBe('');
+  });
+});
