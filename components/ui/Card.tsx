@@ -79,6 +79,18 @@ export function CardAction({ children }: { children: React.ReactNode }) {
  * The hairline grid the cards sit in. `gap-px` over a bordered box is what
  * draws the single-pixel rules between them without any card owning a border
  * of its own — so the first and last rows stay flush with the frame.
+ *
+ * O preço de desenhar uma moldura em volta de um grid é que a última linha
+ * precisa fechar. Com número ímpar de itens em duas colunas ela não fechava: a
+ * biblioteca tem cinco guias, então sobrava uma célula vazia embaixo à
+ * direita, mais escura que os cartões e emoldurada junto com eles — lia como
+ * cartão que não carregou.
+ *
+ * A saída não é escolher outro número de colunas (o problema volta com seis
+ * itens em três) nem esconder a moldura. É o último cartão ocupar a linha
+ * inteira quando ele está sozinho nela. `:last-child:nth-child(odd)` diz
+ * exatamente isso e nada mais: só dispara quando o elemento é o último E está
+ * em posição ímpar, ou seja, quando ele abriu uma linha que ninguém fechou.
  */
 export function CardGrid({
   columns = 1,
@@ -95,7 +107,7 @@ export function CardGrid({
     <ul
       className={clsx(
         'grid gap-px overflow-hidden border border-[var(--border)]',
-        columns === 2 && 'sm:grid-cols-2',
+        columns === 2 && 'sm:grid-cols-2 sm:[&>li:last-child:nth-child(odd)]:col-span-2',
         stagger && 'stagger-children',
         className,
       )}
