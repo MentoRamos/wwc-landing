@@ -3,6 +3,7 @@ import { Logo } from '@/components/ui/Logo';
 import { AppNav } from '@/components/layout/AppNav';
 import { AppTabBar } from '@/components/layout/AppTabBar';
 import { requireUser } from '@/lib/auth/guard';
+import { serverClient } from '@/lib/supabase/server';
 
 /**
  * Everything under here needs somebody signed in.
@@ -15,6 +16,19 @@ import { requireUser } from '@/lib/auth/guard';
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
+  /**
+   * Pergunta barata, e a política responde por ela: `head: true` não traz
+   * linha nenhuma, só a contagem, e `student_documents_read_own` já limita a
+   * contagem ao que é desta pessoa. Serve para decidir se a navegação mostra
+   * `/aluno`, e não para mostrar nada.
+   */
+  const supabase = await serverClient();
+  const { count } = await supabase
+    .from('student_documents')
+    .select('id', { count: 'exact', head: true });
+
+  const hasDocuments = (count ?? 0) > 0;
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur">
@@ -26,7 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </span>
           </Link>
 
-          <AppNav />
+          <AppNav hasDocuments={hasDocuments} />
 
           <form action="/api/auth/sair" method="post" className="flex items-center gap-4">
             <span className="hidden text-xs text-[var(--text-4)] lg:inline">{user.email}</span>

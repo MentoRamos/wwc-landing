@@ -85,13 +85,19 @@ export default async function InicioPage() {
   // holds for the embedded content item — `!inner` drops the progress row when
   // RLS refuses the recording, so a replay that stopped being theirs stops
   // being offered without any status check on this page.
-  const [{ data: profile }, { data: entitlements }, { data: resumeRows }] = await Promise.all([
+  const [{ data: profile }, { data: entitlements }, { data: docRows }, { data: resumeRows }] =
+    await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
     supabase
       .from('entitlements')
       .select('product, status, expires_at')
       .in('status', ['active', 'past_due'])
       .order('product'),
+    supabase
+      .from('student_documents')
+      .select('id, title, period_label, issued_at')
+      .order('issued_at', { ascending: false })
+      .limit(1),
     supabase
       .from('progress')
       .select(
@@ -100,7 +106,11 @@ export default async function InicioPage() {
       .is('completed_at', null)
       .order('last_seen_at', { ascending: false })
       .limit(1),
-  ]);
+    ]);
+
+  // A política já limita ao que é desta pessoa, então a existência da linha é
+  // a própria resposta para "esta pessoa é aluna do acompanhamento".
+  const latestDoc = (docRows ?? [])[0];
 
   const live = (entitlements ?? []).filter(
     (row) => row.expires_at === null || new Date(row.expires_at) > new Date(),
@@ -187,6 +197,24 @@ export default async function InicioPage() {
               <CardAction>Retomar em {formatDuration(resume.at)}</CardAction>
             </Card>
           </div>
+        </Band>
+      )}
+
+      {latestDoc && (
+        <Band
+          eyebrow="Acompanhamento"
+          title="O que é só seu."
+          lede="Os reports semanais, o plano do ciclo e o contrato do arco. Nenhum deles aparece para mais ninguém."
+        >
+          <Card href="/aluno">
+            <p className="card-title">{latestDoc.title}</p>
+            <p className="meta mt-3">
+              {[latestDoc.period_label, `Emitido em ${formatDate(latestDoc.issued_at)}`]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+            <CardAction>Ver o acompanhamento</CardAction>
+          </Card>
         </Band>
       )}
 

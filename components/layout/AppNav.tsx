@@ -11,13 +11,23 @@ const LINKS = [
   { href: '/conta', label: 'Conta' },
 ];
 
-/** The desktop half of the same four places the tab bar covers on a phone. */
-export function AppNav() {
+const ACOMPANHAMENTO = { href: '/aluno', label: 'Acompanhamento' };
+
+/**
+ * The desktop half of the same four places the tab bar covers on a phone, mais
+ * um quinto que só existe para quem tem o que ver nele.
+ *
+ * `/aluno` aparece só quando há documento do aluno. Um item de navegação que
+ * leva a uma página vazia é pior que item nenhum: ele promete uma coisa que a
+ * pessoa não comprou, e faz o assinante do Circle achar que está faltando
+ * algo dele. Quem decide é o layout, que já leu o banco.
+ */
+export function AppNav({ hasDocuments = false }: { hasDocuments?: boolean }) {
   const pathname = usePathname();
 
   return (
     <nav className="hidden items-center gap-7 md:flex" aria-label="Navegação">
-      {LINKS.map((link) => {
+      {(hasDocuments ? [...LINKS, ACOMPANHAMENTO] : LINKS).map((link) => {
         const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
 
         return (

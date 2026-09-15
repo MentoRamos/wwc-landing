@@ -43,6 +43,16 @@ export function formatDateTime(value: string | Date | null | undefined): string 
 }
 
 /**
+ * O dia civil da data, em São Paulo, como `2026-09-14`.
+ *
+ * `en-CA` é o único locale que emite YYYY-MM-DD, e é por isso que ele está
+ * aqui — não por ter a ver com o Canadá.
+ */
+export function civilDateISO(date: Date): string {
+  return date.toLocaleDateString('en-CA', { timeZone: ZONE });
+}
+
+/**
  * `Hoje`, `Amanhã`, `Em 3 dias` — a distância até uma data, em dias de calendário.
  *
  * O ponto é o calendário, não a duração. Faltar 26 horas para o encontro pode
@@ -55,12 +65,7 @@ export function formatDateTime(value: string | Date | null | undefined): string 
  * quinta apareceria como "Hoje" para quem ainda está na quarta.
  */
 function civilDay(date: Date): number {
-  // `en-CA` é o único locale que sai em YYYY-MM-DD, que é o que torna a
-  // comparação aritmética em vez de textual.
-  const [year, month, day] = date
-    .toLocaleDateString('en-CA', { timeZone: ZONE })
-    .split('-')
-    .map(Number);
+  const [year, month, day] = civilDateISO(date).split('-').map(Number);
   return Date.UTC(year, month - 1, day);
 }
 
