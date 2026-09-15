@@ -15,8 +15,28 @@
 
 const ZONE = 'America/Sao_Paulo';
 
+/**
+ * Uma coluna `date` chega como `2026-09-15`, sem hora e sem fuso.
+ *
+ * `new Date()` lê isso como meia-noite UTC, e aí a conversão para São Paulo,
+ * que existe e está certa para instante, joga a data para o dia anterior. O
+ * report emitido no dia 15 aparece como 14 — e é um defeito silencioso, porque
+ * ninguém reclama de uma data plausível, só acredita nela.
+ *
+ * Data pura não é instante: ela não tem fuso para converter. Interpretada como
+ * meio-dia UTC, ela cai no mesmo dia civil em qualquer fuso entre -11 e +11, o
+ * que inclui o Brasil inteiro com folga de horas.
+ */
+const SOMENTE_DATA = /^\d{4}-\d{2}-\d{2}$/;
+
 function parse(value: string | Date | null | undefined): Date | null {
   if (!value) return null;
+
+  if (typeof value === 'string' && SOMENTE_DATA.test(value)) {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day, 12));
+  }
+
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }

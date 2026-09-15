@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countdownLabel, formatDate, formatDateTime } from '@/lib/core/format.core';
+import { countdownLabel, formatDate, formatDateTime, formatLongDate } from '@/lib/core/format.core';
 
 /**
  * Every date the platform shows belongs to a person living in Brazil, and the
@@ -103,5 +103,34 @@ describe('formatLongDate', () => {
   it('devolve vazio para o que não é data', async () => {
     const { formatLongDate } = await import('@/lib/core/format.core');
     expect(formatLongDate('ontem')).toBe('');
+  });
+});
+
+/**
+ * Coluna `date` não é instante, e tratar como instante anda um dia para trás.
+ *
+ * `new Date('2026-09-15')` é meia-noite UTC. Renderizar isso em São Paulo
+ * (UTC-3) cai em 14/09 às 21:00, e a tela mostra o dia anterior. O fuso, que
+ * está certo para timestamp, está errado aqui — e o defeito é silencioso: o
+ * report semanal aparece com a data de ontem e ninguém reclama, só acredita.
+ *
+ * Apareceu de verdade em produção no `issued_at` de um documento de aluno: o
+ * caminho no bucket gravou 2026-09-15 e a lista exibiu 14/09/2026.
+ */
+describe('data pura, sem hora', () => {
+  it('não anda um dia para trás', () => {
+    expect(formatDate('2026-09-15')).toBe('15/09/2026');
+    expect(formatDate('2026-01-01')).toBe('01/01/2026');
+    expect(formatDate('2026-12-31')).toBe('31/12/2026');
+  });
+
+  it('escreve o mês por extenso no mesmo dia', () => {
+    expect(formatLongDate('2026-09-15')).toBe('15 de setembro de 2026');
+  });
+
+  /** Timestamp continua convertendo, que é o comportamento certo para ele. */
+  it('não muda o que já estava certo para instante', () => {
+    // 15/09 às 00:30 UTC é ainda 14/09 às 21:30 em São Paulo.
+    expect(formatDate('2026-09-15T00:30:00Z')).toBe('14/09/2026');
   });
 });
