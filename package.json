@@ -16,7 +16,8 @@
     "check:library": "node scripts/check-library.mjs",
     "seed:library": "node scripts/seed-library.mjs",
     "check:kiwify": "node scripts/check-kiwify.mjs",
-    "check:aluno": "node scripts/check-aluno.mjs"
+    "check:aluno": "node scripts/check-aluno.mjs",
+    "check:artigos": "node scripts/check-artigos.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
