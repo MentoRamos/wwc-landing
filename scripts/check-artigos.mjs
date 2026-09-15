@@ -103,10 +103,16 @@ try {
   check('imagem de compartilhamento: PNG', og.status === 200 && (og.headers.get('content-type') ?? '').includes('image/png'), `${og.status} ${og.headers.get('content-type')}`);
 
   // Reenvio
+  const { data: before } = await admin.from('articles').select('published_at').eq('slug', slug).single();
+  await new Promise((resolve) => setTimeout(resolve, 1100));
   const again = await post(article({ title: `Artigo de aceite ${stamp} corrigido` }));
   check('reenvio: 200 e não created', again.status === 200 && again.json?.created === false, JSON.stringify(again.json));
   const { data: rows } = await admin.from('articles').select('id, title').eq('slug', slug);
   check('reenvio: continua uma linha só, com o texto novo', rows?.length === 1 && rows[0].title.endsWith('corrigido'));
+  const { data: kept } = await admin.from('articles').select('published_at').eq('slug', slug).single();
+  check('reenvio sem data: a data original fica', kept?.published_at === before?.published_at, `${before?.published_at} -> ${kept?.published_at}`);
+  const naive = await post(article({ published_at: '2026-09-14T10:00:00' }));
+  check('data sem fuso: 400', naive.status === 400, JSON.stringify(naive.json));
 
   // Esconder (o que o admin faz) e o cron reenviando por cima
   await admin.from('articles').update({ hidden_at: new Date().toISOString() }).eq('slug', slug);

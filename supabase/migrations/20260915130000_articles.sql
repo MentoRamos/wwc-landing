@@ -64,15 +64,20 @@ create policy articles_admin_read on public.articles
 -- Esconder e republicar pelo /admin/artigos, com o cliente do próprio admin.
 -- A Server Action confere o admin também, mas o portão é este.
 create policy articles_admin_write on public.articles
-  for all
+  for update
   to authenticated
   using (public.is_admin())
   with check (public.is_admin());
 
+-- O admin só esconde e republica: o grant é da coluna `hidden_at`, e nada de
+-- insert ou delete. O texto só entra pelo endpoint, que valida (travessão,
+-- HTML, fontes https). Sem isto, um JWT de admin roubado reescreveria um
+-- artigo público direto pelo PostgREST, por fora de toda validação.
 revoke all on public.articles from anon;
 revoke all on public.articles from authenticated;
 grant select on public.articles to anon;
-grant select, insert, update, delete on public.articles to authenticated;
+grant select on public.articles to authenticated;
+grant update (hidden_at) on public.articles to authenticated;
 -- O endpoint de ingestão escreve como servidor. Explícito pela mesma razão da
 -- 20260911120000: o projeto hospedado não concede nada sozinho.
 grant all on public.articles to service_role;

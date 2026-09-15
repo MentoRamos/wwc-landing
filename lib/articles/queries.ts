@@ -55,6 +55,14 @@ export async function getArticle(slug: string): Promise<Article | null> {
   }
   if (!data) return null;
 
-  const sources = Array.isArray(data.sources) ? (data.sources as ArticleSource[]) : [];
+  // O endpoint valida a forma de cada fonte, mas a coluna é jsonb: um item
+  // torto que entre por fora (psql, conserto na mão) derrubaria a página
+  // inteira com 500. Descarta o item, não o artigo.
+  const sources = (Array.isArray(data.sources) ? data.sources : []).filter(
+    (item): item is ArticleSource =>
+      typeof item?.label === 'string' &&
+      typeof item?.url === 'string' &&
+      item.url.startsWith('https://'),
+  );
   return { ...(data as Omit<Article, 'sources'>), sources };
 }

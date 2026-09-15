@@ -47,9 +47,20 @@ describe('parseArticleInput', () => {
     expect(result.value.sources).toHaveLength(1);
   });
 
-  it('sem data, publica agora', () => {
+  it('sem data, não manda data: o banco usa now() na criação e preserva a original no reenvio', () => {
     const result = parseArticleInput(valid({ published_at: undefined }), NOW);
-    expect(result.ok && result.value.published_at).toBe(NOW.toISOString());
+    expect(result.ok).toBe(true);
+    if (result.ok) expect('published_at' in result.value).toBe(false);
+  });
+
+  it('recusa data sem fuso, que viraria UTC e mudaria o dia em São Paulo', () => {
+    expect(refusal(valid({ published_at: '2026-09-14T10:00:00' }))).toMatch(/fuso/);
+    expect(refusal(valid({ published_at: '2026-09-14' }))).toMatch(/fuso/);
+  });
+
+  it('aceita fuso em Z e em deslocamento', () => {
+    expect(parseArticleInput(valid({ published_at: '2026-09-14T13:00:00Z' }), NOW).ok).toBe(true);
+    expect(parseArticleInput(valid({ published_at: '2026-09-14T10:00:00-0300' }), NOW).ok).toBe(true);
   });
 
   it('apara espaço de título e linha fina, que o modelo às vezes deixa', () => {

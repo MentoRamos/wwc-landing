@@ -78,7 +78,14 @@ const schema = z.object({
 
 export type ArticleSource = { label: string; url: string };
 
-/** A linha como o endpoint grava. `hidden_at` não está aqui de propósito. */
+/**
+ * A linha como o endpoint grava. `hidden_at` não está aqui de propósito.
+ *
+ * `published_at` só aparece quando o cron mandou uma data. Sem ela, a coluna
+ * fica fora do upsert: na criação o banco usa `now()`, e no reenvio a data
+ * original é preservada, em vez de o artigo antigo pular para o topo com a
+ * data de hoje.
+ */
 export type ArticleInput = {
   slug: string;
   title: string;
@@ -87,8 +94,12 @@ export type ArticleInput = {
   sources: ArticleSource[];
   topic: string | null;
   source_kit: string | null;
-  published_at: string;
+  published_at?: string;
 };
+
+// Data com hora precisa dizer o fuso. "2026-09-14T10:00:00" viraria 10h UTC
+// (7h em São Paulo) e "2026-09-14" viraria 21h do dia 13 aqui.
+const HAS_ZONE = /T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/;
 
 export type ParseResult = { ok: true; value: ArticleInput } | { ok: false; message: string };
 
@@ -111,30 +122,31 @@ export function parseArticleInput(raw: unknown, now: Date): ParseResult {
 
   const data = parsed.data;
 
-  let publishedAt = now;
+  const value: ArticleInput = {
+    slug: data.slug,
+    title: data.title,
+    dek: data.dek,
+    body_md: data.body_md,
+    sources: data.sources,
+    topic: data.topic || null,
+    source_kit: data.source_kit || null,
+  };
+
   if (data.published_at) {
-    publishedAt = new Date(data.published_at);
+    if (!HAS_ZONE.test(data.published_at.trim())) {
+      return { ok: false, message: 'published_at: data e hora com fuso, como 2026-09-14T10:00:00-03:00' };
+    }
+    const publishedAt = new Date(data.published_at);
     if (Number.isNaN(publishedAt.getTime())) {
       return { ok: false, message: 'published_at: data ilegível, use ISO 8601 com fuso' };
     }
     if (publishedAt.getTime() - now.getTime() > MAX_FUTURE_MS) {
       return { ok: false, message: 'published_at: mais de um dia no futuro' };
     }
+    value.published_at = publishedAt.toISOString();
   }
 
-  return {
-    ok: true,
-    value: {
-      slug: data.slug,
-      title: data.title,
-      dek: data.dek,
-      body_md: data.body_md,
-      sources: data.sources,
-      topic: data.topic || null,
-      source_kit: data.source_kit || null,
-      published_at: publishedAt.toISOString(),
-    },
-  };
+  return { ok: true, value };
 }
 
 function isHttpsUrl(value: string): boolean {

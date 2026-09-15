@@ -27,8 +27,14 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: 'não autorizado' }, { status: 401 });
   }
 
+  // O cabeçalho recusa antes de ler; o corpo é medido em bytes depois, porque
+  // o cabeçalho pode faltar ou mentir.
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_BYTES) {
+    return Response.json({ ok: false, error: 'corpo grande demais' }, { status: 413 });
+  }
+
   const raw = await request.text();
-  if (raw.length > MAX_BYTES) {
+  if (Buffer.byteLength(raw, 'utf8') > MAX_BYTES) {
     return Response.json({ ok: false, error: 'corpo grande demais' }, { status: 413 });
   }
 

@@ -696,6 +696,22 @@ describe('artigos do Circle', () => {
     expect(data ?? []).toHaveLength(1);
   });
 
+  it('nem o admin reescreve o texto por fora do endpoint: ele só esconde e republica', async () => {
+    const email = uniqueEmail('admin-editor');
+    const client = await signedInAs(email);
+    await admin.from('admin_users').insert({ user_id: await userIdFor(email) });
+
+    await client.from('articles').update({ body_md: 'reescrito' }).eq('slug', visibleSlug);
+    await client.from('articles').delete().eq('slug', visibleSlug);
+
+    const { data } = await admin
+      .from('articles')
+      .select('body_md')
+      .eq('slug', visibleSlug)
+      .single();
+    expect(data?.body_md).toContain('Texto de artigo');
+  });
+
   it('o banco recusa slug fora do formato e fonte que não é lista', async () => {
     const bad = await admin.from('articles').insert({
       slug: 'Com Espaço',
