@@ -27,6 +27,26 @@ export async function uploadDocument(
   _previous: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  try {
+    return await upload(formData);
+  } catch (cause) {
+    /**
+     * O que sobra vira mensagem, não 500.
+     *
+     * A primeira versão deixava qualquer exceção subir, e o error boundary
+     * respondia "Alguma coisa quebrou aqui" com um digest. Do lado de quem
+     * opera isso é o pior desfecho possível: o documento pode ter sido escrito
+     * ou não, o arquivo pode estar no bucket ou não, e a tela não diz qual dos
+     * dois. Uma tela que mexe com dado de saúde precisa terminar dizendo o que
+     * aconteceu, mesmo quando o que aconteceu foi inesperado.
+     */
+    const detalhe = cause instanceof Error ? cause.message : String(cause);
+    console.error('[admin/documentos] exceção no upload', { detalhe });
+    return { ok: false, message: `Falhou antes de terminar: ${detalhe}` };
+  }
+}
+
+async function upload(formData: FormData): Promise<ActionState> {
   await requireAdmin();
 
   const file = formData.get('file');

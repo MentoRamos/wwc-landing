@@ -15,6 +15,39 @@ const nextConfig: NextConfig = {
   // Pinned: there is another lockfile in the home directory, and Next picks
   // that as the workspace root otherwise.
   turbopack: { root: fileURLToPath(new URL('.', import.meta.url)) },
+
+  /**
+   * Sem isto, NENHUMA Server Action funciona em kauaramos.com.
+   *
+   * O Next compara o cabecalho `Origin` com o `Host` (ou `X-Forwarded-Host`) e
+   * **aborta a requisicao** quando diferem. E protecao contra CSRF, e esta
+   * certa. So que a plataforma nao e servida direto: quem atende
+   * kauaramos.com e o projeto do funil, que encaminha os caminhos daqui por
+   * rewrite. Entao o navegador manda `Origin: kauaramos.com` e o app ve o host
+   * do deployment da Vercel. Origem diferente de host, requisicao abortada.
+   *
+   * O modo como isso falha e o que o tornou invisivel: a acao nunca chega a
+   * ser invocada, entao nenhum try/catch dentro dela roda, nada aparece no log
+   * da aplicacao, e a tela so mostra o error boundary com um digest. Parece
+   * bug da acao e nao e.
+   *
+   * E os testes nao pegavam porque `check:admin` dirige o servidor em
+   * localhost, onde origem e host sao o mesmo. Passava 8/8 enquanto conceder
+   * acesso estava quebrado em producao.
+   *
+   * Entram o apex, o www e o dominio do deployment. O host do evento entra por
+   * variavel porque ele ainda nao foi comprado.
+   */
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        'kauaramos.com',
+        'www.kauaramos.com',
+        'wwc-landing-rho.vercel.app',
+        ...(process.env.EVENT_HOST?.trim() ? [process.env.EVENT_HOST.trim()] : []),
+      ],
+    },
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     // The logo asks for 95; Next 16 refuses any quality not listed here.
