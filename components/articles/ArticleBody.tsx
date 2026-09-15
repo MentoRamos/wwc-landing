@@ -1,5 +1,6 @@
 import Markdown from 'react-markdown';
 import type { Components } from 'react-markdown';
+import { articleHeadings } from '@/lib/core/speech.core';
 
 /**
  * O markdown do artigo, com uma lista curta do que pode virar HTML.
@@ -25,9 +26,18 @@ const components: Components = {
 };
 
 export function ArticleBody({ markdown }: { markdown: string }) {
+  // Cada `##` ganha a âncora que o sumário lateral usa. O render é em ordem de
+  // documento, então o n-ésimo h2 recebe o n-ésimo id, repetidos inclusive.
+  const ids = articleHeadings(markdown).map((heading) => heading.id);
+  let next = 0;
+  const withAnchors: Components = {
+    ...components,
+    h2: ({ children }) => <h2 id={ids[next++]}>{children}</h2>,
+  };
+
   return (
     <div className="article-prose">
-      <Markdown allowedElements={ALLOWED} unwrapDisallowed skipHtml components={components}>
+      <Markdown allowedElements={ALLOWED} unwrapDisallowed skipHtml components={withAnchors}>
         {markdown}
       </Markdown>
     </div>
