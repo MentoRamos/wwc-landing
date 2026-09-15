@@ -34,14 +34,18 @@ resgate.
 
 | Grupo | Rotas | Quem entra |
 |---|---|---|
-| `app/(site)` | `/`, `/circle`, `/entrar`, `/termos`, `/privacidade`, `/sem-acesso` | qualquer um |
+| `app/(site)` | `/`, `/circle`, `/circle/artigos`, `/circle/artigos/[slug]`, `/entrar`, `/termos`, `/privacidade`, `/sem-acesso` | qualquer um |
 | `app/(event)` | `/connect` | qualquer um |
 | `app/(app)` | `/inicio`, `/biblioteca`, `/biblioteca/[slug]`, `/conta`, `/aluno` | logado |
-| `app/admin` | `/admin/acessos`, `/admin/conteudo`, `/admin/documentos`, `/admin/interesse` | admin |
-| `app/api` | `auth/*`, `biblioteca/[slug]/download`, `aluno/[id]/download`, `webhooks/kiwify`, `interesse`, `cron/regua` | varia |
+| `app/admin` | `/admin/acessos`, `/admin/artigos`, `/admin/conteudo`, `/admin/documentos`, `/admin/interesse` | admin |
+| `app/api` | `auth/*`, `artigos`, `biblioteca/[slug]/download`, `aluno/[id]/download`, `webhooks/kiwify`, `interesse`, `cron/regua` | varia |
 
 `/circle` tem duas faces no mesmo endereço: quem não assina vê a oferta, quem
 assina vê o próximo encontro.
+
+Os artigos são abertos e indexáveis, e quem escreve é um cron: `POST /api/artigos`
+com `ARTICLES_INGEST_TOKEN` publica um por dia. O que ele pode mandar está em
+`docs/artigos/guia-editorial.md`; `npm run check:artigos` mede o caminho inteiro.
 
 ---
 
