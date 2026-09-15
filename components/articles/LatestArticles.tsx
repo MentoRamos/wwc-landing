@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArticleList } from '@/components/articles/ArticleList';
+import { ArticleGrid } from '@/components/articles/ArticleCards';
 import type { ArticleSummary } from '@/lib/articles/queries';
 
 /**
@@ -24,13 +24,13 @@ export function LatestArticles({ articles }: { articles: ArticleSummary[] }) {
           </div>
           <Link
             href="/circle/artigos"
-            className="link-draw text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+            className="inline-flex min-h-11 items-center gap-2 border border-[var(--border)] px-5 text-[11px] uppercase tracking-[0.18em] text-[var(--text-2)] transition hover:border-[var(--border-hover)] hover:text-[var(--accent)]"
           >
-            Todos os artigos &rarr;
+            Todos os artigos <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
         <div className="mt-10">
-          <ArticleList articles={articles} />
+          <ArticleGrid articles={articles} />
         </div>
       </div>
     </section>

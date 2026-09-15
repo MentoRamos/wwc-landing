@@ -12,6 +12,7 @@ export type ArticleSummary = {
   title: string;
   dek: string;
   topic: string | null;
+  cover_key: string | null;
   published_at: string;
 };
 
@@ -21,7 +22,7 @@ export type Article = ArticleSummary & {
   updated_at: string;
 };
 
-const SUMMARY = 'slug, title, dek, topic, published_at';
+const SUMMARY = 'slug, title, dek, topic, cover_key, published_at';
 
 export async function listArticles(limit?: number): Promise<ArticleSummary[]> {
   let query = publicClient()

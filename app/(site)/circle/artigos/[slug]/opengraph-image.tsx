@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 import { getArticle } from '@/lib/articles/queries';
 import { formatLongDate } from '@/lib/core/format.core';
+import { resolveSiteUrl } from '@/lib/core/site.core';
+import { coverSrc, resolveCover } from '@/lib/articles/covers';
 
 /**
  * O cartão do link, que é como quase todo artigo vai ser aberto: colado no
@@ -30,8 +32,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   ]);
 
   const title = article?.title ?? 'Artigos do W&W Circle';
+  // A capa vem pela URL pública (/photos passa pelo rewrite do apex), em JPEG:
+  // o gerador do cartão não decodifica WebP.
+  const site = resolveSiteUrl({
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  });
+  const cover = article ? `${site}${coverSrc(resolveCover(article).id, 1200)}` : null;
   // Título longo vira fonte menor em vez de estourar a moldura.
-  const titleSize = title.length > 70 ? 58 : title.length > 45 ? 68 : 80;
+  const titleSize = title.length > 70 ? 50 : title.length > 45 ? 58 : 68;
 
   return new ImageResponse(
     (
@@ -42,8 +51,32 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           display: 'flex',
           background: '#0D0D0D',
           padding: 36,
+          position: 'relative',
         }}
       >
+        {cover && (
+          <img
+            src={cover}
+            alt=""
+            width={1200}
+            height={675}
+            style={{ position: 'absolute', top: 0, left: 0, width: 1200, height: 675, objectFit: 'cover' }}
+          />
+        )}
+        {/* Degradê da marca em vez de blur: o título precisa de contraste, e o
+            design system proíbe desfocar. */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 1200,
+            height: 630,
+            display: 'flex',
+            background:
+              'linear-gradient(90deg, rgba(13,13,13,0.96) 0%, rgba(13,13,13,0.86) 45%, rgba(13,13,13,0.35) 100%)',
+          }}
+        />
         <div
           style={{
             flex: 1,
@@ -73,7 +106,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               fontSize: titleSize,
               lineHeight: 1.08,
               color: INK,
-              maxWidth: 1000,
+              maxWidth: 760,
             }}
           >
             {title}
