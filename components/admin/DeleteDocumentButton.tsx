@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { deleteDocument, INITIAL_STATE } from '@/app/admin/documentos/actions';
+import { deleteDocument } from '@/app/admin/documentos/actions';
+import { INITIAL_STATE } from '@/lib/admin/action-state';
 
 /**
  * Pergunta duas vezes, pelo mesmo motivo que o botão de revogar acesso: a

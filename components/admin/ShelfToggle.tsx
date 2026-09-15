@@ -1,12 +1,8 @@
 'use client';
 
 import { useActionState } from 'react';
-import {
-  publishContent,
-  unpublishContent,
-  INITIAL_STATE,
-  type ActionState,
-} from '@/app/admin/conteudo/actions';
+import { publishContent, unpublishContent } from '@/app/admin/conteudo/actions';
+import { INITIAL_STATE, type ActionState } from '@/lib/admin/action-state';
 
 /**
  * Tirar e pôr de volta na prateleira, uma linha por vez.

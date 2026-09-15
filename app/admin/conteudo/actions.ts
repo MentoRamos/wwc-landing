@@ -7,7 +7,6 @@ import { readContentForm } from '@/lib/core/content.core';
 
 export type ActionState = { ok: boolean; message: string };
 
-export const INITIAL_STATE: ActionState = { ok: false, message: '' };
 
 /**
  * Uma Server Action é um endpoint POST que qualquer um chama com um fetch. O

@@ -7,7 +7,6 @@ import { serverClient } from '@/lib/supabase/server';
 import { readUploadForm } from '@/lib/core/student.core';
 
 export type ActionState = { ok: boolean; message: string };
-export const INITIAL_STATE: ActionState = { ok: false, message: '' };
 
 const MAX_BYTES = 50 * 1024 * 1024; // o mesmo teto que o bucket declara
 

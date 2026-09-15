@@ -1,11 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import {
-  saveContent,
-  INITIAL_STATE,
-  type ActionState,
-} from "@/app/admin/conteudo/actions";
+import { saveContent } from "@/app/admin/conteudo/actions";
+import { INITIAL_STATE, type ActionState } from "@/lib/admin/action-state";
 import { KINDS } from "@/lib/core/content.core";
 import { PRODUCTS } from "@/lib/core/admin.core";
 

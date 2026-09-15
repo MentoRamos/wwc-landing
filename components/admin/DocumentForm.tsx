@@ -3,7 +3,8 @@
 import { useActionState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Field, INPUT_CLASS, describedBy } from '@/components/ui/Field';
-import { uploadDocument, INITIAL_STATE } from '@/app/admin/documentos/actions';
+import { uploadDocument } from '@/app/admin/documentos/actions';
+import { INITIAL_STATE } from '@/lib/admin/action-state';
 import { DOC_KINDS, DOC_KIND_LABEL } from '@/lib/core/student.core';
 
 /**

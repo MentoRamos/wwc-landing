@@ -123,4 +123,3 @@ export async function revokeAccess(
   return { ok: true, message: 'Acesso revogado.' };
 }
 
-export const INITIAL_STATE = EMPTY;
