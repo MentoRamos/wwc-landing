@@ -501,3 +501,63 @@ describe('a área do aluno', () => {
     expect(data ?? []).toHaveLength(0);
   });
 });
+
+/**
+ * A régua de e-mails do Circle.
+ *
+ * O que importa provar aqui não é privacidade e sim a trava de envio duplo. O
+ * código reserva a vaga antes de enviar e confia que o banco recusa a segunda
+ * reserva; se a constraint não estiver lá, dois ticks simultâneos mandam o
+ * mesmo e-mail duas vezes e ninguém descobre até um assinante reclamar.
+ */
+describe('a régua do Circle', () => {
+  let email: string;
+
+  beforeAll(async () => {
+    email = uniqueEmail('regua');
+  }, 60_000);
+
+  afterAll(async () => {
+    await admin.from('circle_emails').delete().eq('email_norm', email.toLowerCase().trim());
+  }, 60_000);
+
+  it('recusa a segunda reserva do mesmo envio para a mesma pessoa', async () => {
+    const row = { email_norm: email.toLowerCase().trim(), step_key: 'welcome', status: 'pending' };
+
+    const first = await admin.from('circle_emails').insert(row);
+    expect(first.error).toBeNull();
+
+    const second = await admin.from('circle_emails').insert(row);
+    expect(second.error).not.toBeNull();
+  });
+
+  it('deixa a mesma pessoa receber envios diferentes', async () => {
+    const { error } = await admin.from('circle_emails').insert({
+      email_norm: email.toLowerCase().trim(),
+      step_key: 'meeting_2026-09-17',
+      status: 'pending',
+    });
+    expect(error).toBeNull();
+  });
+
+  it('não existe para quem não entrou, nem para membro que não é admin', async () => {
+    const { data: anonRows } = await anonClient().from('circle_emails').select('*');
+    expect(anonRows ?? []).toHaveLength(0);
+
+    const client = await signedInAs(uniqueEmail('curioso'));
+    const { data } = await client.from('circle_emails').select('*');
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('não deixa um membro apagar o registro do que já lhe foi enviado', async () => {
+    const client = await signedInAs(uniqueEmail('apagador'));
+    await client.from('circle_emails').delete().eq('email_norm', email.toLowerCase().trim());
+
+    const { data } = await admin
+      .from('circle_emails')
+      .select('id')
+      .eq('email_norm', email.toLowerCase().trim());
+
+    expect((data ?? []).length).toBeGreaterThan(0);
+  });
+});
