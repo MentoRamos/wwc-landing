@@ -92,7 +92,21 @@ const signedIn = await fetch(`${APP}/inicio`, {
 const html = await signedIn.text();
 check('signed in, /inicio renders', signedIn.status === 200, String(signedIn.status));
 check('the page knows who it is talking to', html.includes(email));
-check('greets them by name from the profiles row', /<h1[^>]*>Olá,\s*(<!--[^>]*-->)?\s*Pessoa\b/.test(html));
+/**
+ * Sobre o TEXTO do h1, não sobre a marcação dele.
+ *
+ * A versão anterior casava `<h1...>Olá, Pessoa` e passou a falhar quando a
+ * saudação ganhou a assinatura da marca — o primeiro nome virou
+ * `<em class="accent-word">`, que entrou no meio do que o regex media. Nada
+ * havia quebrado na tela; o que quebrou foi um teste que media aparência em
+ * vez de conteúdo. E como este script nunca tinha sido rodado, ninguém soube.
+ */
+const h1Text = (html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '')
+  .replace(/<[^>]*>/g, '')
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/\s+/g, ' ')
+  .trim();
+check('greets them by name from the profiles row', /^Olá,\s*Pessoa\b/.test(h1Text), h1Text);
 check('shows the Circle they were granted', html.includes('W&amp;W Circle'));
 check('does not show a product they never bought', !html.includes('W&amp;W Protocol'));
 
