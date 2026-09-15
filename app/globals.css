@@ -886,3 +886,79 @@ a:focus-visible {
   border-top: 1px solid var(--border);
   margin-block: 2.5em;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Modo leitura (claro), só nas páginas de artigo.
+
+   É a paleta clara oficial do W&W, a mesma dos reports em PDF
+   (wealth-wellness-DESIGN.md): papel marfim, tinta quase preta, ouro só como
+   acento. Aqui só se redefinem os tokens; tudo que usa var(--...) acompanha.
+
+   O ouro de acento escurece para #8C7440: o #A8894F do documento, sobre
+   marfim, dá ~3:1 e reprova AA no rótulo pequeno. O mais claro fica em
+   --accent-dim, que só decora (sublinhado, filete).
+
+   Quem liga é components/articles/ReadingThemeToggle; quem desliga ao sair dos
+   artigos também. O resto da plataforma nunca vê este bloco.
+───────────────────────────────────────────────────────────────────────────── */
+
+html[data-theme='light'] {
+  color-scheme: light;
+  --bg: #F4F2EE;
+  --bg-elevated: #FCFBF8;
+  --bg-card: #FCFBF8;
+  --bg-card-hover: #FFFFFF;
+  --surface: #ECE8E0;
+  --text-1: #1A1712;
+  --text-2: rgba(26, 23, 18, 0.74);
+  --text-3: rgba(26, 23, 18, 0.6);
+  --text-4: rgba(26, 23, 18, 0.46);
+  --accent: #8C7440;
+  --accent-dim: #A8894F;
+  --accent-glow: rgba(140, 116, 64, 0.12);
+  --bg-locked: #ECE8E0;
+  --border: rgba(26, 23, 18, 0.12);
+  --border-hover: rgba(140, 116, 64, 0.5);
+}
+
+html[data-theme='light'] body {
+  background: var(--bg);
+  color: var(--text-1);
+}
+
+/* A capa foi feita para fundo escuro; no papel ela ganha uma moldura fina
+   para não parecer um buraco na página. */
+html[data-theme='light'] .article-cover {
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Leitura por dispositivo.
+
+   Celular: coluna estreita, letra maior, entrelinha folgada. É leitura de
+   polegar, com o texto ocupando a tela de ponta a ponta.
+   Desktop: a coluna de texto fica mais larga (~72 caracteres) e as laterais
+   deixam de ser vazio: sumário à esquerda, ações e Circle à direita.
+───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .article-prose {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+  .article-prose h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .article-prose {
+    max-width: 72ch;
+    font-size: 1.125rem;
+  }
+}
+
+/* O link do sumário leva ao título sem ele ficar escondido sob o cabeçalho fixo. */
+.article-prose h2 {
+  scroll-margin-top: 6rem;
+}
