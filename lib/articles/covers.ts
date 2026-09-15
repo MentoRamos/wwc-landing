@@ -1,8 +1,8 @@
-import type { Cover } from '@/lib/core/covers.core';
+import { pickCover, type Cover } from '@/lib/core/covers.core';
 
 /**
  * O banco de capas dos artigos. Cada `id` tem três arquivos em
- * `public/artigos/capas/`: `-1600.webp` e `-800.webp` para a página e
+ * `public/photos/artigos/`: `-1600.webp` e `-800.webp` para a página e
  * `-1200.jpg` para o cartão de link (o gerador do cartão não lê WebP).
  *
  * Geradas por IA em 15/09/2026, todas com o mesmo prompt de estilo (still life
@@ -50,5 +50,24 @@ export function findCover(id: string | null | undefined): Cover | undefined {
 }
 
 export function coverSrc(id: string, width: 800 | 1600 | 1200): string {
-  return `/artigos/capas/${id}-${width}.${width === 1200 ? 'jpg' : 'webp'}`;
+  return `/photos/artigos/${id}-${width}.${width === 1200 ? 'jpg' : 'webp'}`;
+}
+
+/**
+ * A capa de um artigo, sempre com imagem.
+ *
+ * `cover_key` vem do banco; se estiver vazio ou apontar para um id que saiu do
+ * catálogo, a capa sai da mesma escolha que o endpoint faria pelo tema. A página
+ * nunca fica sem imagem e nunca quebra por causa de uma.
+ */
+export function resolveCover(article: {
+  slug: string;
+  topic: string | null;
+  cover_key: string | null;
+}): Cover {
+  return (
+    findCover(article.cover_key) ??
+    findCover(pickCover(article.topic, {}, article.slug, COVERS)) ??
+    COVERS[0]
+  );
 }

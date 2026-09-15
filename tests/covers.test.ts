@@ -16,6 +16,9 @@ describe('normalizeTopic', () => {
     expect(normalizeTopic('Álcool')).toBe('alcool');
     expect(normalizeTopic('composição corporal')).toBe('composicao-corporal');
     expect(normalizeTopic('treino-de-forca')).toBe('forca');
+    expect(normalizeTopic('condicionamento')).toBe('cardio');
+    expect(normalizeTopic('atividade-fisica')).toBe('movimento');
+    expect(normalizeTopic('exercicio')).toBe('cardio');
   });
 
   it('tema desconhecido ou vazio vira o genérico', () => {
@@ -64,7 +67,7 @@ describe('o catálogo de capas', () => {
   it('todo arquivo existe nos três tamanhos', () => {
     const missing = COVERS.flatMap((cover) =>
       ['1600.webp', '800.webp', '1200.jpg']
-        .map((size) => `public/artigos/capas/${cover.id}-${size}`)
+        .map((size) => `public/photos/artigos/${cover.id}-${size}`)
         .filter((path) => !existsSync(join(process.cwd(), path))),
     );
     expect(missing).toEqual([]);

@@ -29,6 +29,29 @@ export type Topic = (typeof TOPICS)[number];
 
 export type Cover = { id: string; topics: readonly Topic[]; alt: string };
 
+const LABELS: Record<Topic, string> = {
+  sono: 'Sono',
+  recuperacao: 'Recuperação',
+  cardiovascular: 'Coração',
+  pressao: 'Pressão',
+  metabolismo: 'Metabolismo',
+  alimentacao: 'Alimentação',
+  proteina: 'Proteína',
+  forca: 'Força',
+  cardio: 'Condicionamento',
+  movimento: 'Movimento',
+  alcool: 'Álcool',
+  'composicao-corporal': 'Composição corporal',
+  estresse: 'Estresse',
+  hidratacao: 'Hidratação',
+  longevidade: 'Longevidade',
+};
+
+/** O rótulo do card: o tema do cron, normalizado e escrito como se lê. */
+export function topicLabel(raw: string | null | undefined): string {
+  return LABELS[normalizeTopic(raw)];
+}
+
 const FALLBACK: Topic = 'longevidade';
 
 // Sinônimos que o cron já usou ou tende a usar. A chave é a forma sem acento,
@@ -63,6 +86,9 @@ const ALIASES: Array<[string, Topic]> = [
   ['cardio', 'cardio'],
   ['corrida', 'cardio'],
   ['treino', 'cardio'],
+  ['condicionamento', 'cardio'],
+  ['exercicio', 'cardio'],
+  ['atividade', 'movimento'],
   ['passos', 'movimento'],
   ['caminhada', 'movimento'],
   ['sedentar', 'movimento'],
