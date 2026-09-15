@@ -113,5 +113,6 @@ export const TESTIMONIALS = [
   },
 ] as const;
 
-export const WHATSAPP_NUMBER = '5562999999999'; // TODO: replace with real number
+// O número pessoal do Kauã nos EUA (+1 561 986-5175), o mesmo do site estático.
+export const WHATSAPP_NUMBER = '15619865175';
 export const WHATSAPP_MESSAGE = 'Olá! Quero saber mais sobre a 2ª edição do Wealth & Wellness Connect.';
