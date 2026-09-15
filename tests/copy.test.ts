@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { commentMask, lineAt, walk } from './helpers/source';
 
 /**
  * A regra de copy PT-BR do Kauã, escrita como teste.
@@ -23,48 +24,11 @@ const ROOTS = ['app', 'components', 'lib'];
 const EXTENSIONS = ['.ts', '.tsx'];
 const ENTITIES = ['&mdash;', '&ndash;', '&#8212;', '&#8211;'];
 
-/** Marca cada caractere que está dentro de `//` ou de `/* *\/`. */
-function commentMask(source: string): boolean[] {
-  const mask = new Array<boolean>(source.length).fill(false);
-  let i = 0;
-
-  while (i < source.length) {
-    if (source.startsWith('/*', i)) {
-      const end = source.indexOf('*/', i + 2);
-      const stop = end < 0 ? source.length : end + 2;
-      mask.fill(true, i, stop);
-      i = stop;
-    } else if (source.startsWith('//', i)) {
-      const end = source.indexOf('\n', i);
-      const stop = end < 0 ? source.length : end;
-      mask.fill(true, i, stop);
-      i = stop;
-    } else {
-      i += 1;
-    }
-  }
-
-  return mask;
-}
-
-function walk(dir: string): string[] {
-  const found: string[] = [];
-  for (const entry of readdirSync(dir)) {
-    const path = join(dir, entry);
-    if (statSync(path).isDirectory()) {
-      found.push(...walk(path));
-    } else if (EXTENSIONS.some((extension) => entry.endsWith(extension))) {
-      found.push(path);
-    }
-  }
-  return found;
-}
-
 function offenders(): string[] {
   const hits: string[] = [];
 
   for (const root of ROOTS) {
-    for (const path of walk(join(process.cwd(), root))) {
+    for (const path of walk(join(process.cwd(), root), EXTENSIONS)) {
       const source = readFileSync(path, 'utf8');
       const mask = commentMask(source);
 
@@ -77,7 +41,7 @@ function offenders(): string[] {
         let at = source.indexOf(entity);
         while (at !== -1) {
           if (!mask[at]) {
-            const line = source.slice(0, at).split('\n').length;
+            const line = lineAt(source, at);
             hits.push(`${path.replace(process.cwd(), '.')}:${line} entidade ${entity}`);
           }
           at = source.indexOf(entity, at + 1);
@@ -87,7 +51,7 @@ function offenders(): string[] {
       for (let i = 0; i < source.length; i += 1) {
         const char = source[i];
         if ((char === '—' || char === '–') && !mask[i]) {
-          const line = source.slice(0, i).split('\n').length;
+          const line = lineAt(source, i);
           const start = source.lastIndexOf('\n', i) + 1;
           const end = source.indexOf('\n', i);
           const text = source.slice(start, end < 0 ? undefined : end).trim();
