@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { DeleteDocumentButton } from '@/components/admin/DeleteDocumentButton';
 import { DocumentForm } from '@/components/admin/DocumentForm';
 import { requireAdmin } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
@@ -74,16 +75,23 @@ export default async function DocumentosPage() {
             ) : (
               <ul className="mt-6 flex flex-col gap-px overflow-hidden border border-[var(--border)]">
                 {rows.map((row) => (
-                  <li key={row.id} className="bg-[var(--bg-card)] px-6 py-4">
-                    <p className="truncate text-[15px] text-[var(--text-1)]">{row.title}</p>
-                    <p className="mt-1 text-xs text-[var(--text-3)]">
-                      {row.email_raw} · {DOC_KIND_LABEL[row.kind] ?? row.kind} ·{' '}
-                      {formatDate(row.issued_at)}
-                      {row.user_id ? ' · já entrou' : ' · ainda não entrou'}
-                    </p>
-                    {row.period_label && (
-                      <p className="mt-1 text-xs text-[var(--text-4)]">{row.period_label}</p>
-                    )}
+                  <li
+                    key={row.id}
+                    className="flex flex-wrap items-center justify-between gap-4 bg-[var(--bg-card)] px-6 py-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[15px] text-[var(--text-1)]">{row.title}</p>
+                      <p className="mt-1 text-xs text-[var(--text-3)]">
+                        {row.email_raw} · {DOC_KIND_LABEL[row.kind] ?? row.kind} ·{' '}
+                        {formatDate(row.issued_at)}
+                        {row.user_id ? ' · já entrou' : ' · ainda não entrou'}
+                      </p>
+                      {row.period_label && (
+                        <p className="mt-1 text-xs text-[var(--text-4)]">{row.period_label}</p>
+                      )}
+                    </div>
+
+                    <DeleteDocumentButton id={row.id} title={row.title} />
                   </li>
                 ))}
               </ul>
