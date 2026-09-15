@@ -74,7 +74,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             height: 630,
             display: 'flex',
             background:
-              'linear-gradient(90deg, rgba(13,13,13,0.96) 0%, rgba(13,13,13,0.86) 45%, rgba(13,13,13,0.35) 100%)',
+              'linear-gradient(90deg, rgba(13,13,13,0.94) 0%, rgba(13,13,13,0.78) 42%, rgba(13,13,13,0.12) 100%)',
           }}
         />
         <div
