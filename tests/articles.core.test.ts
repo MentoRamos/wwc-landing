@@ -111,6 +111,11 @@ describe('parseArticleInput', () => {
     expect(refusal(valid({ body_md: `${paragraph.repeat(10)} e — no fim` }))).toMatch(/travessão/);
   });
 
+  it('recusa meia-risca também, que é a mesma regra de voz', () => {
+    const enDash = String.fromCharCode(0x2013);
+    expect(refusal(valid({ title: `Estudos de 2020${enDash}2024` }))).toMatch(/travessão/);
+  });
+
   it('recusa artigo sem fonte', () => {
     expect(refusal(valid({ sources: [] }))).toMatch(/sources/);
   });

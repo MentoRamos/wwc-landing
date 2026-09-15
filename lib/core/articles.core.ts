@@ -14,10 +14,11 @@ import { z } from 'zod';
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-// Travessão é regra de voz da marca, e é também o tique mais reconhecível de
-// texto gerado por modelo. Recusar aqui custa uma reescrita ao cron; deixar
-// passar custa a voz do Kauã no próprio site dele.
-const EM_DASH = '—';
+// Travessão e meia-risca são regra de voz da marca (tests/copy.test.ts), e o
+// travessão é também o tique mais reconhecível de texto gerado por modelo.
+// Recusar aqui custa uma reescrita ao cron; deixar passar custa a voz do Kauã
+// no próprio site dele. Por código, para o caractere não morar neste arquivo.
+const DASHES = [String.fromCharCode(0x2014), String.fromCharCode(0x2013)];
 
 // `# ` no começo de linha. `##` e `###` passam: o título do artigo já é o h1
 // da página, e dois h1 quebram a leitura de quem navega por cabeçalho.
@@ -39,8 +40,8 @@ const trimmed = (field: string, min: number, max: number) =>
     .trim()
     .min(min, { error: `${field} precisa ter pelo menos ${min} caracteres` })
     .max(max, { error: `${field} pode ter no máximo ${max} caracteres` })
-    .refine((value) => !value.includes(EM_DASH), {
-      error: `travessão (—) em ${field}: troque por vírgula, dois-pontos ou ponto`,
+    .refine((value) => !DASHES.some((dash) => value.includes(dash)), {
+      error: `travessão ou meia-risca em ${field}: troque por vírgula, dois-pontos, ponto ou "a"`,
     });
 
 const source = z.object({
