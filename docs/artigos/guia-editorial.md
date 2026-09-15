@@ -74,5 +74,8 @@ fonte principal: se a notícia é o gancho, a fonte é o estudo por trás dela.
 ```
 
 - `slug`: minúsculas, sem acento, palavras separadas por hífen, até 90 caracteres. Derivado do título.
-- `topic`: uma palavra ou duas com hífen (`sono`, `forca`, `cardiovascular`, `alcool`...).
+- `topic`: exatamente um destes, que escolhe a capa do artigo: `sono`, `recuperacao`,
+  `cardiovascular`, `pressao`, `metabolismo`, `alimentacao`, `proteina`, `forca`, `cardio`
+  (VO2, aeróbico, condicionamento), `movimento` (passos, atividade física no dia),
+  `alcool`, `composicao-corporal`, `estresse`, `hidratacao`, `longevidade` (o geral).
 - `published_at`: opcional. Sem ele, vale o momento da publicação.
