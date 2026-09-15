@@ -561,3 +561,160 @@ describe('a régua do Circle', () => {
     expect((data ?? []).length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * Artigos do Circle: a primeira tabela que um estranho lê.
+ *
+ * Tudo nesta plataforma nega `anon` por padrão, e esta tabela é a exceção
+ * deliberada. Então o que precisa de prova é o contorno da exceção: o
+ * estranho vê o que foi publicado e mais nada. Um artigo que o Kauã tirou do
+ * ar tem que sumir para ele, e ninguém além do admin escreve.
+ */
+describe('artigos do Circle', () => {
+  const stamp = Date.now();
+  const body = 'Texto de artigo com tamanho suficiente para ser um artigo. '.repeat(40);
+  const ids: string[] = [];
+
+  async function seedArticle(slug: string, over: Record<string, unknown> = {}) {
+    const { data, error } = await admin
+      .from('articles')
+      .insert({
+        slug,
+        title: `Artigo ${slug}`,
+        dek: 'Uma linha fina com tamanho suficiente.',
+        body_md: body,
+        sources: [{ label: 'Fonte', url: 'https://doi.org/10.1000/x' }],
+        published_at: new Date(Date.now() - 60_000).toISOString(),
+        ...over,
+      })
+      .select('id')
+      .single();
+    if (error) throw error;
+    ids.push(data.id);
+    return data.id as string;
+  }
+
+  let visibleSlug: string;
+  let hiddenSlug: string;
+  let scheduledSlug: string;
+
+  beforeAll(async () => {
+    visibleSlug = `publicado-${stamp}`;
+    hiddenSlug = `escondido-${stamp}`;
+    scheduledSlug = `agendado-${stamp}`;
+    await seedArticle(visibleSlug);
+    await seedArticle(hiddenSlug, { hidden_at: new Date().toISOString() });
+    await seedArticle(scheduledSlug, {
+      published_at: new Date(Date.now() + 86_400_000).toISOString(),
+    });
+  }, 60_000);
+
+  afterAll(async () => {
+    await admin.from('articles').delete().in('id', ids);
+  }, 60_000);
+
+  it('um estranho lê o artigo publicado, com corpo e fontes', async () => {
+    const { data, error } = await anonClient()
+      .from('articles')
+      .select('slug, body_md, sources')
+      .eq('slug', visibleSlug)
+      .maybeSingle();
+    expect(error).toBeNull();
+    expect(data?.slug).toBe(visibleSlug);
+    expect(data?.body_md).toContain('Texto de artigo');
+  });
+
+  it('um estranho não vê o artigo que o admin escondeu', async () => {
+    const { data } = await anonClient().from('articles').select('slug').eq('slug', hiddenSlug);
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('um estranho não vê artigo agendado para depois', async () => {
+    const { data } = await anonClient().from('articles').select('slug').eq('slug', scheduledSlug);
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('um membro comum vê o mesmo que o estranho, nem mais', async () => {
+    const client = await signedInAs(uniqueEmail('leitor'));
+    const { data } = await client
+      .from('articles')
+      .select('slug')
+      .in('slug', [visibleSlug, hiddenSlug, scheduledSlug]);
+    expect((data ?? []).map((row) => row.slug)).toEqual([visibleSlug]);
+  });
+
+  it('um estranho não publica, não edita e não apaga', async () => {
+    const anon = anonClient();
+    await anon.from('articles').insert({
+      slug: `invasor-${stamp}`,
+      title: 'Invasor',
+      dek: 'Uma linha fina com tamanho suficiente.',
+      body_md: body,
+      sources: [],
+      published_at: new Date().toISOString(),
+    });
+    await anon.from('articles').update({ title: 'Pichado' }).eq('slug', visibleSlug);
+    await anon.from('articles').delete().eq('slug', visibleSlug);
+
+    const { data } = await admin
+      .from('articles')
+      .select('slug, title')
+      .in('slug', [visibleSlug, `invasor-${stamp}`]);
+    expect(data).toEqual([{ slug: visibleSlug, title: `Artigo ${visibleSlug}` }]);
+  });
+
+  it('um membro comum não republica um artigo escondido', async () => {
+    const client = await signedInAs(uniqueEmail('republicador'));
+    await client.from('articles').update({ hidden_at: null }).eq('slug', hiddenSlug);
+
+    const { data } = await admin
+      .from('articles')
+      .select('hidden_at')
+      .eq('slug', hiddenSlug)
+      .single();
+    expect(data?.hidden_at).not.toBeNull();
+  });
+
+  it('o admin vê o escondido e consegue republicá-lo', async () => {
+    const email = uniqueEmail('admin-artigos');
+    const client = await signedInAs(email);
+    const { error: promoteError } = await admin
+      .from('admin_users')
+      .insert({ user_id: await userIdFor(email) });
+    expect(promoteError).toBeNull();
+
+    const { data: seen } = await client.from('articles').select('slug').eq('slug', hiddenSlug);
+    expect(seen ?? []).toHaveLength(1);
+
+    const { error } = await client
+      .from('articles')
+      .update({ hidden_at: null })
+      .eq('slug', hiddenSlug);
+    expect(error).toBeNull();
+
+    const { data } = await anonClient().from('articles').select('slug').eq('slug', hiddenSlug);
+    expect(data ?? []).toHaveLength(1);
+  });
+
+  it('o banco recusa slug fora do formato e fonte que não é lista', async () => {
+    const bad = await admin.from('articles').insert({
+      slug: 'Com Espaço',
+      title: 'x',
+      dek: 'y',
+      body_md: body,
+      sources: [],
+      published_at: new Date().toISOString(),
+    });
+    expect(bad.error).not.toBeNull();
+
+    const notArray = await admin.from('articles').insert({
+      slug: `nao-lista-${stamp}`,
+      title: 'x',
+      dek: 'y',
+      body_md: body,
+      sources: { label: 'x' },
+      published_at: new Date().toISOString(),
+    });
+    expect(notArray.error).not.toBeNull();
+  });
+});
