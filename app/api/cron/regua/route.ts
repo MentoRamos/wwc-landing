@@ -78,6 +78,14 @@ export async function GET(request: Request) {
   let sent = 0;
   let failed = 0;
   let deferred = 0;
+  // Quantos membros o tick olhou e quantos não tinham nada a receber. Sem
+  // isto, "enviei zero" e "não achei ninguém" são a mesma resposta, e as duas
+  // causas são muito diferentes: uma é a régua em dia, a outra é uma consulta
+  // que não acha o que deveria.
+  const candidates = (rows ?? []).length;
+  let nothingDue = 0;
+  let claimFailed = 0;
+  let alreadyClaimed = 0;
 
   for (const row of rows ?? []) {
     const member: Member = {
@@ -90,7 +98,10 @@ export async function GET(request: Request) {
     };
 
     const step = dueFor(member, sentByEmail.get(member.email_norm) ?? new Set(), now, meeting);
-    if (!step) continue;
+    if (!step) {
+      nothingDue += 1;
+      continue;
+    }
 
     if (sent >= DAILY_CAP) {
       deferred += 1;
@@ -99,7 +110,7 @@ export async function GET(request: Request) {
 
     // 1. A reserva. Sem `select` de checagem antes: a unique constraint é que
     //    decide, e conferir antes seria uma corrida entre duas execuções.
-    const { data: claim } = await admin
+    const { data: claim, error: claimError } = await admin
       .from('circle_emails')
       .upsert(
         { email_norm: member.email_norm, step_key: step.key, status: 'pending' },
@@ -108,7 +119,25 @@ export async function GET(request: Request) {
       .select('id')
       .maybeSingle();
 
-    if (!claim) continue; // outra execução pegou este envio
+    /**
+     * Reserva que falha não é reserva que colidiu.
+     *
+     * A primeira versão descartava o erro e tratava os dois casos como "outra
+     * execução pegou este envio". O tick então respondia zero enviados, zero
+     * falhas e zero adiados, com candidato na fila — uma régua parada dizendo
+     * que estava em dia. Um erro engolido aqui não atrasa um e-mail, ele
+     * esconde que a régua inteira não funciona.
+     */
+    if (claimError) {
+      console.error('[cron/regua] a reserva falhou', { code: claimError.code });
+      claimFailed += 1;
+      continue;
+    }
+
+    if (!claim) {
+      alreadyClaimed += 1;
+      continue; // outra execução pegou este envio
+    }
 
     // 2. O envio.
     const rendered = renderStep(step, member, meeting);
@@ -131,8 +160,17 @@ export async function GET(request: Request) {
     }
   }
 
-  console.log('[cron/regua] tick', { sent, failed, deferred });
-  return Response.json({ ok: true, sent, failed, deferred });
+  console.log('[cron/regua] tick', { candidates, sent, failed, deferred, nothingDue, claimFailed, alreadyClaimed });
+  return Response.json({
+    ok: true,
+    candidates,
+    sent,
+    failed,
+    deferred,
+    nothingDue,
+    claimFailed,
+    alreadyClaimed,
+  });
 }
 
 function firstName(full: string | null | undefined): string | null {
