@@ -61,7 +61,6 @@ export default async function InteressePage() {
   return (
     <div className="flex flex-col gap-12">
       <SectionHeading
-        className="max-w-2xl"
         eyebrow="Interesse"
         title="Quem levantou a mão"
         lede="Gente que pediu para ser avisada antes de existir link de pagamento. É a primeira fila quando o checkout abrir."

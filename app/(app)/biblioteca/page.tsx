@@ -80,7 +80,6 @@ export default async function BibliotecaPage() {
   return (
     <div className="flex flex-col gap-14">
       <SectionHeading
-        className="max-w-2xl"
         eyebrow="Biblioteca"
         title="Tudo o que é seu, num lugar só."
         lede={

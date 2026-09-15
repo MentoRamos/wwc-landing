@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
+import { Band } from '@/components/ui/Band';
 import { Button } from '@/components/ui/Button';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { InterestForm } from '@/components/interest/InterestForm';
@@ -89,33 +90,49 @@ function MemberView() {
 
   return (
     <div className="container-lp w-full py-16">
-      <div className="max-w-2xl">
+      <div>
         <SectionHeading eyebrow="W&W Circle" title="Seu próximo encontro" />
+        <div className="rule-gold mt-7" aria-hidden="true" />
+      </div>
 
-        <div className="mt-10 border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
-          <p className="eyebrow">Ao vivo, no Google Meet</p>
-          <p className="mt-3 text-lg text-[var(--text-1)]">
-            {formatDateTime(nextMeeting(new Date()))}
-          </p>
+      {/*
+        Esta metade da página é a que um assinante abre toda quinta, e era a
+        mais vazia da plataforma: um cartão de data preso a `max-w-2xl` num
+        container de 1440px, com o rodapé mais largo que o próprio conteúdo. A
+        faixa devolve a ela a coluna editorial que a face de venda já tinha.
+      */}
+      <div className="mt-14">
+        <Band
+          eyebrow="Ao vivo"
+          title="No Google Meet."
+          lede={
+            <>
+              As gravações e os materiais ficam na{' '}
+              <Link
+                href="/biblioteca"
+                className="link-draw text-[var(--accent)]"
+              >
+                biblioteca
+              </Link>
+              , liberados enquanto a assinatura estiver em dia.
+            </>
+          }
+        >
+          <div className="border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
+            <p className="eyebrow">Quando</p>
+            <p className="card-title mt-4">{formatDateTime(nextMeeting(new Date()))}</p>
 
-          {meetUrl ? (
-            <div className="mt-6">
-              <Button href={meetUrl} variant="primary" size="lg">
-                Entrar na sala
-              </Button>
-            </div>
-          ) : (
-            <p className="prose-body mt-6">O link da sala chega por e-mail na véspera.</p>
-          )}
-        </div>
-
-        <p className="prose-body mt-8">
-          As gravações e os materiais ficam na{' '}
-          <Link href="/biblioteca" className="text-[var(--accent)] underline underline-offset-4">
-            biblioteca
-          </Link>
-          , liberados enquanto a assinatura estiver em dia.
-        </p>
+            {meetUrl ? (
+              <div className="mt-8">
+                <Button href={meetUrl} variant="primary" size="lg">
+                  Entrar na sala
+                </Button>
+              </div>
+            ) : (
+              <p className="prose-body mt-6">O link da sala chega por e-mail na véspera.</p>
+            )}
+          </div>
+        </Band>
       </div>
     </div>
   );

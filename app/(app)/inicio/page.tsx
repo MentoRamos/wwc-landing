@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Band } from '@/components/ui/Band';
 import { Card, CardAction, CardGrid } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -135,10 +136,9 @@ export default async function InicioPage() {
       : null;
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-14 md:gap-20">
       <div>
         <SectionHeading
-          className="max-w-2xl"
           eyebrow="Sua área"
           title={
             <>
@@ -154,22 +154,28 @@ export default async function InicioPage() {
           not the date: "Em 3 dias" is the part somebody acts on, and the full
           weekday and hour is the detail they confirm underneath. */}
       {hasCircle && (
-        <section className="max-w-2xl border-t border-[var(--border)] pt-8">
-          <p className="eyebrow">Próximo encontro</p>
-          <p className="stat-num mt-4">{countdownLabel(meeting, now)}</p>
+        <Band
+          eyebrow="Próximo encontro"
+          title="Toda quinta, 20h."
+          lede="Uma hora sobre os seus próprios números, com espaço para a sua pergunta. A gravação entra na biblioteca depois."
+        >
+          <p className="stat-num">{countdownLabel(meeting, now)}</p>
           <p className="meta mt-3 text-[var(--text-3)]">{formatDateTime(meeting)}</p>
           <div className="mt-7">
             <Button href="/circle" variant="primary">
               Entrar na sala
             </Button>
           </div>
-        </section>
+        </Band>
       )}
 
       {resume && (
-        <section className="max-w-2xl border-t border-[var(--border)] pt-8">
-          <p className="eyebrow">Continuar de onde parou</p>
-          <div className="mt-6 border border-[var(--border)]">
+        <Band
+          eyebrow="Continuar"
+          title="Você parou no meio."
+          lede="Retoma exatamente de onde a gravação ficou, não do começo."
+        >
+          <div className="border border-[var(--border)]">
             <Card href={`/biblioteca/${resume.item.slug}`}>
               <p className="card-title">{resume.item.title}</p>
               <div className="mt-5">
@@ -181,14 +187,16 @@ export default async function InicioPage() {
               <CardAction>Retomar em {formatDuration(resume.at)}</CardAction>
             </Card>
           </div>
-        </section>
+        </Band>
       )}
 
-      <section className="max-w-2xl border-t border-[var(--border)] pt-8">
-        <h2 className="section-title">Seus acessos</h2>
-
+      <Band
+        eyebrow="Seus acessos"
+        title="O que já é seu."
+        lede="Tudo que está ligado a este e-mail. Cada cartão abre onde a coisa mora."
+      >
         {live.length > 0 ? (
-          <CardGrid className="mt-6">
+          <CardGrid columns={2}>
             {live.map((row) => {
               const product = PRODUCTS[row.product] ?? {
                 name: row.product,
@@ -214,26 +222,24 @@ export default async function InicioPage() {
             })}
           </CardGrid>
         ) : (
-          <div className="mt-6">
-            <EmptyState
-              title="Ainda não há nenhum acesso ligado a este e-mail."
-              action={
-                <>
-                  <Button href="/circle" variant="primary">
-                    Conhecer o Circle
-                  </Button>
-                  <Button href="/sem-acesso" variant="quiet">
-                    Comprei e não apareceu
-                  </Button>
-                </>
-              }
-            >
-              Se você já comprou, provavelmente pagou com outro endereço. Me avise que eu
-              ligo os dois.
-            </EmptyState>
-          </div>
+          <EmptyState
+            title="Ainda não há nenhum acesso ligado a este e-mail."
+            action={
+              <>
+                <Button href="/circle" variant="primary">
+                  Conhecer o Circle
+                </Button>
+                <Button href="/sem-acesso" variant="quiet">
+                  Comprei e não apareceu
+                </Button>
+              </>
+            }
+          >
+            Se você já comprou, provavelmente pagou com outro endereço. Me avise que eu
+            ligo os dois.
+          </EmptyState>
         )}
-      </section>
+      </Band>
     </div>
   );
 }

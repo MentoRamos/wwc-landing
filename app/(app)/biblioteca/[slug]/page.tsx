@@ -44,51 +44,64 @@ export default async function ItemPage({ params }: { params: Promise<{ slug: str
   const duration = formatDuration(item.duration_seconds);
 
   return (
-    <div className="max-w-3xl">
+    <div>
       <Link
         href="/biblioteca"
-        className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+        className="link-draw text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
       >
-        ← Biblioteca
+        &larr; Biblioteca
       </Link>
 
-      <h1 className="mt-6 text-4xl">{item.title}</h1>
-      <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[var(--text-4)]">
-        {item.kind === 'pdf' ? 'PDF' : 'Gravação'}
-        {duration && ` · ${duration}`}
-        {item.season && ` · ${item.season}`}
-      </p>
+      {/*
+        O que se assiste manda, e o que se lê acompanha.
+        
+        A tela inteira vivia presa a `max-w-3xl`, então o player ficava com
+        768px de 1440 e o resto da largura ia para o preto. Invertido em faixa,
+        a gravação fica na coluna larga e a ficha do item na estreita, que é a
+        mesma proporção que as outras telas da área logada usam.
+      */}
+      <div className="mt-10 grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <div>
+          <h1 className="page-title">{item.title}</h1>
+          <div className="rule-gold mt-6" aria-hidden="true" />
+          <p className="meta mt-6">
+            {item.kind === 'pdf' ? 'PDF' : 'Gravação'}
+            {duration && ` · ${duration}`}
+            {item.season && ` · ${item.season}`}
+          </p>
+          {item.description && <p className="prose-body mt-6">{item.description}</p>}
+        </div>
 
-      {item.description && (
-        <p className="mt-6 text-sm leading-relaxed text-[var(--text-2)]">{item.description}</p>
-      )}
+        <div className="min-w-0">
+          {item.kind === 'video' && item.youtube_id ? (
+            <Replay
+              contentItemId={item.id}
+              youtubeId={item.youtube_id}
+              title={item.title}
+              startAt={startAt}
+            />
+          ) : (
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
+              <p className="eyebrow">Arquivo</p>
+              <p className="card-title mt-4">Pronto para baixar.</p>
 
-      <div className="mt-10">
-        {item.kind === 'video' && item.youtube_id ? (
-          <Replay
-            contentItemId={item.id}
-            youtubeId={item.youtube_id}
-            title={item.title}
-            startAt={startAt}
-          />
-        ) : (
-          <>
-            {/*
-              A plain link, not fetch(): the route answers with a redirect to a
-              signed URL, and letting the browser follow it is what makes the
-              file download without the URL ever passing through our own JS.
-            */}
-            <a
-              href={`/api/biblioteca/${item.slug}/download`}
-              className="btn-glow inline-block border border-[var(--border-hover)] bg-[var(--bg-card)] px-6 py-4 text-sm font-medium text-[var(--text-1)] transition hover:bg-[var(--bg-card-hover)]"
-            >
-              Baixar o PDF
-            </a>
-            <p className="mt-4 text-xs text-[var(--text-4)]">
-              O link vale por cinco minutos e é gerado na hora, só para você.
-            </p>
-          </>
-        )}
+              {/*
+                A plain link, not fetch(): the route answers with a redirect to a
+                signed URL, and letting the browser follow it is what makes the
+                file download without the URL ever passing through our own JS.
+              */}
+              <a
+                href={`/api/biblioteca/${item.slug}/download`}
+                className="btn-glow inline-block border border-[var(--border-hover)] bg-[var(--bg-card)] px-6 py-4 text-sm font-medium text-[var(--text-1)] transition hover:bg-[var(--bg-card-hover)]"
+              >
+                Baixar o PDF
+              </a>
+              <p className="mt-4 text-xs text-[var(--text-4)]">
+                O link vale por cinco minutos e é gerado na hora, só para você.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -20,9 +20,11 @@ export default function AppError({
   unstable_retry: () => void;
 }) {
   return (
-    <div className="max-w-md">
-      <h1 className="text-3xl">Alguma coisa quebrou aqui.</h1>
-      <p className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">
+    <div>
+      <p className="eyebrow">Erro</p>
+      <h1 className="page-title mt-4">Alguma coisa quebrou aqui.</h1>
+      <div className="rule-gold mt-6" aria-hidden="true" />
+      <p className="prose-body mt-6">
         Não foi culpa sua e nada do seu acesso se perdeu. Tente de novo. Se
         insistir, me chame no WhatsApp.
       </p>

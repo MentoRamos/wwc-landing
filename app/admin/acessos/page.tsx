@@ -62,7 +62,7 @@ export default async function AcessosPage() {
 
   return (
     <div className="flex flex-col gap-12">
-      <header className="max-w-2xl">
+      <header>
         <p className="eyebrow">Acessos</p>
         <h1 className="page-title mt-4">Conceder</h1>
         <div className="rule-gold mt-6" aria-hidden="true" />

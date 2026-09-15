@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Band } from '@/components/ui/Band';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { LEGAL, pending } from '@/lib/legal';
@@ -42,48 +44,50 @@ export default async function ContaPage() {
   const fmt = (iso: string | null) => formatDate(iso) || null;
 
   return (
-    <div className="max-w-2xl">
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">Sua conta</p>
-      <h1 className="mt-4 text-4xl">{profile?.full_name || user.email}</h1>
+    <div className="flex flex-col gap-14 md:gap-20">
+      <div>
+        <SectionHeading eyebrow="Sua conta" title={profile?.full_name || user.email} />
+        <div className="rule-gold mt-7" aria-hidden="true" />
+      </div>
 
-      <section className="mt-12">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">
-          O que guardamos
-        </h2>
-        <dl className="mt-5 flex flex-col gap-px overflow-hidden border border-[var(--border)]">
+      <Band
+        eyebrow="Dados"
+        title="O que guardamos."
+        lede="Recebemos do Google apenas nome, e-mail e foto de perfil. Nunca sua senha, nem acesso a Gmail, Drive, Agenda ou contatos."
+      >
+        <dl className="flex flex-col gap-px overflow-hidden border border-[var(--border)]">
           <Row label="E-mail" value={profile?.email ?? user.email ?? 'não informado'} />
           <Row label="Nome" value={profile?.full_name ?? 'não informado'} />
-          <Row label="Entrou pela primeira vez" value={fmt(profile?.created_at ?? null) ?? 'não informado'} />
+          <Row
+            label="Entrou pela primeira vez"
+            value={fmt(profile?.created_at ?? null) ?? 'não informado'}
+          />
           <Row label="Forma de entrada" value="Conta Google" />
         </dl>
-        <p className="mt-4 text-xs leading-relaxed text-[var(--text-4)]">
-          Recebemos do Google apenas nome, e-mail e foto de perfil. Nunca sua senha, nem
-          acesso a Gmail, Drive, Agenda ou contatos.
-        </p>
-      </section>
+      </Band>
 
-      <section className="mt-12">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">Seus acessos</h2>
-
+      <Band
+        eyebrow="Acessos"
+        title="O que está ligado a este e-mail."
+        lede="Vitalício não expira. O resto mostra a data em que termina, e continua valendo até lá."
+      >
         {(entitlements ?? []).length === 0 ? (
-          <p className="mt-5 text-sm leading-relaxed text-[var(--text-2)]">
+          <p className="prose-body">
             Nenhum acesso ligado a este e-mail.{' '}
-            <Link href="/sem-acesso" className="text-[var(--accent)] underline underline-offset-4">
+            <Link href="/sem-acesso" className="link-draw text-[var(--accent)]">
               Comprou e não apareceu?
             </Link>
           </p>
         ) : (
-          <ul className="mt-5 flex flex-col gap-px overflow-hidden border border-[var(--border)]">
+          <ul className="flex flex-col gap-px overflow-hidden border border-[var(--border)]">
             {(entitlements ?? []).map((row, i) => {
               const expired = row.expires_at && new Date(row.expires_at) <= new Date();
               const live = !expired && ['active', 'past_due'].includes(row.status);
 
               return (
-                <li key={i} className="bg-[var(--bg-card)] px-6 py-4">
-                  <p className="text-sm text-[var(--text-1)]">
-                    {PRODUCT_LABEL[row.product] ?? row.product}
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--text-3)]">
+                <li key={i} className="bg-[var(--bg-card)] px-6 py-5">
+                  <p className="card-title">{PRODUCT_LABEL[row.product] ?? row.product}</p>
+                  <p className="meta mt-2">
                     {live
                       ? row.expires_at
                         ? `Vale até ${fmt(row.expires_at)}`
@@ -100,35 +104,36 @@ export default async function ContaPage() {
             })}
           </ul>
         )}
-      </section>
+      </Band>
 
-      <section className="mt-12">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-[var(--text-3)]">Seus direitos</h2>
-        <p className="mt-5 text-sm leading-relaxed text-[var(--text-2)]">
-          Você pode pedir correção, portabilidade ou a exclusão da conta a qualquer momento,
-          sem custo e sem justificar. Escreva para{' '}
-          <strong className="text-[var(--text-1)]">{contact}</strong>. Respondemos em até 15
-          dias.
+      <Band
+        eyebrow="LGPD"
+        title="Seus direitos."
+        lede="Correção, portabilidade ou exclusão da conta a qualquer momento, sem custo e sem justificar."
+      >
+        <p className="prose-body">
+          Escreva para <strong className="text-[var(--text-1)]">{contact}</strong>.
+          Respondemos em até 15 dias.
         </p>
-        <p className="mt-3 text-xs leading-relaxed text-[var(--text-4)]">
+        <p className="mt-4 text-xs leading-relaxed text-[var(--text-4)]">
           Registros de compra ficam pelo prazo que a lei fiscal exige mesmo depois da conta
           encerrada, porque são prova de uma relação que existiu. O resto é apagado ou
           anonimizado. Detalhes na{' '}
-          <Link href="/privacidade" className="underline underline-offset-4">
+          <Link href="/privacidade" className="link-draw">
             Política de Privacidade
           </Link>
           .
         </p>
-      </section>
 
-      <form action="/api/auth/sair" method="post" className="mt-12">
-        <button
-          type="submit"
-          className="border border-[var(--border)] px-6 py-3 text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:border-[var(--border-hover)] hover:text-[var(--accent)]"
-        >
-          Sair desta conta
-        </button>
-      </form>
+        <form action="/api/auth/sair" method="post" className="mt-10">
+          <button
+            type="submit"
+            className="border border-[var(--border)] px-6 py-3 text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:border-[var(--border-hover)] hover:text-[var(--accent)]"
+          >
+            Sair desta conta
+          </button>
+        </form>
+      </Band>
     </div>
   );
 }
