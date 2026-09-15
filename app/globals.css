@@ -506,6 +506,70 @@ a:focus-visible {
   .stagger-children > * { opacity: 1; animation: none; }
 }
 
+/* 12b. Reveal ao rolar que nao depende de JS para existir.
+
+   O /connect entregava 236 elementos com `opacity:0` no HTML: o Framer
+   Motion serializa o `initial` no servidor, entao a pagina do evento so
+   existia depois que o JavaScript hidratava. Com JS lento a tela ficava
+   branca; com JS desligado ficava branca para sempre.
+
+   Aqui o estado de repouso e VISIVEL. O escondido so entra quando o
+   componente arma o elemento (`data-armed`), e ele so arma o que esta
+   abaixo da dobra — o que ja estava na tela quando a pagina abriu nunca
+   pisca, porque nunca chega a ser escondido. */
+.reveal { opacity: 1; }
+.reveal[data-armed='true'] {
+  opacity: 0;
+  transform: translateY(var(--reveal-y, 40px));
+}
+.reveal[data-armed='true'].is-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
+  transition-delay: var(--reveal-delay, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal[data-armed='true'],
+  .reveal[data-armed='true'].is-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* 12c. A entrada do hero, em CSS.
+
+   Isto era Framer com `initial="hidden"`, e o estado escondido do titulo nao
+   era opacidade e sim `clip-path: inset(100% 0 0 0)`: sem JavaScript, o maior
+   texto da pagina do evento tinha altura zero. Estava no HTML, para o Google,
+   e invisivel para gente.
+
+   Animacao de CSS nao espera hidratacao nem depende de JS existir, entao aqui
+   ela e melhor que a biblioteca nos dois eixos: aparece antes e aparece
+   sempre. `both` segura o primeiro quadro durante o atraso. */
+@keyframes hero-mask-up {
+  from { clip-path: inset(100% 0 0 0); transform: translateY(30%); }
+  to   { clip-path: inset(0 0 0 0);    transform: none; }
+}
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-mask-up {
+  animation: hero-mask-up 1.25s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0s);
+}
+.hero-fade-up {
+  animation: hero-fade-up 1s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-mask-up,
+  .hero-fade-up { animation: none; }
+}
+
 /* 13. Parallax layer */
 .parallax-layer {
   transform-style: preserve-3d;

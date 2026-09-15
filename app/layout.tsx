@@ -30,9 +30,39 @@ export const metadata: Metadata = {
   icons: { icon: '/icon.svg' },
 };
 
+/**
+ * Desarma qualquer reveal que tenha sobrado escondido quando nao ha JavaScript
+ * para revela-lo. `!important` porque o que estamos sobrescrevendo e style
+ * inline, e so isso ganha dele.
+ */
+const NOSCRIPT_REVEAL = [
+  '[style*="opacity:0"][style*="transform:"]',
+  '[style*="clip-path:inset(100%"]',
+].join(',') + '{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={display.variable}>
+      <head>
+        {/*
+          A rede por baixo do resto.
+
+          O Framer Motion escreve o estado inicial como style inline no HTML do
+          servidor, entao um `initial={{ opacity: 0 }}` vira texto invisivel na
+          pagina servida. O ScrollReveal deixou de fazer isso, mas ainda ha
+          animacao de Framer no cromo e nos carrosseis, e um componente novo
+          pode trazer o padrao de volta sem ninguem perceber.
+
+          O seletor e proposital: so pega quem tem `opacity:0` E `transform`,
+          que e a assinatura de um reveal de conteudo. Os brilhos dourados de
+          hover sao `opacity:0` sem transform, e devem mesmo continuar
+          escondidos — desarmar tudo poria borda dourada em cada cartao de quem
+          navega sem JavaScript.
+        */}
+        <noscript>
+          <style>{NOSCRIPT_REVEAL}</style>
+        </noscript>
+      </head>
       <body>
         <a
           href="#main"
