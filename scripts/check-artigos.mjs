@@ -80,7 +80,12 @@ try {
   check('publicar: 201 e created', first.status === 201 && first.json?.created === true, JSON.stringify(first.json));
   check('publicar: devolve a URL do artigo', first.json?.url?.endsWith(`/circle/artigos/${slug}`), first.json?.url);
 
+  const { data: withCover } = await admin.from('articles').select('cover_key').eq('slug', slug).single();
+  check('publicar: ganha capa do tema (sono)', /^(sono|recuperacao)-/.test(withCover?.cover_key ?? ''), withCover?.cover_key);
+  check('publicar: devolve a capa escolhida', first.json?.cover === withCover?.cover_key, first.json?.cover);
+
   const page = await get(`/circle/artigos/${slug}`);
+  check('página: mostra a capa', page.text.includes(`/photos/artigos/${withCover?.cover_key}-1600.webp`));
   check('página: 200', page.status === 200, String(page.status));
   check('página: traz o título', page.text.includes(`Artigo de aceite ${stamp}`));
   check('página: traz o aviso médico fixo', page.text.includes('não substitui avaliação médica'));
@@ -92,6 +97,7 @@ try {
 
   const index = await get('/circle/artigos');
   check('índice: lista o artigo', index.status === 200 && index.text.includes(`Artigo de aceite ${stamp}`));
+  check('índice: mostra a capa', index.text.includes(`/photos/artigos/${withCover?.cover_key}-`));
 
   const circle = await get('/circle');
   check('/circle: bloco dos últimos artigos', circle.status === 200 && circle.text.includes(`Artigo de aceite ${stamp}`));
@@ -109,7 +115,12 @@ try {
   check('reenvio: 200 e não created', again.status === 200 && again.json?.created === false, JSON.stringify(again.json));
   const { data: rows } = await admin.from('articles').select('id, title').eq('slug', slug);
   check('reenvio: continua uma linha só, com o texto novo', rows?.length === 1 && rows[0].title.endsWith('corrigido'));
-  const { data: kept } = await admin.from('articles').select('published_at').eq('slug', slug).single();
+  const { data: kept } = await admin.from('articles').select('published_at, cover_key').eq('slug', slug).single();
+  check('reenvio: a capa não troca', kept?.cover_key === withCover?.cover_key, `${withCover?.cover_key} -> ${kept?.cover_key}`);
+  await admin.from('articles').update({ cover_key: 'longevidade-ampulheta' }).eq('slug', slug);
+  await post(article());
+  const { data: manual } = await admin.from('articles').select('cover_key').eq('slug', slug).single();
+  check('reenvio: a capa escolhida à mão fica', manual?.cover_key === 'longevidade-ampulheta', manual?.cover_key);
   check('reenvio sem data: a data original fica', kept?.published_at === before?.published_at, `${before?.published_at} -> ${kept?.published_at}`);
   const naive = await post(article({ published_at: '2026-09-14T10:00:00' }));
   check('data sem fuso: 400', naive.status === 400, JSON.stringify(naive.json));

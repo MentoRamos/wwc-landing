@@ -5,6 +5,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Meta } from '@/components/ui/Meta';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { ArticleToggle } from '@/components/admin/ArticleToggle';
+import { CoverPicker } from '@/components/admin/CoverPicker';
+import { CoverImage } from '@/components/articles/CoverImage';
+import { COVERS, resolveCover } from '@/lib/articles/covers';
 import { requireAdmin } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { articlePath, isPubliclyVisible } from '@/lib/core/articles.core';
@@ -21,6 +24,7 @@ type Row = {
   title: string;
   topic: string | null;
   source_kit: string | null;
+  cover_key: string | null;
   published_at: string;
   hidden_at: string | null;
 };
@@ -38,12 +42,13 @@ export default async function AdminArtigosPage() {
 
   const { data, error } = await supabase
     .from('articles')
-    .select('id, slug, title, topic, source_kit, published_at, hidden_at')
+    .select('id, slug, title, topic, source_kit, cover_key, published_at, hidden_at')
     .order('published_at', { ascending: false })
     .limit(500);
 
   const rows = (data ?? []) as Row[];
   const now = new Date();
+  const coverOptions = COVERS.map((cover) => ({ id: cover.id, label: cover.alt }));
 
   return (
     <div className="flex flex-col gap-12">
@@ -68,7 +73,10 @@ export default async function AdminArtigosPage() {
                 key={row.id}
                 className="flex flex-wrap items-center justify-between gap-4 bg-[var(--bg-card)] px-6 py-4"
               >
-                <div className="min-w-0">
+                <div className="h-16 w-28 shrink-0 overflow-hidden border border-[var(--border)]">
+                  <CoverImage article={row} sizes="112px" />
+                </div>
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-3">
                     <Badge tone={live ? 'accent' : 'neutral'}>
                       {row.hidden_at ? 'Fora do ar' : live ? 'No ar' : 'Agendado'}
@@ -85,7 +93,10 @@ export default async function AdminArtigosPage() {
                     parts={[formatDate(row.published_at), row.topic, row.source_kit]}
                   />
                 </div>
-                <ArticleToggle id={row.id} title={row.title} hidden={row.hidden_at !== null} />
+                <div className="flex flex-wrap items-center gap-4">
+                  <CoverPicker id={row.id} current={resolveCover(row).id} options={coverOptions} />
+                  <ArticleToggle id={row.id} title={row.title} hidden={row.hidden_at !== null} />
+                </div>
               </li>
             );
           })}

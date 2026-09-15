@@ -2,6 +2,8 @@ import { adminClient } from '@/lib/supabase/admin';
 import { cronAuthorized } from '@/lib/cron-auth';
 import { articlePath, parseArticleInput } from '@/lib/core/articles.core';
 import { resolveSiteUrl } from '@/lib/core/site.core';
+import { pickCover } from '@/lib/core/covers.core';
+import { COVERS } from '@/lib/articles/covers';
 
 /**
  * Onde o cron do servidor publica o artigo do dia.
@@ -50,10 +52,30 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: parsed.message }, { status: 400 });
   }
 
-  const { data, error } = await adminClient()
+  const admin = adminClient();
+
+  // A capa entra quando o artigo ainda não tem uma: na criação, e nos artigos
+  // que nasceram antes das capas. Reenvio de artigo que já tem capa não troca
+  // a imagem, nem a que o admin escolheu à mão.
+  const { data: existing } = await admin
     .from('articles')
-    .upsert(parsed.value, { onConflict: 'slug' })
-    .select('slug, created_at, updated_at, hidden_at')
+    .select('cover_key')
+    .eq('slug', parsed.value.slug)
+    .maybeSingle();
+
+  let row: typeof parsed.value & { cover_key?: string } = parsed.value;
+  if (!existing?.cover_key) {
+    const { data: used } = await admin.from('articles').select('cover_key').not('cover_key', 'is', null);
+    const usage: Record<string, number> = {};
+    for (const { cover_key } of used ?? []) usage[cover_key] = (usage[cover_key] ?? 0) + 1;
+    const cover = pickCover(parsed.value.topic, usage, parsed.value.slug, COVERS);
+    if (cover) row = { ...row, cover_key: cover };
+  }
+
+  const { data, error } = await admin
+    .from('articles')
+    .upsert(row, { onConflict: 'slug' })
+    .select('slug, created_at, updated_at, hidden_at, cover_key')
     .single();
 
   if (error || !data) {
@@ -79,6 +101,7 @@ export async function POST(request: Request) {
       url: `${site}${articlePath(data.slug)}`,
       created,
       hidden: data.hidden_at !== null,
+      cover: data.cover_key,
     },
     { status: created ? 201 : 200 },
   );

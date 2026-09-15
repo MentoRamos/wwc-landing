@@ -46,3 +46,30 @@ export async function hideArticle(_previous: ActionState, formData: FormData) {
 export async function showArticle(_previous: ActionState, formData: FormData) {
   return setHidden(formData, false);
 }
+
+/**
+ * Trocar a capa. O id tem de existir no catálogo: sem isso, um POST forjado
+ * gravaria um id qualquer, que a página resolveria em silêncio para outra
+ * imagem e a tela do admin mostraria uma escolha que não aconteceu.
+ */
+export async function setCover(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const { findCover } = await import('@/lib/articles/covers');
+  const supabase = await serverClient();
+
+  const id = String(formData.get('id') ?? '').trim();
+  const cover = String(formData.get('cover') ?? '').trim();
+  if (!id || !findCover(cover)) return { ok: false, message: 'Capa inválida.' };
+
+  const { data, error } = await supabase
+    .from('articles')
+    .update({ cover_key: cover })
+    .eq('id', id)
+    .select('slug')
+    .maybeSingle();
+  if (error || !data) return { ok: false, message: 'Não consegui trocar.' };
+
+  revalidatePath('/admin/artigos');
+  revalidatePath(`/circle/artigos/${data.slug}`);
+  return { ok: true, message: 'Capa trocada.' };
+}

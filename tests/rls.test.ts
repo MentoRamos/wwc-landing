@@ -712,6 +712,29 @@ describe('artigos do Circle', () => {
     expect(data?.body_md).toContain('Texto de artigo');
   });
 
+  it('o admin troca a capa, e um membro comum não', async () => {
+    const member = await signedInAs(uniqueEmail('troca-capa'));
+    await member.from('articles').update({ cover_key: 'alcool-taca' }).eq('slug', visibleSlug);
+    const { data: untouched } = await admin
+      .from('articles')
+      .select('cover_key')
+      .eq('slug', visibleSlug)
+      .single();
+    expect(untouched?.cover_key).toBeNull();
+
+    const email = uniqueEmail('admin-capa');
+    const client = await signedInAs(email);
+    await admin.from('admin_users').insert({ user_id: await userIdFor(email) });
+    const { error } = await client
+      .from('articles')
+      .update({ cover_key: 'alcool-taca' })
+      .eq('slug', visibleSlug);
+    expect(error).toBeNull();
+
+    const { data } = await admin.from('articles').select('cover_key').eq('slug', visibleSlug).single();
+    expect(data?.cover_key).toBe('alcool-taca');
+  });
+
   it('o banco recusa slug fora do formato e fonte que não é lista', async () => {
     const bad = await admin.from('articles').insert({
       slug: 'Com Espaço',
