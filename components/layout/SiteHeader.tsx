@@ -38,7 +38,7 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
       {!signedIn && (
         <div className="border-t border-[var(--border)] md:hidden">
           <div className="container-lp">
-            <SiteNav className="gap-7 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
+            <SiteNav className="gap-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
           </div>
         </div>
       )}

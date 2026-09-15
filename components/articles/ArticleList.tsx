@@ -16,9 +16,9 @@ export function ArticleList({ articles }: { articles: ArticleSummary[] }) {
         <li key={article.slug} className="border-b border-[var(--border)]">
           <Link
             href={articlePath(article.slug)}
-            className="group grid gap-3 py-8 md:grid-cols-[11rem_1fr] md:gap-10"
+            className="group grid gap-3 py-8 md:grid-cols-[13rem_1fr] md:gap-10"
           >
-            <p className="meta pt-1">{formatLongDate(article.published_at)}</p>
+            <p className="meta whitespace-nowrap pt-1">{formatLongDate(article.published_at)}</p>
             <div>
               <h3 className="section-title transition group-hover:text-[var(--accent)]">
                 {article.title}

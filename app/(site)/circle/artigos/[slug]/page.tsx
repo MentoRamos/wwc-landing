@@ -84,80 +84,86 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <article className="container-lp w-full py-16">
-      <script
-        type="application/ld+json"
-        // `<` escapado: título e linha fina vêm de um modelo, e um
-        // `</script>` dentro deles fecharia esta tag no meio do JSON.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      {/* Coluna de leitura centrada, como numa revista. Presa à esquerda num
+          container de 1440px, ela deixava mais da metade da tela em preto do
+          lado, que é a falha de enquadramento que o design system reprova. */}
+      <div className="mx-auto max-w-[68ch]">
+        <script
+          type="application/ld+json"
+          // `<` escapado: título e linha fina vêm de um modelo, e um
+          // `</script>` dentro deles fecharia esta tag no meio do JSON.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+          }}
+        />
 
-      <Link
-        href="/circle/artigos"
-        className="link-draw text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
-      >
-        &larr; Artigos
-      </Link>
+        <Link
+          href="/circle/artigos"
+          className="link-draw text-xs uppercase tracking-[0.14em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+        >
+          &larr; Artigos
+        </Link>
 
-      <header className="mt-10 max-w-[68ch]">
-        <p className="eyebrow">W&amp;W Circle · Artigo</p>
-        <h1 className="page-title mt-4">{article.title}</h1>
-        <p className="lede mt-6">{article.dek}</p>
-        <p className="meta mt-8">
-          Kauã Ramos · {formatLongDate(article.published_at)} ·{' '}
-          {readingMinutes(article.body_md)} min de leitura
-        </p>
-        <div className="rule-gold mt-8" aria-hidden="true" />
-      </header>
+        <header className="mt-10">
+          <p className="eyebrow">W&amp;W Circle · Artigo</p>
+          <h1 className="page-title mt-4">{article.title}</h1>
+          <p className="lede mt-6">{article.dek}</p>
+          <p className="meta mt-8">
+            Kauã Ramos · {formatLongDate(article.published_at)} · {readingMinutes(article.body_md)}{' '}
+            min de leitura
+          </p>
+          <div className="rule-gold mt-8" aria-hidden="true" />
+        </header>
 
-      <div className="mt-12">
-        <ArticleBody markdown={article.body_md} />
-      </div>
-
-      {article.sources.length > 0 && (
-        <section className="mt-16 max-w-[68ch] border-t border-[var(--border)] pt-10" aria-labelledby="fontes">
-          <h2 id="fontes" className="eyebrow">
-            Fontes
-          </h2>
-          <ol className="mt-6 flex flex-col gap-4">
-            {article.sources.map((source, index) => (
-              <li key={`${index}-${source.url}`} className="flex gap-4 text-sm leading-relaxed">
-                <span className="meta shrink-0 pt-0.5">{String(index + 1).padStart(2, '0')}</span>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--text-2)] underline decoration-[var(--border)] underline-offset-4 transition hover:text-[var(--text-1)] hover:decoration-[var(--accent-dim)]"
-                >
-                  {source.label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      <p className="prose-body mt-12 max-w-[68ch] border-l border-[var(--border)] pl-5 text-sm">
-        Este texto é orientação de hábito, feita a partir de estudos publicados. Ele não
-        substitui avaliação médica, e não serve para diagnosticar nem para mudar tratamento
-        ou medicação. Se algo aqui conversa com um sintoma seu, leve a pergunta a quem te
-        acompanha.
-      </p>
-
-      <aside className="mt-16 max-w-[68ch] border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8 sm:px-8">
-        <p className="eyebrow">W&amp;W Circle</p>
-        <p className="section-title mt-4">
-          Uma hora por semana, ao vivo, sobre o que os seus dados estão dizendo.
-        </p>
-        <p className="prose-body mt-4">
-          Os artigos são abertos. O encontro de quinta, as gravações e a biblioteca são de
-          quem assina.
-        </p>
-        <div className="mt-7">
-          <Button href="/circle" variant="primary">
-            Conhecer o Circle
-          </Button>
+        <div className="mt-12">
+          <ArticleBody markdown={article.body_md} />
         </div>
-      </aside>
+
+        {article.sources.length > 0 && (
+          <section className="mt-16 border-t border-[var(--border)] pt-10" aria-labelledby="fontes">
+            <h2 id="fontes" className="eyebrow">
+              Fontes
+            </h2>
+            <ol className="mt-6 flex flex-col gap-4">
+              {article.sources.map((source, index) => (
+                <li key={`${index}-${source.url}`} className="flex gap-4 text-sm leading-relaxed">
+                  <span className="meta shrink-0 pt-0.5">{String(index + 1).padStart(2, '0')}</span>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--text-2)] underline decoration-[var(--border)] underline-offset-4 transition hover:text-[var(--text-1)] hover:decoration-[var(--accent-dim)]"
+                  >
+                    {source.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        <p className="prose-body mt-12 border-l border-[var(--border)] pl-5 text-sm">
+          Este texto é orientação de hábito, feita a partir de estudos publicados. Ele não substitui
+          avaliação médica, e não serve para diagnosticar nem para mudar tratamento ou medicação. Se
+          algo aqui conversa com um sintoma seu, leve a pergunta a quem te acompanha.
+        </p>
+
+        <aside className="mt-16 border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8 sm:px-8">
+          <p className="eyebrow">W&amp;W Circle</p>
+          <p className="section-title mt-4">
+            Uma hora por semana, ao vivo, sobre o que os seus dados estão dizendo.
+          </p>
+          <p className="prose-body mt-4">
+            Os artigos são abertos. O encontro de quinta, as gravações e a biblioteca são de quem
+            assina.
+          </p>
+          <div className="mt-7">
+            <Button href="/circle" variant="primary">
+              Conhecer o Circle
+            </Button>
+          </div>
+        </aside>
+      </div>
     </article>
   );
 }
