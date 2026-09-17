@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Band } from '@/components/ui/Band';
+import { DeleteAccountButton } from '@/components/conta/DeleteAccountButton';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
@@ -112,8 +113,9 @@ export default async function ContaPage() {
         lede="Correção, portabilidade ou exclusão da conta a qualquer momento, sem custo e sem justificar."
       >
         <p className="prose-body">
-          Escreva para <strong className="text-[var(--text-1)]">{contact}</strong>.
-          Respondemos em até 15 dias.
+          A exclusão é sua e acontece na hora, aqui embaixo. Para correção ou portabilidade,
+          escreva para <strong className="text-[var(--text-1)]">{contact}</strong>: respondemos
+          em até 15 dias.
         </p>
         <p className="mt-4 text-xs leading-relaxed text-[var(--text-4)]">
           Registros de compra ficam pelo prazo que a lei fiscal exige mesmo depois da conta
@@ -124,6 +126,8 @@ export default async function ContaPage() {
           </Link>
           .
         </p>
+
+        <DeleteAccountButton />
 
         <form action="/api/auth/sair" method="post" className="mt-10">
           <button
