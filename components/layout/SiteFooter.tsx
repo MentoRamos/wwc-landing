@@ -13,9 +13,21 @@ const SECTIONS = [
   {
     title: 'Plataforma',
     links: [
-      { href: '/connect', label: 'W&W Connect' },
       { href: '/circle', label: 'W&W Circle' },
+      { href: '/circle/artigos', label: 'Artigos' },
+      { href: '/connect', label: 'W&W Connect' },
       { href: '/biblioteca', label: 'Biblioteca' },
+    ],
+  },
+  {
+    // Moram no funil. O rodapé fechava a plataforma em si mesma: quem chegava
+    // pelo artigo não tinha daqui nenhum caminho para o que o Kauã vende.
+    title: 'Trabalhar comigo',
+    links: [
+      { href: '/wealth-wellness', label: 'Por onde entrar' },
+      { href: '/mentoria', label: 'W&W Protocol' },
+      { href: '/face-a-face', label: 'Face a Face' },
+      { href: '/materiais', label: 'Guias gratuitos' },
     ],
   },
   {

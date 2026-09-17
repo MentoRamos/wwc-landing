@@ -12,11 +12,22 @@ import { clsx } from 'clsx';
  * four public pages and no way to get from any one of them to any other except
  * the browser's back button — and nothing anywhere told you where you were.
  */
+/**
+ * A mesma espinha das páginas do funil, porque é o mesmo site.
+ *
+ * kauaramos.com é servido por dois projetos, e até aqui cada um tinha o seu
+ * menu: quem entrava pelo /circle não tinha como chegar ao Protocol, ao Face a
+ * Face nem aos guias — só ao que esta plataforma serve. O visitante não sabe
+ * que são dois projetos, e não deveria precisar saber.
+ *
+ * `/wealth-wellness` e `/niva` moram no funil (ver `FUNNEL_ROUTES`). São links
+ * normais porque, pelo domínio, são caminhos normais.
+ */
 const LINKS = [
-  { href: '/connect', label: 'Connect' },
+  { href: '/wealth-wellness', label: 'Wealth & Wellness' },
   { href: '/circle', label: 'Circle' },
   { href: '/circle/artigos', label: 'Artigos' },
-  { href: '/biblioteca', label: 'Biblioteca' },
+  { href: '/niva', label: 'NIVA' },
 ];
 
 function matches(pathname: string, href: string) {
