@@ -2,9 +2,10 @@ import { createHmac } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
   describe as describeKeys,
+  describeMode,
+  detectSignature,
   interpret,
   readEvent,
-  verifySignature,
   type KiwifyEvent,
 } from '@/lib/core/kiwify.core';
 
@@ -22,88 +23,87 @@ const sign = (payload: string, algorithm: 'sha1' | 'sha256') =>
  * matter which one turns out to be right: it fails closed on everything that
  * is not an exact match.
  */
-describe('verifySignature', () => {
+describe('detectSignature', () => {
   const payload = '{"order_status":"paid"}';
 
-  it('accepts a signature made with the same secret and algorithm', () => {
-    expect(
-      verifySignature({
-        payload,
-        provided: sign(payload, 'sha1'),
-        secret: SECRET,
-        algorithm: 'sha1',
-      }),
-    ).toBe(true);
-
-    expect(
-      verifySignature({
-        payload,
-        provided: sign(payload, 'sha256'),
-        secret: SECRET,
-        algorithm: 'sha256',
-      }),
-    ).toBe(true);
+  /**
+   * Kiwify não documenta como assina: nem o algoritmo, nem onde a assinatura
+   * viaja, nem se é assinatura de verdade ou só um segredo repetido na URL.
+   * Adivinhar por variável de ambiente significava descobrir o erro no dia da
+   * primeira venda, com o dinheiro já movido e o acesso não concedido.
+   *
+   * Então a verificação tenta as formas plausíveis e diz **qual** casou. Isso
+   * não afrouxa nada: toda forma continua exigindo o segredo, e nenhuma delas
+   * é aceita por ausência.
+   */
+  it('reconhece o HMAC sha1 e diz que foi ele', () => {
+    expect(detectSignature({ payload, provided: sign(payload, 'sha1'), secret: SECRET })).toEqual({
+      kind: 'hmac',
+      algorithm: 'sha1',
+    });
   });
 
-  it('refuses a signature made with the other algorithm', () => {
-    expect(
-      verifySignature({
-        payload,
-        provided: sign(payload, 'sha256'),
-        secret: SECRET,
-        algorithm: 'sha1',
-      }),
-    ).toBe(false);
+  it('reconhece o HMAC sha256 e diz que foi ele', () => {
+    expect(detectSignature({ payload, provided: sign(payload, 'sha256'), secret: SECRET })).toEqual({
+      kind: 'hmac',
+      algorithm: 'sha256',
+    });
   });
 
-  it('refuses a signature from a different secret', () => {
-    const other = createHmac('sha1', 'outro-segredo').update(payload).digest('hex');
-    expect(
-      verifySignature({ payload, provided: other, secret: SECRET, algorithm: 'sha1' }),
-    ).toBe(false);
+  /**
+   * A doc da Kiwify fala em "token", e há painel que manda o próprio segredo
+   * na query em vez de assinar o corpo. É proteção mais fraca, mas é a que o
+   * provedor oferece: recusar isso seria recusar a venda. Fica registrado qual
+   * modo foi aceito para a decisão ser visível depois.
+   */
+  it('aceita o segredo repetido como token, e diz que foi esse o modo', () => {
+    expect(detectSignature({ payload, provided: SECRET, secret: SECRET })).toEqual({
+      kind: 'shared-token',
+    });
   });
 
-  it('refuses when the body changed by a single byte', () => {
+  it('recusa assinatura feita com outro segredo', () => {
+    const outro = createHmac('sha1', 'outro-segredo').update(payload).digest('hex');
+    expect(detectSignature({ payload, provided: outro, secret: SECRET })).toBeNull();
+  });
+
+  it('recusa quando o corpo mudou um único byte', () => {
     const provided = sign(payload, 'sha1');
     expect(
-      verifySignature({
-        payload: '{"order_status":"Paid"}',
-        provided,
-        secret: SECRET,
-        algorithm: 'sha1',
-      }),
-    ).toBe(false);
+      detectSignature({ payload: '{"order_status":"Paid"}', provided, secret: SECRET }),
+    ).toBeNull();
   });
 
-  it('refuses anything missing, rather than treating absence as permission', () => {
+  it('recusa o que falta, em vez de tratar ausência como permissão', () => {
     const provided = sign(payload, 'sha1');
-    expect(verifySignature({ payload, provided: null, secret: SECRET, algorithm: 'sha1' })).toBe(false);
-    expect(verifySignature({ payload, provided: '', secret: SECRET, algorithm: 'sha1' })).toBe(false);
-    expect(verifySignature({ payload, provided, secret: '', algorithm: 'sha1' })).toBe(false);
-    expect(verifySignature({ payload: '', provided, secret: SECRET, algorithm: 'sha1' })).toBe(false);
+    expect(detectSignature({ payload, provided: null, secret: SECRET })).toBeNull();
+    expect(detectSignature({ payload, provided: '', secret: SECRET })).toBeNull();
+    expect(detectSignature({ payload, provided, secret: '' })).toBeNull();
+    expect(detectSignature({ payload: '', provided, secret: SECRET })).toBeNull();
   });
 
-  it('refuses a signature of the wrong length without throwing', () => {
-    // timingSafeEqual throws on length mismatch; a crash here would be a 500,
-    // and Kiwify retries 500s — an attacker gets a free denial of service.
-    expect(() =>
-      verifySignature({ payload, provided: 'abc', secret: SECRET, algorithm: 'sha1' }),
-    ).not.toThrow();
-    expect(
-      verifySignature({ payload, provided: 'abc', secret: SECRET, algorithm: 'sha1' }),
-    ).toBe(false);
+  it('recusa assinatura de comprimento errado sem estourar', () => {
+    // timingSafeEqual estoura quando os tamanhos diferem, e um throw aqui é
+    // 500. A Kiwify repete 500, então virava negação de serviço de graça.
+    expect(() => detectSignature({ payload, provided: 'abc', secret: SECRET })).not.toThrow();
+    expect(detectSignature({ payload, provided: 'abc', secret: SECRET })).toBeNull();
   });
 
-  it('ignores case and surrounding space in the hex it was handed', () => {
+  it('recusa um prefixo do HMAC correto', () => {
+    const provided = sign(payload, 'sha1').slice(0, 20);
+    expect(detectSignature({ payload, provided, secret: SECRET })).toBeNull();
+  });
+
+  it('ignora caixa e espaço no hex que recebeu', () => {
     const provided = sign(payload, 'sha1');
     expect(
-      verifySignature({
-        payload,
-        provided: `  ${provided.toUpperCase()} `,
-        secret: SECRET,
-        algorithm: 'sha1',
-      }),
-    ).toBe(true);
+      detectSignature({ payload, provided: `  ${provided.toUpperCase()} `, secret: SECRET }),
+    ).toEqual({ kind: 'hmac', algorithm: 'sha1' });
+  });
+
+  it('descreve o modo em uma linha, para caber no log e no e-mail de alerta', () => {
+    expect(describeMode({ kind: 'hmac', algorithm: 'sha256' })).toBe('hmac-sha256');
+    expect(describeMode({ kind: 'shared-token' })).toBe('token');
   });
 });
 

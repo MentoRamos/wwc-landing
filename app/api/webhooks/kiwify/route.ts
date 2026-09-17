@@ -1,11 +1,8 @@
 import { adminClient } from '@/lib/supabase/admin';
-import { describe, interpret, readEvent, verifySignature } from '@/lib/core/kiwify.core';
-import {
-  productFor,
-  readSignature,
-  signatureAlgorithm,
-  webhookSecret,
-} from '@/lib/kiwify/config';
+import { alertAdmin } from '@/lib/alerts';
+import { describe, describeMode, detectSignature, interpret, readEvent } from '@/lib/core/kiwify.core';
+import { productFor, signatureCandidates, webhookSecret } from '@/lib/kiwify/config';
+import { recordProbe } from '@/lib/kiwify/probe';
 
 /**
  * Where a purchase becomes access.
@@ -35,13 +32,32 @@ export async function POST(request: Request) {
     return new Response('unconfigured', { status: 503 });
   }
 
-  const ok = verifySignature({
-    payload: raw,
-    provided: readSignature(request),
-    secret,
-    algorithm: signatureAlgorithm(),
+  /**
+   * Qual prova de origem casou, entre as formas que a Kiwify poderia ter
+   * usado. A resposta não muda — assinatura que não bate é 400 — mas o que
+   * acontece antes do 400 mudou: o evento recusado fica registrado e o Kauã
+   * é avisado, em vez de sumir calado no dia da primeira venda.
+   */
+  const candidates = signatureCandidates(request);
+  const matched = candidates
+    .map((candidate) => ({ candidate, mode: detectSignature({ payload: raw, provided: candidate.value, secret }) }))
+    .find((attempt) => attempt.mode);
+
+  if (!matched?.mode) {
+    await recordProbe(adminClient(), {
+      reason: 'assinatura não reconhecida',
+      raw,
+      candidates,
+    });
+    return new Response('bad signature', { status: 400 });
+  }
+
+  // Fica no log qual forma a Kiwify usa de verdade. É a resposta que a
+  // documentação não dá, e ela só aparece com um evento real na mão.
+  console.info('[kiwify] evento aceito', {
+    source: matched.candidate.source,
+    mode: describeMode(matched.mode),
   });
-  if (!ok) return new Response('bad signature', { status: 400 });
 
   let parsed: unknown;
   try {
@@ -52,9 +68,15 @@ export async function POST(request: Request) {
 
   const event = readEvent(parsed);
   if (!event) {
-    // The shape we could not read, named by its keys only. This is the
-    // breadcrumb that turns the first real event into a fix.
+    // Assinado por quem devia, e ainda assim ilegível: é formato novo, não
+    // ataque. O corpo vai para a sonda porque aqui ele é a única forma de
+    // descobrir o que mudou.
     console.error('[kiwify] payload não reconhecido', { keys: describe(parsed) });
+    await recordProbe(adminClient(), {
+      reason: 'evento assinado mas em formato não reconhecido',
+      raw,
+      candidates,
+    });
     return new Response('ok', { status: 200 });
   }
 
@@ -115,6 +137,15 @@ export async function POST(request: Request) {
   } catch (error) {
     result = `falhou: ${(error as { code?: string }).code ?? 'erro'}`;
     console.error('[kiwify] falha ao aplicar', { event: event.id, result });
+
+    // O pior caso da cobrança: assinatura certa, evento entendido, e o acesso
+    // não entrou. Quem pagou não tem como saber, e a Kiwify não vai repetir
+    // porque a resposta é 200. Sem este aviso, ninguém fica sabendo.
+    await alertAdmin('Paguei e o acesso não entrou', [
+      `Evento: ${event.id} (${event.type})`,
+      `Resultado: ${result}`,
+      'O evento está em `billing_events`. Dá para conceder o acesso à mão em /admin/acessos.',
+    ]);
   }
 
   await admin

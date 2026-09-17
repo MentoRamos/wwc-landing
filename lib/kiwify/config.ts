@@ -1,5 +1,4 @@
 import type { Product } from '@/lib/core/admin.core';
-import type { SignatureAlgorithm } from '@/lib/core/kiwify.core';
 
 /**
  * Everything about Kiwify that we had to guess, kept in the environment so
@@ -13,21 +12,39 @@ export function webhookSecret(): string {
   return process.env.KIWIFY_WEBHOOK_TOKEN?.trim() ?? '';
 }
 
-/** `sha1` is Kiwify's apparent default; `sha256` is one variable away. */
-export function signatureAlgorithm(): SignatureAlgorithm {
-  return process.env.KIWIFY_SIGNATURE_ALGORITHM?.trim() === 'sha256' ? 'sha256' : 'sha1';
-}
-
 /**
- * Where the signature arrives: `query:signature` or `header:x-kiwify-signature`.
- * Defaults to the query string, which is what Kiwify's panel appears to send.
+ * De onde a assinatura pode ter vindo, com o nome do lugar.
+ *
+ * A Kiwify não diz se ela viaja na query ou num header, nem com que nome. Ler
+ * um único lugar escolhido por variável de ambiente tinha um defeito calado:
+ * ler o lugar errado é indistinguível, na resposta, de uma assinatura falsa —
+ * os dois dão 400, e o primeiro dá 400 numa venda legítima.
+ *
+ * Então recolhemos todos os lugares plausíveis e deixamos `detectSignature`
+ * decidir. Recolher não concede: cada candidato ainda tem que bater com o
+ * segredo. O que fica de fora é `authorization`, que é autenticação nossa e
+ * não prova de origem deles.
  */
-export function readSignature(request: Request): string | null {
-  const spec = process.env.KIWIFY_SIGNATURE_SOURCE?.trim() || 'query:signature';
-  const [where, name] = spec.split(':', 2);
+const NOME_DE_ASSINATURA = /(signature|hmac|hash|(^|[-_])token)/i;
 
-  if (where === 'header') return request.headers.get(name ?? '');
-  return new URL(request.url).searchParams.get(name ?? 'signature');
+export function signatureCandidates(request: Request): { source: string; value: string }[] {
+  const out: { source: string; value: string }[] = [];
+
+  const add = (source: string, raw: string | null) => {
+    const value = raw?.trim();
+    if (value) out.push({ source, value });
+  };
+
+  for (const [name, value] of new URL(request.url).searchParams) {
+    if (NOME_DE_ASSINATURA.test(name)) add(`query:${name}`, value);
+  }
+
+  for (const [name, value] of request.headers) {
+    if (name.toLowerCase() === 'authorization') continue;
+    if (NOME_DE_ASSINATURA.test(name)) add(`header:${name.toLowerCase()}`, value);
+  }
+
+  return out;
 }
 
 /**

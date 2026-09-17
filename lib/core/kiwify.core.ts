@@ -15,30 +15,66 @@ import type { Product } from './admin.core';
 export type SignatureAlgorithm = 'sha1' | 'sha256';
 
 /**
- * Constant-time comparison of the body's HMAC against what arrived.
+ * Qual prova de origem veio junto com o evento, ou nada.
  *
- * Fails closed on everything: a missing signature, a missing secret, an empty
- * body, the wrong length. The length case matters more than it looks —
- * `timingSafeEqual` throws when the buffers differ in size, and an uncaught
- * throw here is a 500, which Kiwify retries. That turns a malformed request
- * into a free denial of service.
+ * A Kiwify lista os eventos e menciona um `token`, mas não diz o algoritmo,
+ * não diz se a assinatura viaja em header ou na query, e não diz sequer se é
+ * assinatura do corpo ou o segredo repetido. A versão anterior disto escolhia
+ * por variável de ambiente, o que empurrava a descoberta para o dia da
+ * primeira venda: dinheiro movido, acesso não concedido, e um 400 sem pista.
+ *
+ * Então em vez de adivinhar, reconhecemos. Cada forma plausível é testada
+ * contra o segredo, e o modo que casar é devolvido para virar log. Isso não
+ * afrouxa a porta: toda forma exige o mesmo segredo, a comparação é em tempo
+ * constante, e ausência nunca é permissão.
  */
-export function verifySignature(input: {
+export type SignatureMode =
+  | { kind: 'hmac'; algorithm: SignatureAlgorithm }
+  | { kind: 'shared-token' };
+
+const ALGORITHMS: SignatureAlgorithm[] = ['sha1', 'sha256'];
+
+/** `hmac-sha256`, `token`: cabe num log e num alerta sem explicação extra. */
+export function describeMode(mode: SignatureMode): string {
+  return mode.kind === 'hmac' ? `hmac-${mode.algorithm}` : 'token';
+}
+
+/**
+ * Comparação em tempo constante, fechada por padrão.
+ *
+ * O caso do comprimento importa mais do que parece: `timingSafeEqual` estoura
+ * quando os buffers têm tamanhos diferentes, e um throw aqui vira 500. A
+ * Kiwify repete 500, então uma requisição malformada viraria negação de
+ * serviço de graça.
+ */
+function equals(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8'));
+}
+
+export function detectSignature(input: {
   payload: string;
   provided: string | null | undefined;
   secret: string;
-  algorithm: SignatureAlgorithm;
-}): boolean {
-  const provided = input.provided?.trim().toLowerCase();
-  if (!provided || !input.secret || !input.payload) return false;
+}): SignatureMode | null {
+  const provided = input.provided?.trim();
+  if (!provided || !input.secret || !input.payload) return null;
 
-  const expected = createHmac(input.algorithm, input.secret)
-    .update(input.payload, 'utf8')
-    .digest('hex');
+  const hex = provided.toLowerCase();
+  for (const algorithm of ALGORITHMS) {
+    const expected = createHmac(algorithm, input.secret)
+      .update(input.payload, 'utf8')
+      .digest('hex');
+    if (equals(hex, expected)) return { kind: 'hmac', algorithm };
+  }
 
-  if (provided.length !== expected.length) return false;
+  // O painel da Kiwify parece mandar o próprio token na query em vez de
+  // assinar o corpo. É proteção mais fraca — quem vir a URL inteira consegue
+  // forjar um evento — mas é a que o provedor oferece, e recusá-la seria
+  // recusar a venda. Fica nomeada no log para a escolha ser visível.
+  if (equals(provided, input.secret)) return { kind: 'shared-token' };
 
-  return timingSafeEqual(Buffer.from(provided, 'utf8'), Buffer.from(expected, 'utf8'));
+  return null;
 }
 
 export type KiwifyEventType =
