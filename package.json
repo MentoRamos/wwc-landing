@@ -6,7 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prebuild": "node scripts/check-no-middleware.mjs",
+    "test:rls": "vitest run --config vitest.rls.config.ts",
+    "check:auth": "node scripts/check-auth.mjs",
+    "check:admin": "node scripts/check-admin.mjs",
+    "check:library": "node scripts/check-library.mjs",
+    "seed:library": "node scripts/seed-library.mjs",
+    "check:kiwify": "node scripts/check-kiwify.mjs",
+    "check:aluno": "node scripts/check-aluno.mjs",
+    "check:artigos": "node scripts/check-artigos.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
@@ -16,6 +27,8 @@
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "resend": "^6.28.0",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6"
   },
@@ -27,6 +40,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

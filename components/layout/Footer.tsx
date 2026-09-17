@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Logo } from '@/components/ui/Logo';
@@ -93,7 +94,7 @@ export function Footer() {
             <GoldSeparator />
           </motion.div>
 
-          {/* Nav */}
+          {/* Nav within the event page */}
           <motion.nav
             variants={itemVariants}
             className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-[var(--text-4)] text-[11px] tracking-[0.15em] uppercase"
@@ -105,6 +106,29 @@ export function Footer() {
             <a href="#midia" className="hover:text-[var(--accent)] transition-colors duration-300">Mídia</a>
             <span className="w-1 h-1 rounded-full bg-[var(--accent)]/30" />
             <a href="#interesse" className="hover:text-[var(--accent)] transition-colors duration-300">Participar</a>
+          </motion.nav>
+
+          {/*
+            The way out of the event and into the rest of the platform.
+
+            Two things depended on this row existing and neither was obvious:
+            the event was the only page most people would ever land on, and it
+            had no link to the Circle — the product that is actually for sale.
+            And Google will not publish the OAuth app while the privacy policy
+            and the terms are merely deployed; they have to be reachable from
+            the site somebody signs in from.
+          */}
+          <motion.nav
+            variants={itemVariants}
+            className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-[var(--text-3)] text-[11px] tracking-[0.15em] uppercase"
+          >
+            <Link href="/circle" className="hover:text-[var(--accent)] transition-colors duration-300">W&amp;W Circle</Link>
+            <span className="w-1 h-1 rounded-full bg-[var(--accent)]/30" />
+            <Link href="/biblioteca" className="hover:text-[var(--accent)] transition-colors duration-300">Biblioteca</Link>
+            <span className="w-1 h-1 rounded-full bg-[var(--accent)]/30" />
+            <Link href="/privacidade" className="hover:text-[var(--accent)] transition-colors duration-300">Privacidade</Link>
+            <span className="w-1 h-1 rounded-full bg-[var(--accent)]/30" />
+            <Link href="/termos" className="hover:text-[var(--accent)] transition-colors duration-300">Termos</Link>
           </motion.nav>
 
           {/* Social links */}
@@ -134,7 +158,8 @@ export function Footer() {
             className="w-full flex flex-col sm:flex-row items-center justify-between gap-6 pt-2"
           >
             <p className="text-[var(--text-4)] text-[10px] tracking-[0.25em] uppercase order-2 sm:order-1">
-              &copy; {new Date().getFullYear()} UWell Health Club — Todos os direitos reservados
+              &copy; {new Date().getFullYear()}{' '}
+              Wealth &amp; Wellness · Todos os direitos reservados
             </p>
             <div className="order-1 sm:order-2">
               <BackToTop />

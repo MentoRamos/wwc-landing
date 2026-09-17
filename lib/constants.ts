@@ -7,7 +7,7 @@ export const EVENT = {
   edition1: {
     date: '13 de março de 2026',
     city: 'Goiânia',
-    venue: 'Legado — Ricardo Paranhos',
+    venue: 'Legado · Ricardo Paranhos',
     attendees: 40,
     duration: '3h15',
     blocks: 6,
@@ -76,7 +76,8 @@ export const SPEAKERS = [
   {
     name: 'Kauã Ramos',
     role: 'Host & Curador',
-    bio: 'CEO da UWell Health Club. Especialista em performance baseada em dados, wearables e protocolos de saúde para executivos.',
+    bio: 'Criador do Wealth & Wellness Protocol. Especialista em performance baseada em dados, wearables e protocolos de saúde para executivos.',
+    affiliation: 'Wealth & Wellness',
     featured: true,
     photo: '/photos/presenting.jpg',
   },
@@ -101,7 +102,7 @@ export const TESTIMONIALS = [
     role: 'CEO, Setor Imobiliário',
   },
   {
-    quote: 'Networking de altíssimo nível combinado com conteúdo prático. Não é mais um evento motivacional — é ciência aplicada.',
+    quote: 'Networking de altíssimo nível combinado com conteúdo prático. Não é mais um evento motivacional. É ciência aplicada.',
     name: 'Participante 1ª Edição',
     role: 'Fundador, Tecnologia',
   },
@@ -112,5 +113,6 @@ export const TESTIMONIALS = [
   },
 ] as const;
 
-export const WHATSAPP_NUMBER = '5562999999999'; // TODO: replace with real number
+// O número pessoal do Kauã nos EUA (+1 561 986-5175), o mesmo do site estático.
+export const WHATSAPP_NUMBER = '15619865175';
 export const WHATSAPP_MESSAGE = 'Olá! Quero saber mais sobre a 2ª edição do Wealth & Wellness Connect.';

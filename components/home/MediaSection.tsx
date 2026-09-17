@@ -8,7 +8,7 @@ import { ScrollReveal } from '@/components/animations/ScrollReveal';
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const MEDIA = [
-  { src: '/photos/evento-plateia-legado.jpg', alt: 'Plateia — Espaço Legado', type: 'photo' as const },
+  { src: '/photos/evento-plateia-legado.jpg', alt: 'Plateia no Espaço Legado', type: 'photo' as const },
   { src: '/photos/evento-painel.jpg', alt: 'Painel de discussão', type: 'photo' as const },
   { src: '/photos/evento-aplausos.jpg', alt: 'Aplausos da plateia', type: 'photo' as const },
   { src: '/photos/evento-grupo.jpg', alt: 'Networking VIP', type: 'photo' as const },
@@ -362,7 +362,7 @@ export function MediaSection() {
             <ScrollReveal>
               <p className="text-[10px] tracking-[0.35em] uppercase text-[var(--accent)] mb-6 flex items-center gap-4">
                 <span className="inline-block w-12 h-px bg-[var(--accent)]" />
-                Mídia — 1ª Edição
+                Mídia · 1ª Edição
               </p>
             </ScrollReveal>
 
