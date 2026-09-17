@@ -43,6 +43,28 @@ resgate.
 `/circle` tem duas faces no mesmo endereço: quem não assina vê a oferta, quem
 assina vê o próximo encontro.
 
+A navegação pública aponta para os dois projetos: `/wealth-wellness`,
+`/mentoria`, `/face-a-face`, `/materiais` e `/niva` moram no funil e chegam
+aqui pelo domínio. Estão declarados em `lib/core/site-links.core.ts`, que é de
+onde `tests/site-links.test.ts` sabe que são links válidos — e é por isso que
+`/mentorias`, com um `s` a mais, reprova. Abrindo o deployment da Vercel direto,
+esses caminhos dão 404, e está certo: o endereço é kauaramos.com.
+
+**Apagar a conta** (`/conta`) é do titular e acontece na hora:
+`delete_own_account()` não recebe parâmetro, o alvo é sempre `auth.uid()`. Os
+PDFs saem do bucket antes das linhas (os caminhos vivem nelas), a trilha de
+auditoria é anonimizada em vez de apagada, `billing_events` fica por exigência
+fiscal, e conta de administrador é recusada — esvaziar `admin_users` deixaria
+`is_admin()` falso para todo mundo, sem erro nenhum.
+
+A Kiwify não documenta como assina o webhook. Em vez de escolher por variável
+de ambiente, `detectSignature` reconhece as formas plausíveis (HMAC sha1, HMAC
+sha256, token repetido) e diz no log qual casou — e todo nome plausível de
+assinatura é recolhido do header e da query, menos `authorization`. O que ela
+assinar fora disso cai em `webhook_probes`, com corpo truncado e um e-mail de
+aviso (no máximo um por hora). Essa tabela é descartável: entendida a
+assinatura, `delete from public.webhook_probes`.
+
 Os artigos são abertos e indexáveis, e quem escreve é um cron: `POST /api/artigos`
 com `ARTICLES_INGEST_TOKEN` publica um por dia. O que ele pode mandar está em
 `docs/artigos/guia-editorial.md`; `npm run check:artigos` mede o caminho inteiro.
@@ -103,6 +125,8 @@ Dirigem o **servidor buildado** com sessões reais. Precisam de
 `tests/layout.test.ts` (nenhum `max-w-*` prendendo o layout da área logada) ·
 `tests/first-paint.test.ts` (o conteúdo existe antes do JavaScript) ·
 `tests/grants.test.ts` (toda tabela criada concede a `service_role`) ·
+`tests/site-links.test.ts` (nenhum link morto na navegação, agora que metade
+dos destinos mora no outro projeto) ·
 `tests/no-streaming-above-404.test.ts`.
 
 Todas andam o código em vez de conferir uma lista escrita à mão. **Lista à mão
