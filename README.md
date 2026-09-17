@@ -62,8 +62,22 @@ de ambiente, `detectSignature` reconhece as formas plausíveis (HMAC sha1, HMAC
 sha256, token repetido) e diz no log qual casou — e todo nome plausível de
 assinatura é recolhido do header e da query, menos `authorization`. O que ela
 assinar fora disso cai em `webhook_probes`, com corpo truncado e um e-mail de
-aviso (no máximo um por hora). Essa tabela é descartável: entendida a
-assinatura, `delete from public.webhook_probes`.
+aviso (no máximo um por hora).
+
+Quem lê essa tabela é `/admin/sondas`, e a tela faz a conta: para cada sonda
+calcula o que a assinatura seria sob cada forma plausível (md5, sha1, sha256,
+sha512, em hex e base64, mais o token repetido) e aponta a que bate. Nenhuma
+batendo também é resposta — quer dizer que a Kiwify assina algo que não é o
+corpo cru. A linha é descartável ali mesmo, e descartar é dívida de
+privacidade, não arrumação: o corpo guardado tem nome, e-mail e documento de
+quem comprou.
+
+Um pagamento que não vira acesso avisa por e-mail, e são dois silêncios
+diferentes. O primeiro é falha ao gravar. O segundo, mais provável, é o evento
+entendido que mesmo assim não concede — `order_approved` sem fim de período é o
+primeiro evento de toda venda, e ignorá-lo é o certo (data nula seria
+vitalício) mas tinha que deixar de ser calado. `isActionable` separa isso do
+ruído normal da Kiwify, e deriva das mesmas tabelas que decidem o efeito.
 
 Os artigos são abertos e indexáveis, e quem escreve é um cron: `POST /api/artigos`
 com `ARTICLES_INGEST_TOKEN` publica um por dia. O que ele pode mandar está em
