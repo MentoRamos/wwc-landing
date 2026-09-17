@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto';
+import { readEvent } from '@/lib/core/kiwify.core';
 
 /**
  * O que a assinatura SERIA, sob cada forma que a Kiwify poderia ter usado.
@@ -55,4 +56,65 @@ export function matchOf(guesses: Guess[], seen: string | null | undefined): stri
 
   const found = guesses.find((guess) => guess.digest.toLowerCase() === alvo.toLowerCase());
   return found?.label ?? null;
+}
+
+/**
+ * O nome do evento em português, ou o nome técnico quando ele for novo.
+ *
+ * Inventar uma tradução para um evento desconhecido seria pior do que mostrar
+ * o nome cru: quem lê tomaria decisão sobre uma coisa que não aconteceu.
+ */
+const EVENTO: Record<string, string> = {
+  order_approved: 'compra aprovada',
+  order_refunded: 'compra reembolsada',
+  chargeback: 'contestação de pagamento',
+  subscription_renewed: 'assinatura renovada',
+  subscription_canceled: 'assinatura cancelada',
+  subscription_late: 'assinatura atrasada',
+};
+
+export type ProbeSummary = { email: string; event: string; productId: string };
+
+/**
+ * O que a sonda diz em português: quem comprou, o que aconteceu, qual produto.
+ *
+ * Esta é a pergunta que vem antes da pergunta técnica. Saber que o algoritmo
+ * não bateu não paga ninguém; saber que a Maria comprou e não recebeu, sim.
+ *
+ * Corpo que não é evento devolve nulo em vez de um resumo pela metade. Boa
+ * parte do que cai aqui é ruído da internet, e ruído não pode virar uma linha
+ * que parece uma venda.
+ */
+export function summarizeProbe(body: string | null | undefined): ProbeSummary | null {
+  if (!body?.trim()) return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return null;
+  }
+
+  const event = readEvent(parsed);
+  if (!event) return null;
+
+  return {
+    email: event.email,
+    event: EVENTO[event.type] ?? event.type,
+    productId: event.productId,
+  };
+}
+
+/**
+ * As formas calculadas, prontas para a tela: iguais às de `signatureGuesses`,
+ * menos o valor do token.
+ *
+ * O veredito continua sendo calculado sobre as de verdade. O que muda é só o
+ * que aparece, porque segredo em tela vaza por screenshot — e vazou, uma vez,
+ * antes desta função existir.
+ */
+export function shownGuesses(body: string, secret: string): Guess[] {
+  return signatureGuesses(body, secret).map((guess) =>
+    guess.digest === secret ? { ...guess, digest: '(escondido)' } : guess,
+  );
 }

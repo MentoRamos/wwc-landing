@@ -149,7 +149,12 @@ check('the new grant shows up on the screen', (await listed.text()).includes(tar
 //    página passaria verde mostrando a sonda e errando a conta, que é a única
 //    coisa que ela existe para fazer.
 const probeMark = `sonda-${Date.now()}`;
-const probeBody = JSON.stringify({ order_id: probeMark, teste: true });
+const probeBody = JSON.stringify({
+  order_id: probeMark,
+  webhook_event_type: 'order_approved',
+  Customer: { email: `pagante.${probeMark}@teste.local` },
+  Product: { product_id: 'produto-de-teste' },
+});
 const probeSignature = createHmac('sha256', process.env.KIWIFY_WEBHOOK_TOKEN ?? 'segredo-local')
   .update(probeBody)
   .digest('hex');
@@ -183,12 +188,24 @@ check('an admin gets the probe screen', probesAsAdmin.status === 200, String(pro
 // Procura a marca, não o JSON cru: React escapa as aspas para `&quot;`, e
 // comparar o corpo inteiro reprovaria uma tela correta.
 check('the screen shows the probe body', probesHtml.includes(probeMark));
+check(
+  'the screen names who paid, in plain sight',
+  probesHtml.includes(`pagante.${probeMark}@teste.local`),
+);
+check('the screen translates the event', probesHtml.includes('compra aprovada'));
 check('the screen names where the signature came from', probesHtml.includes('query:signature'));
 // Exige o veredito, não o rótulo: a lista de formas aparece em toda sonda, e
 // só o "bate com" prova que a conta foi feita e deu certo.
 check(
   'the screen works out which form matches',
-  probesHtml.includes('Bate com hmac-sha256'),
+  probesHtml.includes('Formato descoberto: hmac-sha256'),
+);
+// A tela responde primeiro a pergunta de quem recebe o dinheiro, e o segredo
+// nunca aparece nela.
+check('the screen says what to do about the money', probesHtml.includes('O que fazer agora'));
+check(
+  'the screen never prints the webhook token',
+  !probesHtml.includes(process.env.KIWIFY_WEBHOOK_TOKEN ?? '@@sem-token@@'),
 );
 
 // The discard goes through the policy: a member must not be able to erase the
