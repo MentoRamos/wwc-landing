@@ -65,6 +65,10 @@ describe('navegação pública', () => {
     'components/layout/SiteHeader.tsx',
     'components/layout/AppNav.tsx',
     'components/layout/AppTabBar.tsx',
+    // O admin também: o link novo daqui é justamente o tipo que apodrece sem
+    // ninguém ver, porque quem escreve a navegação do admin é quem menos clica
+    // nela.
+    'app/admin/layout.tsx',
   ]) {
     it(`não deixa link morto em ${file}`, () => {
       const quebrados = hrefsIn(file).filter((href) => !exists(href));

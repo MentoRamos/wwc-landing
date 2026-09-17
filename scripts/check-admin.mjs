@@ -13,6 +13,7 @@
  *   eval "$(supabase status -o env | sed 's/^/export /')"
  *   APP_URL=http://127.0.0.1:3001 node scripts/check-admin.mjs
  */
+import { createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 
@@ -141,6 +142,83 @@ const listed = await fetch(`${APP}/admin/acessos`, {
 });
 check('the new grant shows up on the screen', (await listed.text()).includes(target));
 
+// 7. A sonda do webhook: a tela que explica um 400 mudo.
+//
+//    A linha é plantada com um corpo assinado por um algoritmo CONHECIDO, e o
+//    teste exige que a tela aponte esse algoritmo pelo nome. Sem isso, a
+//    página passaria verde mostrando a sonda e errando a conta, que é a única
+//    coisa que ela existe para fazer.
+const probeMark = `sonda-${Date.now()}`;
+const probeBody = JSON.stringify({ order_id: probeMark, teste: true });
+const probeSignature = createHmac('sha256', process.env.KIWIFY_WEBHOOK_TOKEN ?? 'segredo-local')
+  .update(probeBody)
+  .digest('hex');
+
+const { data: probe, error: probeError } = await admin
+  .from('webhook_probes')
+  .insert({
+    provider: 'kiwify',
+    reason: 'assinatura não reconhecida',
+    sources: ['query:signature'],
+    signature_seen: probeSignature,
+    body: probeBody,
+    body_bytes: probeBody.length,
+  })
+  .select('id')
+  .single();
+check('the probe row was planted', probeError === null, probeError?.message ?? '');
+
+const probesAsMember = await fetch(`${APP}/admin/sondas`, {
+  headers: { cookie: memberCookie },
+  redirect: 'manual',
+});
+check('a member gets 404 on /admin/sondas', probesAsMember.status === 404, String(probesAsMember.status));
+
+const probesAsAdmin = await fetch(`${APP}/admin/sondas`, {
+  headers: { cookie: bossCookie },
+  redirect: 'manual',
+});
+const probesHtml = await probesAsAdmin.text();
+check('an admin gets the probe screen', probesAsAdmin.status === 200, String(probesAsAdmin.status));
+// Procura a marca, não o JSON cru: React escapa as aspas para `&quot;`, e
+// comparar o corpo inteiro reprovaria uma tela correta.
+check('the screen shows the probe body', probesHtml.includes(probeMark));
+check('the screen names where the signature came from', probesHtml.includes('query:signature'));
+// Exige o veredito, não o rótulo: a lista de formas aparece em toda sonda, e
+// só o "bate com" prova que a conta foi feita e deu certo.
+check(
+  'the screen works out which form matches',
+  probesHtml.includes('Bate com hmac-sha256'),
+);
+
+// The discard goes through the policy: a member must not be able to erase the
+// evidence, an admin must be able to pay off the privacy debt.
+const { error: memberDiscard } = await memberClient
+  .from('webhook_probes')
+  .delete()
+  .eq('id', probe?.id ?? '00000000-0000-0000-0000-000000000000');
+const { data: survived } = await admin
+  .from('webhook_probes')
+  .select('id')
+  .eq('id', probe?.id ?? '');
+check(
+  'a member cannot discard a probe',
+  (survived?.length ?? 0) === 1,
+  memberDiscard?.code ?? 'sem erro, e a linha sobreviveu',
+);
+
+const { error: bossDiscard } = await bossClient
+  .from('webhook_probes')
+  .delete()
+  .eq('id', probe?.id ?? '');
+const { data: gone } = await admin.from('webhook_probes').select('id').eq('id', probe?.id ?? '');
+check(
+  'an admin can discard a probe',
+  bossDiscard === null && (gone?.length ?? 1) === 0,
+  bossDiscard?.message ?? '',
+);
+
+await admin.from('webhook_probes').delete().eq('id', probe?.id ?? '');
 await admin.from('entitlements').delete().eq('email_norm', target);
 await admin.auth.admin.deleteUser(member.id);
 await admin.auth.admin.deleteUser(boss.id);

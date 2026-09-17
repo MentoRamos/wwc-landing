@@ -56,6 +56,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Documentos
             </Link>
             <Link
+              href="/admin/sondas"
+              className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
+            >
+              Sondas
+            </Link>
+            <Link
               href="/admin/interesse"
               className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--accent)]"
             >
