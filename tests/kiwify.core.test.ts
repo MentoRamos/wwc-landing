@@ -5,6 +5,7 @@ import {
   describeMode,
   detectSignature,
   interpret,
+  isActionable,
   readEvent,
   type KiwifyEvent,
 } from '@/lib/core/kiwify.core';
@@ -335,5 +336,60 @@ describe('readEvent', () => {
     expect(described).toBe('Customer,order_id');
     expect(described).not.toContain('alguem');
     expect(described).not.toContain('o-1');
+  });
+});
+
+/**
+ * O silêncio caro: o evento é nosso, foi entendido, e mesmo assim não virou
+ * acesso.
+ *
+ * `order_approved` sem fim de período é o caso mais provável de todos, porque
+ * é o PRIMEIRO evento de toda venda. O desenho de ignorar está certo — um
+ * `expires_at` nulo seria vitalício, e ninguém compra vitalício por R$247/mês.
+ * O defeito é ignorar calado: a resposta é 200, a Kiwify não repete, e quem
+ * pagou não tem como saber.
+ *
+ * `isActionable` separa esse silêncio do outro, que é legítimo: a Kiwify manda
+ * muitos tipos de evento que não nos dizem respeito (pix gerado, boleto
+ * emitido, compra recusada), e avisar sobre esses afogaria a caixa de entrada
+ * exatamente como a sonda sem limitador afogaria.
+ */
+describe('isActionable', () => {
+  it('marca como acionável todo evento que deveria ter virado efeito', () => {
+    for (const type of [
+      'order_approved',
+      'subscription_renewed',
+      'subscription_canceled',
+      'subscription_late',
+      'order_refunded',
+      'chargeback',
+    ]) {
+      expect(isActionable(type)).toBe(true);
+    }
+  });
+
+  it('não marca o ruído normal da Kiwify', () => {
+    for (const type of ['pix_created', 'billet_created', 'order_rejected', 'cart_reminder']) {
+      expect(isActionable(type)).toBe(false);
+    }
+  });
+
+  it('uma compra sem fim de período é ignorada E acionável', () => {
+    const decision = interpret({
+      event: {
+        id: 'evt_1',
+        type: 'order_approved',
+        email: 'quem@pagou.test',
+        productId: 'p1',
+        subscriptionId: 'sub_1',
+        periodEnd: undefined,
+        userId: undefined,
+      },
+      productFor: () => 'circle',
+      now: new Date('2026-09-17T12:00:00Z'),
+    });
+
+    expect(decision.kind).toBe('ignore');
+    expect(isActionable('order_approved')).toBe(true);
   });
 });

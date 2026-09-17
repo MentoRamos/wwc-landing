@@ -1,6 +1,13 @@
 import { adminClient } from '@/lib/supabase/admin';
 import { alertAdmin } from '@/lib/alerts';
-import { describe, describeMode, detectSignature, interpret, readEvent } from '@/lib/core/kiwify.core';
+import {
+  describe,
+  describeMode,
+  detectSignature,
+  interpret,
+  isActionable,
+  readEvent,
+} from '@/lib/core/kiwify.core';
 import { productFor, signatureCandidates, webhookSecret } from '@/lib/kiwify/config';
 import { recordProbe } from '@/lib/kiwify/probe';
 
@@ -144,6 +151,25 @@ export async function POST(request: Request) {
     await alertAdmin('Paguei e o acesso não entrou', [
       `Evento: ${event.id} (${event.type})`,
       `Resultado: ${result}`,
+      'O evento está em `billing_events`. Dá para conceder o acesso à mão em /admin/acessos.',
+    ]);
+  }
+
+  // O outro silêncio caro, e o mais provável dos dois: o evento chegou
+  // inteiro, foi entendido, e mesmo assim não virou acesso — sem data de fim
+  // de período, sem e-mail, ou com um produto que não está no mapa.
+  //
+  // Nada disso é erro de banco, então o catch acima não pega. A resposta é
+  // 200 de propósito (reenvio não conserta lógica), a Kiwify não repete, e
+  // quem pagou não tem como saber. `isActionable` é o que separa isto do
+  // ruído legítimo: a Kiwify manda pix gerado e compra recusada o dia
+  // inteiro, e avisar sobre esses afogaria a caixa exatamente como a sonda
+  // sem limitador afogaria.
+  if (decision.kind === 'ignore' && isActionable(event.type)) {
+    console.error('[kiwify] evento acionável ignorado', { event: event.id, result });
+    await alertAdmin('Um pagamento não virou acesso', [
+      `Evento: ${event.id} (${event.type})`,
+      `Motivo: ${decision.reason}`,
       'O evento está em `billing_events`. Dá para conceder o acesso à mão em /admin/acessos.',
     ]);
   }

@@ -131,6 +131,26 @@ const GRANTS: ReadonlyMap<string, 'active' | 'past_due'> = new Map([
   ['subscription_late', 'past_due'],
 ]);
 
+/**
+ * Este evento deveria ter virado efeito?
+ *
+ * Serve para separar dois silêncios que a rota trata igual hoje. A Kiwify
+ * manda muito evento que não nos diz respeito — pix gerado, boleto emitido,
+ * compra recusada — e ignorar esses é o comportamento certo, calado mesmo.
+ *
+ * Mas ignorar um `order_approved` é outra coisa: alguém pagou. Se ele foi
+ * ignorado por falta de data, por e-mail vazio ou por produto fora do mapa, o
+ * dinheiro entrou e o acesso não, a resposta foi 200, e a Kiwify não vai
+ * repetir. Esse silêncio precisa virar aviso.
+ *
+ * A lista sai das próprias tabelas que decidem o efeito. Escrita à mão, ela
+ * passaria verde no dia em que alguém acrescentasse um evento a GRANTS e
+ * esquecesse daqui — que é exatamente o dia em que o aviso faria falta.
+ */
+export function isActionable(type: string): boolean {
+  return GRANTS.has(type) || REVOKES.has(type);
+}
+
 export function interpret(input: {
   event: KiwifyEvent;
   productFor: (externalProductId: string) => Product | undefined;
