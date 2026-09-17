@@ -27,6 +27,19 @@ export function webhookSecret(): string {
  */
 const NOME_DE_ASSINATURA = /(signature|hmac|hash|(^|[-_])token)/i;
 
+/**
+ * A plataforma assina as próprias requisições, e isso não é prova de origem.
+ *
+ * Toda requisição que passa pelo rewrite do funil chega com
+ * `x-vercel-proxy-signature`, `x-vercel-oidc-token` e companhia — quatro
+ * nomes que casam com o padrão acima. Não é buraco: nenhum deles bate com o
+ * nosso segredo, e só quem bate é aceito. O estrago é no diagnóstico, que é
+ * a razão de a sonda existir: a assinatura da Kiwify chegaria enterrada em
+ * quatro assinaturas da Vercel, e quem abrisse o alerta para descobrir como
+ * a Kiwify assina leria a infraestrutura.
+ */
+const DA_INFRAESTRUTURA = /^x-vercel-/i;
+
 export function signatureCandidates(request: Request): { source: string; value: string }[] {
   const out: { source: string; value: string }[] = [];
 
@@ -41,6 +54,7 @@ export function signatureCandidates(request: Request): { source: string; value: 
 
   for (const [name, value] of request.headers) {
     if (name.toLowerCase() === 'authorization') continue;
+    if (DA_INFRAESTRUTURA.test(name)) continue;
     if (NOME_DE_ASSINATURA.test(name)) add(`header:${name.toLowerCase()}`, value);
   }
 

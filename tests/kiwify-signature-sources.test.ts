@@ -51,3 +51,35 @@ describe('signatureCandidates', () => {
     expect(signatureCandidates(req('https://x.test/w'))).toEqual([]);
   });
 });
+
+/**
+ * Os quatro headers abaixo não são hipótese: foram os quatro que a sonda
+ * relatou no primeiro POST sem assinatura contra a produção, em 17/09/2026.
+ * A Vercel os acrescenta a TODA requisição que passa pelo rewrite do funil —
+ * ou seja, a toda requisição real da Kiwify.
+ *
+ * Não é buraco de segurança: nenhum deles é igual ao nosso segredo, e o
+ * `find` só aceita quem bate. O estrago é no diagnóstico, que é justamente
+ * a razão de a sonda existir: a assinatura de verdade chega enterrada em
+ * quatro assinaturas da infraestrutura, e quem for ler o alerta para
+ * descobrir como a Kiwify assina vai ler a Vercel.
+ */
+describe('signatureCandidates ignora a infraestrutura', () => {
+  const DA_VERCEL = {
+    'x-vercel-proxy-signature': 'Bearer qualquer.coisa',
+    'x-vercel-proxy-signature-ts': '1789658987',
+    'x-vercel-oidc-token': 'eyJhbGciOi.qualquer.coisa',
+    'x-vercel-is-internal-rewrite-signature': 'abc123',
+  };
+
+  it('não trata header da Vercel como candidato a assinatura', () => {
+    expect(signatureCandidates(req('https://x.test/w', DA_VERCEL))).toEqual([]);
+  });
+
+  it('acha a assinatura da Kiwify no meio dos headers da Vercel', () => {
+    const got = signatureCandidates(
+      req('https://x.test/w', { ...DA_VERCEL, 'x-kiwify-signature': 'abc' }),
+    );
+    expect(got).toEqual([{ source: 'header:x-kiwify-signature', value: 'abc' }]);
+  });
+});
