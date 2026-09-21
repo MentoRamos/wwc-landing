@@ -8,7 +8,10 @@ set -euo pipefail
 BASE="/srv/nexgen/runtime/claude-kaua/content/circle-grupo"
 cd "$BASE/drafts"
 
-id="${1:-}"
+id="$(tr '[:upper:]' '[:lower:]' <<<"${1:-}")"
+[[ -z "$id" || "$id" =~ ^[a-z0-9-]+$ ]] || { echo "Id inválido: $id"; exit 0; }
+# "OK CIRCLE promo" → teste-promo when there is no draft literally named "promo".
+if [[ -n "$id" && ! -f "$id.md" && -f "teste-$id.md" ]]; then id="teste-$id"; fi
 if [[ -z "$id" ]]; then
   for f in $(ls -t -- *.md 2>/dev/null); do
     cand="${f%.md}"

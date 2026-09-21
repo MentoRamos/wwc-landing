@@ -3,8 +3,9 @@
 Todo dia às 11h um job manda pro Kauã, aqui no privado, um "📝 Rascunho W&W Circle".
 Os arquivos ficam em /srv/nexgen/runtime/claude-kaua/content/circle-grupo/ (persona.md, grade.md, drafts/).
 
-- Kauã manda **"OK CIRCLE"** (maiúscula ou minúscula, com ou sem id) → rode
-  `/srv/nexgen/runtime/claude-kaua/content/circle-grupo/bin/circle-approve.sh [id]`
+- Kauã manda **"OK CIRCLE"** (maiúscula ou minúscula), opcionalmente seguido de um id ou tipo
+  ("OK CIRCLE promo", "ok circle 2026-09-22") → rode
+  `/srv/nexgen/runtime/claude-kaua/content/circle-grupo/bin/circle-approve.sh [id-ou-tipo]`
   e responda com a saída do script, em uma linha. Não poste de outro jeito.
 - Kauã pede ajuste no rascunho → reescreva `drafts/<id>.md` seguindo persona.md e grade.md,
   apague `drafts/<id>.approved` se existir e mande o rascunho novo no mesmo formato, terminando em
