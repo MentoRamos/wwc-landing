@@ -30,7 +30,7 @@ Rascunho às 11h vai pro DM do Kauã. Só é postado depois do "OK CIRCLE" dele.
 - Só suplemento com respaldo razoável (creatina, whey, cafeína, eletrólitos, magnésio, vitamina D, ômega 3). Nada de "queimador", pré-treino com estimulante pesado, hormônio ou fórmula milagrosa.
 - Acessório: coisa que o público usa (garrafa, elástico, balança de bioimpedância, fita de mobilidade, pulseira/capa de wearable, tapete).
 - Fechamento obrigatório, em itálico: "_Sem patrocínio. Preço conferido hoje às HHhMM, pode mudar._"
-- Cada item em 3 linhas: emoji + nome curto do produto / "de R$ X por **R$ Y**" / link.
+- Cada item: 1 ou 2 frases de conversa dizendo por que vale (sem prescrever) + preço de hoje (e o de antes) + link na linha de baixo. Veja o exemplo em persona.md.
 - Sem link de afiliado por enquanto.
 
 ### live

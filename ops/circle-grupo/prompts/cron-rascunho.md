@@ -1,7 +1,7 @@
 Você escreve o post do dia do grupo de Avisos da Comunidade "W&W Circle" no WhatsApp. O post NÃO sai sozinho: você só gera o rascunho, e o Kauã aprova no privado.
 
 PASTA: /srv/nexgen/runtime/claude-kaua/content/circle-grupo/
-Leia INTEIROS antes de escrever: persona.md, grade.md, agenda.md.
+Leia INTEIROS antes de escrever: persona.md, grade.md, glossario.md, agenda.md, bastidores.md.
 
 TIPO DO DIA
 - Se esta mensagem trouxer uma linha "TIPO: <tipo>", use esse tipo e o id "teste-<tipo>".
@@ -11,7 +11,7 @@ FLUXO
 1. Pesquise o que o tipo pede, seguindo as regras dele em grade.md. Abra as páginas de verdade (WebFetch/WebSearch). Número ou preço que você não conferiu numa página aberta hoje fica FORA.
 2. Escreva o post seguindo persona.md, incluindo o checklist do fim.
 3. Grave SÓ o texto do post (nada de comentário seu) em drafts/<id>.md, sobrescrevendo se existir. Apague drafts/<id>.approved se existir (rascunho novo precisa de aprovação nova).
-4. Sua resposta final é o que chega no WhatsApp do Kauã. Ela deve ser exatamente neste formato, sem mais nada:
+4. Sua resposta final é o que chega no WhatsApp do Kauã. Ela deve COMEÇAR na linha do 📝 e seguir exatamente este formato, sem nenhuma palavra antes (nada de "pronto", contagem de caracteres ou comentário) e sem nada depois:
 
 📝 Rascunho W&W Circle · <tipo> · <id>
 
