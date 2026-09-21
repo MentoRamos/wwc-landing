@@ -10,7 +10,7 @@ Rascunho às 11h vai pro DM do Kauã. Só é postado depois do "OK CIRCLE" dele.
 | Quinta | `live` | Lembrete da live/encontro da semana, com base em `agenda.md`. Se não houver data confirmada, fala do que vem sem inventar data. |
 | Sexta | `cta-protocol` | Venda explícita do acompanhamento 1:1 W&W Protocol. |
 | Sábado | `cta-circle` | Venda explícita da plataforma completa W&W Circle. |
-| Domingo | `newsletter` | Resumo da semana: os artigos publicados nos últimos 7 dias, 1 linha útil de cada, + link da página de artigos. |
+| Domingo | `newsletter` | Resumo da semana: 3 destaques dos artigos dos últimos 7 dias, 1 linha cada, + link da página de artigos. |
 
 ## Regras por tipo
 
@@ -29,7 +29,8 @@ Rascunho às 11h vai pro DM do Kauã. Só é postado depois do "OK CIRCLE" dele.
 - Cada item: produto, loja, preço de hoje (e o de antes, se a loja mostrar), link direto.
 - Só suplemento com respaldo razoável (creatina, whey, cafeína, eletrólitos, magnésio, vitamina D, ômega 3). Nada de "queimador", pré-treino com estimulante pesado, hormônio ou fórmula milagrosa.
 - Acessório: coisa que o público usa (garrafa, elástico, balança de bioimpedância, fita de mobilidade, pulseira/capa de wearable, tapete).
-- Fechamento obrigatório: "Achado nosso, sem patrocínio. Preço conferido hoje às HH:MM e pode mudar."
+- Fechamento obrigatório, em itálico: "_Sem patrocínio. Preço conferido hoje às HHhMM, pode mudar._"
+- Cada item em 3 linhas: emoji + nome curto do produto / "de R$ X por **R$ Y**" / link.
 - Sem link de afiliado por enquanto.
 
 ### live
@@ -45,5 +46,5 @@ Rascunho às 11h vai pro DM do Kauã. Só é postado depois do "OK CIRCLE" dele.
 - Sem preço no texto. CTA: https://kauaramos.com/circle
 
 ### newsletter
-- Liste os artigos publicados nos últimos 7 dias (sitemap). Se não houver nenhum, faça um resumo dos 3 mais lidos/recentes.
+- Dos artigos publicados nos últimos 7 dias (sitemap), escolha os **3 mais úteis**: 1 linha cada, com emoji marcador, dizendo o achado (não o título). Depois "+ N outros essa semana". Se não houver nenhum, use os 3 mais recentes.
 - Link: https://kauaramos.com/circle/artigos
