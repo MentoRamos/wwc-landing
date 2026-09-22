@@ -63,6 +63,7 @@ describe('navegação pública', () => {
     'components/layout/SiteNav.tsx',
     'components/layout/SiteFooter.tsx',
     'components/layout/SiteHeader.tsx',
+    'components/layout/AppSidebar.tsx',
     'components/layout/AppNav.tsx',
     'components/layout/AppTabBar.tsx',
     // O admin também: o link novo daqui é justamente o tipo que apodrece sem
