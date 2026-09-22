@@ -21,6 +21,20 @@ const PRODUCT_LABEL: Record<string, string> = {
 };
 
 /**
+ * De onde veio o acesso, em português.
+ *
+ * A coluna `source` é um enum do banco, e a tela imprimia o valor cru para
+ * qualquer origem que não fosse `manual`: quem comprou pela Kiwify lia
+ * "kiwify" na própria conta. O fallback é a frase, e não o enum, porque uma
+ * origem nova que ninguém traduziu ainda é um detalhe nosso, não dele.
+ */
+const SOURCE_LABEL: Record<string, string> = {
+  manual: 'liberado na mão',
+  kiwify: 'pela assinatura',
+  stripe: 'pela assinatura',
+};
+
+/**
  * What we hold about somebody, shown to them without them having to ask.
  *
  * The LGPD gives a person the right to confirm that processing exists and to
@@ -81,12 +95,15 @@ export default async function ContaPage() {
           </p>
         ) : (
           <ul className="flex flex-col gap-px overflow-hidden border border-[var(--border)]">
-            {(entitlements ?? []).map((row, i) => {
+            {(entitlements ?? []).map((row) => {
               const expired = row.expires_at && new Date(row.expires_at) <= new Date();
               const live = !expired && ['active', 'past_due'].includes(row.status);
 
               return (
-                <li key={i} className="bg-[var(--bg-card)] px-6 py-5">
+                <li
+                  key={`${row.product}:${row.starts_at ?? ''}`}
+                  className="bg-[var(--bg-card)] px-6 py-5"
+                >
                   <p className="card-title">{PRODUCT_LABEL[row.product] ?? row.product}</p>
                   <p className="meta mt-2">
                     {live
@@ -97,7 +114,7 @@ export default async function ContaPage() {
                         ? `Encerrado em ${fmt(row.expires_at)}`
                         : 'Encerrado'}
                     {' · '}
-                    {row.source === 'manual' ? 'liberado na mão' : row.source}
+                    {SOURCE_LABEL[row.source] ?? 'liberado na mão'}
                     {row.starts_at && ` · desde ${fmt(row.starts_at)}`}
                   </p>
                 </li>
