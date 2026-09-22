@@ -40,8 +40,23 @@ const TABS = [
   },
 ];
 
-export function AppTabBar() {
+/**
+ * A quinta aba, pela mesma regra do `AppNav`: ela só existe para quem tem
+ * documento do aluno.
+ *
+ * Sem ela, o acompanhamento era a única coisa da plataforma sem endereço no
+ * telefone. Quem só tem o Circle continua vendo quatro abas, porque uma aba
+ * que leva a uma página vazia promete o que a pessoa não comprou.
+ */
+const ACOMPANHAMENTO = {
+  href: '/aluno',
+  label: 'Você',
+  path: 'M6 3.5h7l5 5V20.5H6zM13 3.5V9h5M9 13h6M9 16.5h4',
+};
+
+export function AppTabBar({ hasDocuments = false }: { hasDocuments?: boolean }) {
   const pathname = usePathname();
+  const tabs = hasDocuments ? [...TABS, ACOMPANHAMENTO] : TABS;
 
   return (
     <nav
@@ -49,7 +64,7 @@ export function AppTabBar() {
       className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border)] bg-[var(--bg)]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       <ul className="grid grid-cols-4">
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 
           return (

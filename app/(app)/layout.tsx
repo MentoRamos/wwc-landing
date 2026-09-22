@@ -58,7 +58,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           clear it — otherwise it is permanently half-covered on a phone. */}
       <div className="container-lp pb-28 pt-12 md:pb-16">{children}</div>
 
-      <AppTabBar />
+      <AppTabBar hasDocuments={hasDocuments} />
     </div>
   );
 }
