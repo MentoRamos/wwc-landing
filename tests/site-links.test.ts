@@ -64,7 +64,6 @@ describe('navegação pública', () => {
     'components/layout/SiteFooter.tsx',
     'components/layout/SiteHeader.tsx',
     'components/layout/AppSidebar.tsx',
-    'components/layout/AppNav.tsx',
     'components/layout/AppTabBar.tsx',
     // O admin também: o link novo daqui é justamente o tipo que apodrece sem
     // ninguém ver, porque quem escreve a navegação do admin é quem menos clica

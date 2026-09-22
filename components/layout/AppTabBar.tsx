@@ -41,7 +41,7 @@ const TABS = [
 ];
 
 /**
- * A quinta aba, pela mesma regra do `AppNav`: ela só existe para quem tem
+ * A quinta aba, pela mesma regra da `AppSidebar`: ela só existe para quem tem
  * documento do aluno.
  *
  * Sem ela, o acompanhamento era a única coisa da plataforma sem endereço no
