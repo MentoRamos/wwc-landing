@@ -1,13 +1,10 @@
 import type { Metadata } from 'next';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Card, CardAction, CardGrid } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Meta } from '@/components/ui/Meta';
+import { Poster, PosterRail } from '@/components/ui/Poster';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
-import { ProgressBar } from '@/components/ui/ProgressBar';
 import {
   buildShelf,
   formatDuration,
@@ -132,73 +129,47 @@ export default async function BibliotecaPage() {
               </p>
             </div>
 
-            <CardGrid className="mt-6" columns={2}>
-              {shelf.items.map((item) => {
+            {/*
+              A prateleira deixou de ser grade e virou fileira.
+
+              Cartão deitado é a forma de uma lista de arquivos: cabem três por
+              linha, o título divide a largura com a descrição, e vinte itens
+              viram vinte blocos iguais que o olho percorre um a um. A capa em
+              pé é a forma que o setor inteiro usa para acervo, e o motivo é
+              mecânico: cabem cinco na mesma largura, a fileira se percorre num
+              gesto só, e o título fica sozinho embaixo com a largura toda.
+
+              O que se perde é a descrição, que não cabe sob uma capa. Ela não
+              fazia falta aqui: quem varre a prateleira está procurando qual
+              abrir, e é para isso que serve a ficha do item.
+            */}
+            <PosterRail>
+              {shelf.items.map((item, i) => {
                 const percent = item.locked
                   ? 0
                   : progressPercent(seen.get(item.id), item.duration_seconds);
 
                 return (
-                <li key={item.id}>
-                  <Card
+                  <Poster
+                    key={item.id}
                     href={item.locked ? '/circle' : `/biblioteca/${item.slug}`}
-                    locked={item.locked}
-                    className="flex flex-col"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <p className="card-title">{item.title}</p>
-                      {item.locked ? (
-                        <Badge tone="muted">Bloqueado</Badge>
-                      ) : (
-                        // Terminado precisava aparecer no card, e não só na
-                        // régua: um item concluído continuava dizendo
-                        // "Continuar", que é a única frase que ele não podia
-                        // dizer.
-                        percent === 100 && <Badge tone="accent">Concluído</Badge>
-                      )}
-                    </div>
-
-                    {item.description && <p className="prose-body mt-2">{item.description}</p>}
-
-                    <Meta
-                      className="mt-auto pt-4"
-                      parts={[
+                    title={item.title}
+                    index={i + 1}
+                    meta={
+                      [
                         item.kind === 'pdf' ? 'PDF' : 'Gravação',
                         formatDuration(item.duration_seconds),
-                        item.season,
-                      ]}
-                    />
-
-                    {/* Uma régua só aparece quando há o que ela conte. Barra
-                        em zero em toda a prateleira é ruído: ela passa a
-                        significar "item", não "progresso". */}
-                    {percent > 0 && percent < 100 && (
-                      <div className="mt-4">
-                        <ProgressBar percent={percent} label={`Progresso em ${item.title}`} />
-                      </div>
-                    )}
-
-                    {/* The locked card is the one place on the platform where
-                        somebody is looking straight at what they do not have.
-                        It is a link out, not a dead end. */}
-                    <CardAction>
-                      {item.locked
-                        ? 'Liberar com o Circle'
-                        : percent === 100
-                          ? item.kind === 'pdf'
-                            ? 'Abrir de novo'
-                            : 'Rever'
-                          : percent > 0
-                            ? 'Continuar'
-                            : item.kind === 'pdf'
-                              ? 'Abrir o PDF'
-                              : 'Assistir'}
-                    </CardAction>
-                  </Card>
-                </li>
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')
+                    }
+                    locked={item.locked}
+                    done={percent === 100}
+                    percent={percent}
+                  />
                 );
               })}
-            </CardGrid>
+            </PosterRail>
           </section>
           );
         })
