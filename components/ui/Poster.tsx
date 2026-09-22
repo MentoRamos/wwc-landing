@@ -102,7 +102,7 @@ export function Poster({
   // um cadeado que não navega.
   if (locked) {
     return (
-      <div className="w-[8.5rem] shrink-0 snap-start sm:w-[9.5rem]">
+      <div className="w-[8.5rem] shrink-0 snap-start sm:w-[9.5rem] xl:w-[10.5rem]">
         {art}
         {label}
       </div>
@@ -110,7 +110,7 @@ export function Poster({
   }
 
   return (
-    <Link href={href} className="group w-[8.5rem] shrink-0 snap-start sm:w-[9.5rem]">
+    <Link href={href} className="group w-[8.5rem] shrink-0 snap-start sm:w-[9.5rem] xl:w-[10.5rem]">
       {art}
       {label}
     </Link>

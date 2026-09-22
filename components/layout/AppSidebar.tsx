@@ -22,14 +22,23 @@ import { Logo } from '@/components/ui/Logo';
  * o gesto certo para o polegar.
  */
 
+/*
+ * Os rótulos são os mesmos da barra do telefone, e isso não é detalhe.
+ *
+ * A primeira versão desta coluna chamava /circle de "Encontros" e /conta de
+ * "Acessos", que descrevem melhor o que há dentro. Só que a mesma pessoa usa
+ * as duas navegações, e um destino com dois nomes faz ela procurar no celular
+ * um item que só existe no computador. Circle é ainda o nome do produto que
+ * ela assina, e trocá-lo na navegação troca a marca por uma descrição.
+ */
 const CONTEUDO = [
   { href: '/inicio', label: 'Início' },
   { href: '/biblioteca', label: 'Biblioteca' },
-  { href: '/circle', label: 'Encontros' },
+  { href: '/circle', label: 'Circle' },
 ];
 
 const ACOMPANHAMENTO = { href: '/aluno', label: 'Você' };
-const CONTA = [{ href: '/conta', label: 'Acessos' }];
+const CONTA = [{ href: '/conta', label: 'Conta' }];
 
 function Item({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
@@ -80,9 +89,10 @@ export function AppSidebar({
           <Item key={link.href} {...link} active={is(link.href)} />
         ))}
 
-        <p className="px-3 pb-1.5 pt-5 font-[family-name:var(--font-label)] text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-[var(--text-4)]">
-          Conta
-        </p>
+        {/* Um respiro no lugar de um cabeçalho de grupo: "Conta" escrito
+            acima de um item chamado "Conta" é uma palavra que não informa
+            nada e rouba a altura de uma linha. */}
+        <span className="h-4" aria-hidden="true" />
 
         {CONTA.map((link) => (
           <Item key={link.href} {...link} active={is(link.href)} />
