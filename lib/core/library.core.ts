@@ -112,3 +112,40 @@ export function progressPercent(
 
   return Math.min(100, Math.round((at / durationSeconds) * 100));
 }
+
+export type LibraryStanding = {
+  /** Quantos itens do catálogo esta pessoa pode abrir hoje. */
+  unlocked: number;
+  /** O catálogo inteiro, incluindo o que ela ainda não pode abrir. */
+  total: number;
+  /** Quantos dos destravados ela já terminou. */
+  completed: number;
+  /** Por onde continuar quando não há nada no meio. Nunca um item travado. */
+  next: ShelfItem | null;
+};
+
+/**
+ * O conjunto, e não o item.
+ *
+ * A home sabia dizer "você parou no meio disto" e não sabia dizer mais nada:
+ * quem nunca tinha aberto uma gravação via uma tela sem nenhum ponto de
+ * entrada, e quem tinha terminado tudo via a mesma tela. Este agregado
+ * responde as duas, e responde na ordem em que a prateleira já está, que é a
+ * ordem que o Kauã escolheu no `sort_order`.
+ *
+ * `next` é sempre destravado. Sugerir o que a pessoa não pode abrir seria
+ * transformar a única sugestão da tela num anúncio.
+ */
+export function libraryStanding(shelves: Shelf[], completedSlugs: Set<string>): LibraryStanding {
+  const items = shelves.flatMap((shelf) => shelf.items);
+  const mine = items.filter((item) => !item.locked);
+
+  return {
+    unlocked: mine.length,
+    total: items.length,
+    // Contado sobre os destravados, não sobre o set: um slug concluído que
+    // saiu do catálogo dela não pode inflar o denominador nem o numerador.
+    completed: mine.filter((item) => completedSlugs.has(item.slug)).length,
+    next: mine.find((item) => !completedSlugs.has(item.slug)) ?? null,
+  };
+}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildShelf,
   formatDuration,
+  libraryStanding,
   progressPercent,
   resumePosition,
   type CatalogItem,
@@ -159,5 +160,59 @@ describe('progressPercent', () => {
 
   it('nunca passa de 100 quando a gravação encurtou', () => {
     expect(progressPercent({ position_seconds: 9000, completed_at: null }, 600)).toBe(0);
+  });
+});
+
+/**
+ * Quantos itens a pessoa tem, quantos já terminou, e qual é o próximo.
+ *
+ * O agregado existe porque a plataforma sabia o progresso item a item e nunca
+ * dizia o conjunto: a home mostrava "continue de onde parou" para um item só,
+ * e quem nunca tinha aberto nada via uma tela sem nenhum começo. `next` é a
+ * resposta para essa segunda tela, e é sempre um item destravado, porque
+ * sugerir o que a pessoa não pode abrir é pior do que não sugerir nada.
+ */
+describe('libraryStanding', () => {
+  const shelves = (...slugs: [string, boolean][]) =>
+    buildShelf(
+      slugs.map(([slug], i) => item({ id: slug, slug, sort_order: i })),
+      new Set(slugs.filter(([, unlocked]) => unlocked).map(([slug]) => slug)),
+    );
+
+  it('conta só o que está destravado, não o catálogo inteiro', () => {
+    const standing = libraryStanding(shelves(['a', true], ['b', false]), new Set());
+    expect(standing.unlocked).toBe(1);
+    expect(standing.total).toBe(2);
+  });
+
+  it('conta os concluídos entre os destravados', () => {
+    const standing = libraryStanding(shelves(['a', true], ['b', true]), new Set(['a']));
+    expect(standing.completed).toBe(1);
+  });
+
+  it('sugere o primeiro destravado que ainda não foi concluído', () => {
+    const standing = libraryStanding(shelves(['a', true], ['b', true]), new Set(['a']));
+    expect(standing.next?.slug).toBe('b');
+  });
+
+  it('nunca sugere um item travado, mesmo sendo o primeiro da prateleira', () => {
+    const standing = libraryStanding(shelves(['a', false], ['b', true]), new Set());
+    expect(standing.next?.slug).toBe('b');
+  });
+
+  it('não sugere nada quando tudo que é dela já foi concluído', () => {
+    const standing = libraryStanding(shelves(['a', true]), new Set(['a']));
+    expect(standing.next).toBeNull();
+  });
+
+  it('não sugere nada para quem não tem nenhum item liberado', () => {
+    const standing = libraryStanding(shelves(['a', false]), new Set());
+    expect(standing.next).toBeNull();
+    expect(standing.unlocked).toBe(0);
+  });
+
+  it('ignora um slug concluído que não está mais no catálogo dela', () => {
+    const standing = libraryStanding(shelves(['a', true]), new Set(['a', 'sumiu']));
+    expect(standing.completed).toBe(1);
   });
 });
