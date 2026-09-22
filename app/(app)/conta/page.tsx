@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Band } from '@/components/ui/Band';
 import { DeleteAccountButton } from '@/components/conta/DeleteAccountButton';
+import { Badge } from '@/components/ui/Badge';
+import { Cell, DataTable, Row } from '@/components/ui/DataTable';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
@@ -71,13 +73,13 @@ export default async function ContaPage() {
         lede="Recebemos do Google apenas nome, e-mail e foto de perfil. Nunca sua senha, nem acesso a Gmail, Drive, Agenda ou contatos."
       >
         <dl className="flex flex-col gap-px overflow-hidden border border-[var(--border)]">
-          <Row label="E-mail" value={profile?.email ?? user.email ?? 'não informado'} />
-          <Row label="Nome" value={profile?.full_name ?? 'não informado'} />
-          <Row
+          <Field label="E-mail" value={profile?.email ?? user.email ?? 'não informado'} />
+          <Field label="Nome" value={profile?.full_name ?? 'não informado'} />
+          <Field
             label="Entrou pela primeira vez"
             value={fmt(profile?.created_at ?? null) ?? 'não informado'}
           />
-          <Row label="Forma de entrada" value="Conta Google" />
+          <Field label="Forma de entrada" value="Conta Google" />
         </dl>
       </Band>
 
@@ -94,33 +96,34 @@ export default async function ContaPage() {
             </Link>
           </p>
         ) : (
-          <ul className="flex flex-col gap-px overflow-hidden border border-[var(--border)]">
+          /*
+            Três acessos em três cartões obrigavam a ler três frases para
+            comparar duas datas. Em coluna, a data mora sempre no mesmo lugar
+            e a situação vira uma cor que se acha sem ler.
+          */
+          <DataTable head={[{ label: 'Produto' }, { label: 'Origem' }, { label: 'Vale até' }, { label: 'Situação' }]}>
             {(entitlements ?? []).map((row) => {
               const expired = row.expires_at && new Date(row.expires_at) <= new Date();
               const live = !expired && ['active', 'past_due'].includes(row.status);
 
               return (
-                <li
-                  key={`${row.product}:${row.starts_at ?? ''}`}
-                  className="bg-[var(--bg-card)] px-6 py-5"
-                >
-                  <p className="card-title">{PRODUCT_LABEL[row.product] ?? row.product}</p>
-                  <p className="meta mt-2">
-                    {live
-                      ? row.expires_at
-                        ? `Vale até ${fmt(row.expires_at)}`
-                        : 'Acesso vitalício'
-                      : expired
-                        ? `Encerrado em ${fmt(row.expires_at)}`
-                        : 'Encerrado'}
-                    {' · '}
-                    {SOURCE_LABEL[row.source] ?? 'liberado na mão'}
-                    {row.starts_at && ` · desde ${fmt(row.starts_at)}`}
-                  </p>
-                </li>
+                <Row key={`${row.product}:${row.starts_at ?? ''}`}>
+                  <Cell strong>{PRODUCT_LABEL[row.product] ?? row.product}</Cell>
+                  <Cell>{SOURCE_LABEL[row.source] ?? 'liberado na mão'}</Cell>
+                  <Cell numeric>
+                    {live && !row.expires_at ? 'Vitalício' : fmt(row.expires_at) ?? 'não informado'}
+                  </Cell>
+                  <Cell>
+                    {live ? (
+                      <Badge tone="good">Em dia</Badge>
+                    ) : (
+                      <Badge tone="muted">Encerrado</Badge>
+                    )}
+                  </Cell>
+                </Row>
               );
             })}
-          </ul>
+          </DataTable>
         )}
       </Band>
 
@@ -159,7 +162,7 @@ export default async function ContaPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-2 bg-[var(--bg-card)] px-6 py-4">
       <dt className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">{label}</dt>

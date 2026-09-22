@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Band } from '@/components/ui/Band';
-import { Card, CardAction, CardGrid } from '@/components/ui/Card';
+import { Cell, DataTable, Row } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Meta } from '@/components/ui/Meta';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
 import { requireUser } from '@/lib/auth/guard';
@@ -95,20 +94,36 @@ export default async function AlunoPage() {
             title={TITLES[shelf.kind]}
             lede={LEDES[shelf.kind]}
           >
-            <CardGrid columns={2}>
+            {/*
+              Report semanal é a única coisa da plataforma que se lê em série:
+              a pessoa quer o da semana passada, depois o de três semanas
+              atrás. Em cartão, a data mora no meio de uma frase diferente em
+              cada bloco; em coluna, ela desce sempre no mesmo lugar e achar o
+              de uma data vira uma varredura, não uma leitura.
+            */}
+            <DataTable
+              head={[{ label: 'Documento' }, { label: 'Período' }, { label: 'Emitido em' }, { label: '', align: 'right' }]}
+            >
               {shelf.items.map((item) => (
-                <li key={item.id}>
-                  <Card href={`/api/aluno/${item.id}/download`}>
-                    <p className="card-title">{item.title}</p>
-                    <Meta
-                      className="mt-3"
-                      parts={[item.period_label, `Emitido em ${formatDate(item.issued_at)}`]}
-                    />
-                    <CardAction>Abrir o PDF</CardAction>
-                  </Card>
-                </li>
+                <Row key={item.id}>
+                  <Cell strong>{item.title}</Cell>
+                  <Cell>{item.period_label}</Cell>
+                  <Cell numeric>{formatDate(item.issued_at)}</Cell>
+                  <Cell align="right">
+                    {/* `<a>` nativo, nunca `next/link`: este destino grava
+                        document_access_log e assina URL do bucket dentro do
+                        próprio GET, e o prefetch do Link dispararia o registro
+                        de uma leitura que ninguém fez. */}
+                    <a
+                      href={`/api/aluno/${item.id}/download`}
+                      className="link-draw whitespace-nowrap text-[var(--accent)]"
+                    >
+                      Abrir o PDF
+                    </a>
+                  </Cell>
+                </Row>
               ))}
-            </CardGrid>
+            </DataTable>
           </Band>
         ))
       )}
