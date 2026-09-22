@@ -23,6 +23,23 @@ import { twMerge } from 'tailwind-merge';
  * corner of your eye — and the same gesture answers the keyboard, because the
  * rule is bound to `:focus-visible` too.
  */
+/**
+ * Este destino é uma rota, ou só um endereço?
+ *
+ * `next/link` faz prefetch do que entra na viewport, e isso é a feature certa
+ * para uma página e o defeito errado para um endpoint com efeito. O download
+ * do aluno grava `document_access_log` e assina uma URL do bucket no próprio
+ * GET: com um `Link` em cima dele, abrir a lista registraria leituras que
+ * ninguém fez, na única trilha que existe justamente para dizer quem leu o
+ * quê.
+ *
+ * Fora da navegação do Next, uma âncora comum faz o que se espera: nada, até
+ * alguém clicar.
+ */
+export function isRouteLink(href: string): boolean {
+  return href.startsWith('/') && !href.startsWith('/api/');
+}
+
 export function Card({
   href,
   locked = false,
@@ -38,14 +55,23 @@ export function Card({
   const classes = twMerge(clsx('block h-full px-6 py-6', surface, className));
 
   if (href) {
+    const interactive = twMerge(
+      classes,
+      'rule-draw transition-colors duration-300 hover:bg-[var(--bg-card-hover)]',
+    );
+
+    // O mesmo cartão, o mesmo gesto, e a única diferença é quem carrega o
+    // destino. Uma âncora comum não busca nada antes do clique.
+    if (!isRouteLink(href)) {
+      return (
+        <a href={href} className={interactive}>
+          {children}
+        </a>
+      );
+    }
+
     return (
-      <Link
-        href={href}
-        className={twMerge(
-          classes,
-          'rule-draw transition-colors duration-300 hover:bg-[var(--bg-card-hover)]',
-        )}
-      >
+      <Link href={href} className={interactive}>
         {children}
       </Link>
     );
