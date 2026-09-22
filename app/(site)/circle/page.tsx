@@ -6,6 +6,7 @@ import { Band } from '@/components/ui/Band';
 import { Button } from '@/components/ui/Button';
 import { Card, CardAction, CardGrid } from '@/components/ui/Card';
 import { Meta } from '@/components/ui/Meta';
+import { ReportSample } from '@/components/ui/ReportSample';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { InterestForm } from '@/components/interest/InterestForm';
 import { currentUser } from '@/lib/auth/guard';
@@ -28,6 +29,35 @@ import { listArticles } from '@/lib/articles/queries';
 const OG_IMAGE = '/photos/kaua-presenting.jpg';
 const DESCRIPTION =
   'Assinatura mensal do Wealth & Wellness: encontro ao vivo toda quinta, 20h, e a biblioteca liberada enquanto a assinatura estiver em dia.';
+
+/**
+ * Os três números que sustentam a oferta, cada um com a origem na própria tela.
+ *
+ * Número sem fonte em página de saúde é publicidade; com fonte é argumento, e
+ * este público confere. A ordem conta uma história curta: a maioria dorme mal,
+ * dormir mal custa decisão, e a saída não é dormir mais, é dormir na mesma
+ * hora. Esse terceiro é o que separa este produto de qualquer app de sono.
+ */
+const EVIDENCE = [
+  {
+    figure: '43%',
+    claim:
+      'dos executivos não dormem o suficiente em pelo menos quatro noites por semana.',
+    source: 'McKinsey & Company',
+  },
+  {
+    figure: '20%',
+    claim:
+      'mais erros são cometidos por líderes privados de sono, em tarefas que eles já dominam.',
+    source: 'Harvard Business Review',
+  },
+  {
+    figure: '30%',
+    claim:
+      'menos risco de mortalidade entre quem dorme em horário regular, independente de quantas horas dorme.',
+    source: 'Sleep, 2024. 60.977 pessoas acompanhadas',
+  },
+] as const;
 
 export const metadata: Metadata = {
   title: 'W&W Circle',
@@ -296,6 +326,61 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
             />
           </div>
         </div>
+
+      {/*
+        As duas faixas que a página não tinha, e que são a razão de ela existir.
+
+        A primeira responde "por que eu deveria me importar com isto?" com
+        número e fonte, em vez de adjetivo. A segunda responde "o que eu recebo,
+        exatamente?" mostrando o objeto, em vez de descrevê-lo. Uma página que
+        promete leitura de dado e não exibe dado nenhum pede ao visitante que
+        acredite; estas duas fazem ele conferir.
+      */}
+      <section className="mt-20 border-t border-[var(--border)] pt-14">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14">
+          <div>
+            <p className="eyebrow">Por que a hora</p>
+            <h2 className="section-title mt-4">
+              O aparelho mede. <em className="accent-word">Ninguém lê.</em>
+            </h2>
+            <div className="rule-gold mt-6" aria-hidden="true" />
+            <p className="lede mt-7">
+              O dado está no seu pulso desde o ano passado. O que falta não é
+              outro sensor, é alguém que olhe a série inteira e diga o que muda
+              na sua segunda-feira.
+            </p>
+          </div>
+
+          <dl className="grid gap-px bg-[var(--border)] sm:grid-cols-3">
+            {EVIDENCE.map((item) => (
+              <div key={item.figure} className="bg-[var(--bg)] px-6 py-8">
+                <dt className="stat-num">{item.figure}</dt>
+                <dd className="prose-body mt-4">{item.claim}</dd>
+                <dd className="mt-3 text-xs text-[var(--text-4)]">{item.source}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      <section className="mt-20 border-t border-[var(--border)] pt-14">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14">
+          <div>
+            <p className="eyebrow">O que chega</p>
+            <h2 className="section-title mt-4">
+              Toda semana, <em className="accent-word">isto</em>.
+            </h2>
+            <div className="rule-gold mt-6" aria-hidden="true" />
+            <p className="lede mt-7">
+              Os três números que importam na semana, a forma como eles se
+              moveram, e a frase que diz o que fazer com isso. Sem painel para
+              você interpretar sozinho.
+            </p>
+          </div>
+
+          <ReportSample />
+        </div>
+      </section>
 
       {/*
         O bloco de preços era `max-w-3xl` dentro de um container de 1440px:
