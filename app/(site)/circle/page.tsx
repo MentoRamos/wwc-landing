@@ -323,11 +323,16 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
             const isFeatured = plan.id === featured?.id;
 
             return (
+              /* O cartão inteiro responde ao clique, e mesmo assim existe um
+                 link só. O botão continua sendo o link de verdade e a sua
+                 camada absoluta cobre o cartão: aninhar uma âncora dentro de
+                 outra seria HTML inválido, e repetir o mesmo destino em dois
+                 elementos daria ao teclado duas paradas para uma decisão. */
               <div
                 key={plan.id}
-                className={`flex flex-col px-6 py-8 ${
+                className={`relative flex flex-col px-6 py-8 transition-colors ${
                   isFeatured ? 'bg-[var(--bg-card-hover)]' : 'bg-[var(--bg-card)]'
-                }`}
+                } ${plan.href ? 'hover:bg-[var(--bg-card-hover)]' : ''}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className="meta">{plan.label}</p>
@@ -357,7 +362,7 @@ function SalesView({ user }: { user: { id: string; email?: string } | null }) {
                       href={plan.href}
                       variant={isFeatured ? 'primary' : 'secondary'}
                       size="lg"
-                      className="w-full"
+                      className="w-full after:absolute after:inset-0 after:content-['']"
                     >
                       Assinar
                     </Button>
