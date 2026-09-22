@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { isRouteLink } from '@/components/ui/Card';
+import { isExternalLink, isRouteLink } from '@/lib/core/links.core';
 
 /**
  * Nem todo destino é uma rota, e o Next trata todos como se fossem.
@@ -53,6 +53,8 @@ describe('cartões que apontam para a API', () => {
   it('o Card decide pela função, e não por um prefetch escrito à mão', () => {
     const card = readFileSync(join(process.cwd(), 'components/ui/Card.tsx'), 'utf8');
     expect(card).toContain('isRouteLink');
+    const button = readFileSync(join(process.cwd(), 'components/ui/Button.tsx'), 'utf8');
+    expect(button).toContain('isRouteLink');
   });
 
   for (const page of pages) {

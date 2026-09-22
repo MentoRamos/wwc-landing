@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { clsx } from 'clsx';
+import { isExternalLink, isRouteLink } from '@/lib/core/links.core';
 
 type Variant = 'primary' | 'secondary' | 'quiet';
 type Size = 'md' | 'lg';
@@ -59,16 +60,18 @@ export function Button(props: ButtonProps | LinkProps) {
 
   if (typeof rest.href === 'string') {
     const { href, ...anchorProps } = rest as LinkProps;
-    // Anything that is not a path of our own is a real anchor: Next's Link
-    // would try to prefetch it.
-    const external = !href.startsWith('/');
+    // Duas perguntas, e elas não são a mesma. `isRouteLink` decide quem
+    // carrega o destino, porque o Link faria prefetch de uma rota de API com
+    // efeito. `isExternalLink` decide se abre fora, e um download nosso não
+    // abre.
+    if (!isRouteLink(href)) {
+      const outside = isExternalLink(href);
 
-    if (external) {
       return (
         <a
           href={href}
-          target="_blank"
-          rel="noopener noreferrer"
+          target={outside ? '_blank' : undefined}
+          rel={outside ? 'noopener noreferrer' : undefined}
           className={classes}
           {...anchorProps}
         >

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { isRouteLink } from '@/lib/core/links.core';
 
 /**
  * One surface, and the question of whether it is clickable answered in one
@@ -23,23 +24,6 @@ import { twMerge } from 'tailwind-merge';
  * corner of your eye — and the same gesture answers the keyboard, because the
  * rule is bound to `:focus-visible` too.
  */
-/**
- * Este destino é uma rota, ou só um endereço?
- *
- * `next/link` faz prefetch do que entra na viewport, e isso é a feature certa
- * para uma página e o defeito errado para um endpoint com efeito. O download
- * do aluno grava `document_access_log` e assina uma URL do bucket no próprio
- * GET: com um `Link` em cima dele, abrir a lista registraria leituras que
- * ninguém fez, na única trilha que existe justamente para dizer quem leu o
- * quê.
- *
- * Fora da navegação do Next, uma âncora comum faz o que se espera: nada, até
- * alguém clicar.
- */
-export function isRouteLink(href: string): boolean {
-  return href.startsWith('/') && !href.startsWith('/api/');
-}
-
 export function Card({
   href,
   locked = false,
