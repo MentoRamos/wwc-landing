@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Playfair_Display } from 'next/font/google';
+import { Barlow, Barlow_Condensed, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { resolveSiteUrl } from '@/lib/core/site.core';
 
@@ -9,6 +9,34 @@ const display = Playfair_Display({
   display: 'swap',
   weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
+});
+
+/*
+ * As duas sans da marca, que a plataforma nunca carregou.
+ *
+ * O `wealth-wellness-DESIGN.md` nomeia o par Playfair + Barlow Condensed como
+ * a assinatura, e proíbe por escrito cair em Inter, Roboto ou Arial. Mesmo
+ * assim o corpo desta plataforma vinha da pilha do sistema, ou seja, Helvetica
+ * no Mac e Segoe no Windows: a mesma página com duas caras, nenhuma delas a
+ * da marca.
+ *
+ * Barlow entra no corpo, na tabela e no botão, onde a serif atrapalha a
+ * leitura de ferramenta. Barlow Condensed entra nos rótulos em caixa alta com
+ * tracking largo, que é o gesto que o documento chama de cromo de navegação.
+ * Playfair continua sozinha nos títulos e nos números grandes.
+ */
+const body = Barlow({
+  subsets: ['latin'],
+  variable: '--font-barlow',
+  display: 'swap',
+  weight: ['300', '400', '500', '600'],
+});
+
+const condensed = Barlow_Condensed({
+  subsets: ['latin'],
+  variable: '--font-barlow-condensed',
+  display: 'swap',
+  weight: ['500', '600'],
 });
 
 const siteUrl = resolveSiteUrl({
@@ -42,7 +70,7 @@ const NOSCRIPT_REVEAL = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={display.variable}>
+    <html lang="pt-BR" className={`${display.variable} ${body.variable} ${condensed.variable}`}>
       <head>
         {/*
           A rede por baixo do resto.

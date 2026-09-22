@@ -11,7 +11,10 @@
    * Inter/Roboto/Arial genérico"). A pilha do sistema é o que o doc pede, e
    * tem o efeito colateral de tirar uma fonte da rede do caminho crítico.
    */
-  --font-body: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "Segoe UI", sans-serif;
+  --font-body: var(--font-barlow), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "Segoe UI", sans-serif;
+  /* Caixa alta com tracking largo: rótulo, kicker, cabeçalho de tabela.
+     É o "cromo de navegação" do design system, e nunca corpo de texto. */
+  --font-label: var(--font-barlow-condensed), var(--font-barlow), "Helvetica Neue", sans-serif;
   --color-gold: #C9A84C;
   --color-gold-dim: #A68A3A;
   --color-gold-glow: rgba(201, 168, 76, 0.14);
@@ -110,9 +113,13 @@
 ───────────────────────────────────────────────────────────────────────────── */
 
 .eyebrow {
-  font-family: var(--font-body);
+  /* Barlow Condensed em caixa alta e tracking largo: é isto que o design
+     system chama de assinatura, e o que separa um rótulo da marca de um
+     rótulo de qualquer app. Condensed também rende: o mesmo rótulo cabe em
+     menos largura, que importa quando ele encabeça coluna de tabela. */
+  font-family: var(--font-label);
   font-size: 0.6875rem;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.4;
   text-transform: uppercase;
   letter-spacing: 0.22em;
