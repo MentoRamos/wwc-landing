@@ -4,13 +4,21 @@ import { Button } from '@/components/ui/Button';
 import { Band } from '@/components/ui/Band';
 import { Card, CardAction, CardGrid } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Meta } from '@/components/ui/Meta';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { countdownLabel, formatDate, formatDateTime } from '@/lib/core/format.core';
 import { nextMeeting } from '@/lib/core/circle.core';
-import { formatDuration, progressPercent, resumePosition } from '@/lib/core/library.core';
+import {
+  buildShelf,
+  formatDuration,
+  libraryStanding,
+  progressPercent,
+  resumePosition,
+  type CatalogItem,
+} from '@/lib/core/library.core';
 
 export const metadata: Metadata = {
   title: 'Início',
@@ -85,8 +93,15 @@ export default async function InicioPage() {
   // holds for the embedded content item — `!inner` drops the progress row when
   // RLS refuses the recording, so a replay that stopped being theirs stops
   // being offered without any status check on this page.
-  const [{ data: profile }, { data: entitlements }, { data: docRows }, { data: resumeRows }] =
-    await Promise.all([
+  const [
+    { data: profile },
+    { data: entitlements },
+    { data: docRows },
+    { data: resumeRows },
+    { data: catalog },
+    { data: entitledItems },
+    { data: doneRows },
+  ] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
     supabase
       .from('entitlements')
@@ -106,6 +121,19 @@ export default async function InicioPage() {
       .is('completed_at', null)
       .order('last_seen_at', { ascending: false })
       .limit(1),
+    // As três leituras do conjunto. A home sabia falar de um item e não sabia
+    // falar do todo: quem nunca abriu nada não tinha por onde começar, e quem
+    // terminou tudo via a mesma tela de quem nunca começou.
+    supabase
+      .from('content_catalog')
+      .select(
+        'id, slug, kind, collection, title, description, duration_seconds, season, required_products, sort_order',
+      ),
+    supabase.from('content_items').select('id'),
+    supabase
+      .from('progress')
+      .select('completed_at, content_items!inner(slug)')
+      .not('completed_at', 'is', null),
     ]);
 
   // A política já limita ao que é desta pessoa, então a existência da linha é
@@ -118,6 +146,24 @@ export default async function InicioPage() {
 
   const hasCircle = live.some((row) => row.product === 'circle');
   const meeting = nextMeeting(now);
+
+  // O mesmo endereço que a página de venda usa. Quando ele não está
+  // configurado, o botão manda para `/circle`, onde a frase sobre o link
+  // chegar por e-mail na véspera já existe: um caminho a mais é melhor que um
+  // botão que some na semana em que a sala é a única coisa que importa.
+  const meetUrl = process.env.CIRCLE_MEET_URL?.trim();
+
+  const standing = libraryStanding(
+    buildShelf(
+      (catalog ?? []) as CatalogItem[],
+      new Set((entitledItems ?? []).map((row) => row.id as string)),
+    ),
+    new Set(
+      (doneRows ?? [])
+        .map((row) => one<{ slug: string }>(row.content_items as never)?.slug)
+        .filter((slug): slug is string => Boolean(slug)),
+    ),
+  );
 
   // Só vira cartão quando de fato há onde retomar. `resumePosition` já derruba
   // a posição na cauda da gravação, e oferecer "continuar" num item que
@@ -157,6 +203,18 @@ export default async function InicioPage() {
           }
         />
         <div className="rule-gold mt-7" aria-hidden="true" />
+
+        {/* A única linha da home que fala do conjunto. Ela existe para a tela
+            responder "como eu estou" antes de responder "o que eu tenho". */}
+        {standing.unlocked > 0 && (
+          <p className="meta mt-6">
+            {standing.completed === standing.unlocked
+              ? `Biblioteca em dia · ${standing.unlocked} de ${standing.unlocked} concluídos`
+              : `Biblioteca · ${standing.completed} de ${standing.unlocked} concluídos`}
+            {standing.total > standing.unlocked &&
+              ` · ${standing.total - standing.unlocked} ainda bloqueados`}
+          </p>
+        )}
       </div>
 
       {/* The one thing with a date on it goes first, because it is the only
@@ -172,32 +230,63 @@ export default async function InicioPage() {
           <p className="stat-num">{countdownLabel(meeting, now)}</p>
           <p className="meta mt-3 text-[var(--text-3)]">{formatDateTime(meeting)}</p>
           <div className="mt-7">
-            <Button href="/circle" variant="primary">
+            <Button href={meetUrl ?? '/circle'} variant="primary">
               Entrar na sala
             </Button>
           </div>
         </Band>
       )}
 
-      {resume && (
+      {resume ? (
         <Band
           eyebrow="Continuar"
           title="Você parou no meio."
           lede="Retoma exatamente de onde a gravação ficou, não do começo."
         >
-          <div className="border border-[var(--border)]">
-            <Card href={`/biblioteca/${resume.item.slug}`}>
-              <p className="card-title">{resume.item.title}</p>
-              <div className="mt-5">
-                <ProgressBar
-                  percent={resume.percent}
-                  label={`Progresso em ${resume.item.title}`}
-                />
-              </div>
-              <CardAction>Retomar em {formatDuration(resume.at)}</CardAction>
-            </Card>
-          </div>
+          <Card href={`/biblioteca/${resume.item.slug}`}>
+            <p className="card-title">{resume.item.title}</p>
+            <div className="mt-5">
+              <ProgressBar
+                percent={resume.percent}
+                label={`Progresso em ${resume.item.title}`}
+              />
+            </div>
+            <CardAction>Retomar em {formatDuration(resume.at)}</CardAction>
+          </Card>
         </Band>
+      ) : (
+        // A tela de quem não parou no meio de nada. Sem ela, um assinante novo
+        // chegava numa home que só listava o que ele tinha comprado e não
+        // sugeria um primeiro passo em lugar nenhum.
+        standing.next && (
+          <Band
+            eyebrow="Por onde começar"
+            title="Um bom primeiro passo."
+            lede={
+              standing.completed > 0
+                ? 'Você já terminou o que abriu. Este é o próximo da prateleira.'
+                : 'A biblioteca inteira está aberta para você. Comece por este.'
+            }
+          >
+            <Card href={`/biblioteca/${standing.next.slug}`}>
+              <p className="card-title">{standing.next.title}</p>
+              {standing.next.description && (
+                <p className="prose-body mt-3">{standing.next.description}</p>
+              )}
+              <Meta
+                className="mt-4"
+                parts={[
+                  standing.next.kind === 'pdf' ? 'PDF' : 'Gravação',
+                  formatDuration(standing.next.duration_seconds),
+                  standing.next.season,
+                ]}
+              />
+              <CardAction>
+                {standing.next.kind === 'pdf' ? 'Abrir o PDF' : 'Assistir'}
+              </CardAction>
+            </Card>
+          </Band>
+        )
       )}
 
       {latestDoc && (

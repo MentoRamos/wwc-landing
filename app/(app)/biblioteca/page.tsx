@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardAction, CardGrid } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Meta } from '@/components/ui/Meta';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
@@ -98,15 +99,38 @@ export default async function BibliotecaPage() {
       </SectionHeading>
 
       {shelves.length === 0 ? (
-        <p className="prose-body">
-          A biblioteca ainda está vazia. Os materiais entram aqui conforme saem.
-        </p>
+        <EmptyState
+          title="A biblioteca ainda está vazia."
+          action={
+            <Button href="/circle" variant="quiet">
+              Ver o que vem por aí
+            </Button>
+          }
+        >
+          Os guias e as gravações dos encontros entram aqui conforme saem. Nada foi
+          publicado ainda.
+        </EmptyState>
       ) : (
-        shelves.map((shelf) => (
+        shelves.map((shelf) => {
+          const open = shelf.items.filter((item) => !item.locked).length;
+
+          return (
           <section key={shelf.collection}>
-            <h2 className="eyebrow">
-              {COLLECTION_LABEL[shelf.collection] ?? shelf.collection}
-            </h2>
+            {/* O nome da prateleira era do tamanho de um rótulo, e a tela
+                ficava com dois níveis: o título da página e o do card. Este é
+                o degrau do meio, e o filete continua a linha até a contagem,
+                que é a resposta para "quanto disto é meu". */}
+            <div className="flex items-baseline gap-4">
+              <h2 className="section-title">
+                {COLLECTION_LABEL[shelf.collection] ?? shelf.collection}
+              </h2>
+              <span className="h-px flex-1 bg-[var(--border)]" aria-hidden="true" />
+              <p className="meta shrink-0">
+                {open === shelf.items.length
+                  ? `${shelf.items.length} ${shelf.items.length === 1 ? 'item' : 'itens'}`
+                  : `${open} de ${shelf.items.length} liberados`}
+              </p>
+            </div>
 
             <CardGrid className="mt-6" columns={2}>
               {shelf.items.map((item) => {
@@ -123,7 +147,15 @@ export default async function BibliotecaPage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <p className="card-title">{item.title}</p>
-                      {item.locked && <Badge tone="muted">Bloqueado</Badge>}
+                      {item.locked ? (
+                        <Badge tone="muted">Bloqueado</Badge>
+                      ) : (
+                        // Terminado precisava aparecer no card, e não só na
+                        // régua: um item concluído continuava dizendo
+                        // "Continuar", que é a única frase que ele não podia
+                        // dizer.
+                        percent === 100 && <Badge tone="accent">Concluído</Badge>
+                      )}
                     </div>
 
                     {item.description && <p className="prose-body mt-2">{item.description}</p>}
@@ -140,7 +172,7 @@ export default async function BibliotecaPage() {
                     {/* Uma régua só aparece quando há o que ela conte. Barra
                         em zero em toda a prateleira é ruído: ela passa a
                         significar "item", não "progresso". */}
-                    {percent > 0 && (
+                    {percent > 0 && percent < 100 && (
                       <div className="mt-4">
                         <ProgressBar percent={percent} label={`Progresso em ${item.title}`} />
                       </div>
@@ -152,11 +184,15 @@ export default async function BibliotecaPage() {
                     <CardAction>
                       {item.locked
                         ? 'Liberar com o Circle'
-                        : percent > 0
-                          ? 'Continuar'
-                          : item.kind === 'pdf'
-                            ? 'Abrir o PDF'
-                            : 'Assistir'}
+                        : percent === 100
+                          ? item.kind === 'pdf'
+                            ? 'Abrir de novo'
+                            : 'Rever'
+                          : percent > 0
+                            ? 'Continuar'
+                            : item.kind === 'pdf'
+                              ? 'Abrir o PDF'
+                              : 'Assistir'}
                     </CardAction>
                   </Card>
                 </li>
@@ -164,7 +200,8 @@ export default async function BibliotecaPage() {
               })}
             </CardGrid>
           </section>
-        ))
+          );
+        })
       )}
     </div>
   );
