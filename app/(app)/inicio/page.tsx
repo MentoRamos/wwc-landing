@@ -5,6 +5,7 @@ import { Band } from '@/components/ui/Band';
 import { Card, CardAction, CardGrid } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Meta } from '@/components/ui/Meta';
+import { Metric, MetricRow } from '@/components/ui/Metric';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { requireUser } from '@/lib/auth/guard';
@@ -192,7 +193,7 @@ export default async function InicioPage() {
       : null;
 
   return (
-    <div className="flex flex-col gap-14 md:gap-20">
+    <div className="flex flex-col gap-12 md:gap-16">
       <div>
         <SectionHeading
           eyebrow="Sua área"
@@ -204,16 +205,59 @@ export default async function InicioPage() {
         />
         <div className="rule-gold mt-7" aria-hidden="true" />
 
-        {/* A única linha da home que fala do conjunto. Ela existe para a tela
-            responder "como eu estou" antes de responder "o que eu tenho". */}
-        {standing.unlocked > 0 && (
-          <p className="meta mt-6">
-            {standing.completed === standing.unlocked
-              ? `Biblioteca em dia · ${standing.unlocked} de ${standing.unlocked} concluídos`
-              : `Biblioteca · ${standing.completed} de ${standing.unlocked} concluídos`}
-            {standing.total > standing.unlocked &&
-              ` · ${standing.total - standing.unlocked} ainda bloqueados`}
-          </p>
+        {/*
+          Os quatro números que a página levava um parágrafo para dizer.
+          
+          A linha de status anterior ("Biblioteca · 4 de 7 concluídos · 2 ainda
+          bloqueados") era correta e ilegível de relance: uma frase encadeando
+          três contagens obriga a pessoa a ler para conferir. Aqui cada valor
+          fica sozinho no seu campo, e a tela responde "como eu estou" antes de
+          qualquer palavra ser lida.
+
+          A faixa só aparece quando há o que contar. Para quem acabou de
+          entrar e não tem direito a nada, quatro zeros seriam um boletim de
+          fracasso na primeira tela.
+        */}
+        {(standing.unlocked > 0 || hasCircle) && (
+          <div className="mt-8">
+            <MetricRow>
+              {hasCircle && (
+                <Metric
+                  label="Próximo encontro"
+                  value={countdownLabel(meeting, now) || 'Quinta'}
+                  detail={formatDateTime(meeting)}
+                  tone="quiet"
+                />
+              )}
+
+              <Metric
+                label="Liberados"
+                value={String(standing.unlocked)}
+                detail={
+                  standing.total > standing.unlocked
+                    ? `de ${standing.total} no acervo`
+                    : 'o acervo inteiro'
+                }
+              />
+
+              <Metric
+                label="Concluídos"
+                value={String(standing.completed)}
+                detail={
+                  standing.unlocked > 0
+                    ? `dos ${standing.unlocked} liberados`
+                    : undefined
+                }
+              />
+
+              <Metric
+                label="Acesso"
+                value={live.length > 0 ? 'Em dia' : 'Sem acesso'}
+                detail={live.length > 1 ? `${live.length} produtos` : undefined}
+                tone="quiet"
+              />
+            </MetricRow>
+          </div>
         )}
       </div>
 
