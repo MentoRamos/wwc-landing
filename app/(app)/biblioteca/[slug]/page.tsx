@@ -60,8 +60,13 @@ export default async function ItemPage({ params }: { params: Promise<{ slug: str
         a gravação fica na coluna larga e a ficha do item na estreita, que é a
         mesma proporção que as outras telas da área logada usam.
       */}
+      {/* No telefone a ordem se inverte: a gravação é o motivo da visita e
+          vinha depois da ficha inteira, então quem abria pelo celular rolava
+          um título, uma régua, uma linha de meta e a descrição antes de
+          chegar no player. No desktop as duas colunas coexistem e a ordem
+          visual volta a ser a da leitura. */}
       <div className="mt-10 grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-        <div>
+        <div className="order-2 lg:order-1">
           <h1 className="page-title">{item.title}</h1>
           <div className="rule-gold mt-6" aria-hidden="true" />
           <p className="meta mt-6">
@@ -72,7 +77,7 @@ export default async function ItemPage({ params }: { params: Promise<{ slug: str
           {item.description && <p className="prose-body mt-6">{item.description}</p>}
         </div>
 
-        <div className="min-w-0">
+        <div className="order-1 min-w-0 lg:order-2">
           {item.kind === 'video' && item.youtube_id ? (
             <Replay
               contentItemId={item.id}

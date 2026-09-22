@@ -38,6 +38,11 @@ export default async function AlunoPage() {
     .select('id, kind, title, period_label, issued_at, created_at, storage_path')
     .order('issued_at', { ascending: false });
 
+  // O que a tela deixa de mostrar tem que aparecer em algum lugar, senão a
+  // falha vira silêncio. O código basta para diagnosticar e não carrega nada
+  // do aluno.
+  if (error) console.error('[aluno] leitura de documentos falhou', { code: error.code });
+
   const shelves = groupDocuments((data ?? []) as StudentDocRow[]);
 
   return (
@@ -55,7 +60,20 @@ export default async function AlunoPage() {
       </div>
 
       {error ? (
-        <p className="prose-body">Não consegui ler seus documentos agora: {error.message}</p>
+        // A mensagem do Postgres carrega nome de tabela, de coluna e de
+        // política. Nada disso ajuda quem está do outro lado, e o aluno ficava
+        // sem saída: nem recarregar, nem avisar alguém.
+        <EmptyState
+          title="Não consegui abrir seus documentos agora."
+          action={
+            <Button href="/aluno" variant="primary">
+              Tentar de novo
+            </Button>
+          }
+        >
+          A falha é nossa, e os seus documentos continuam onde estavam. Se
+          insistir, me avise pelo WhatsApp que eu olho na hora.
+        </EmptyState>
       ) : shelves.length === 0 ? (
         <EmptyState
           title="Ainda não há nenhum documento seu aqui."
