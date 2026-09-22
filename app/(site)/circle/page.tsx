@@ -4,12 +4,15 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Band } from '@/components/ui/Band';
 import { Button } from '@/components/ui/Button';
+import { Card, CardAction, CardGrid } from '@/components/ui/Card';
+import { Meta } from '@/components/ui/Meta';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { InterestForm } from '@/components/interest/InterestForm';
 import { currentUser } from '@/lib/auth/guard';
 import { serverClient } from '@/lib/supabase/server';
 import { CIRCLE_PLANS, checkoutUrl, holdsCircle, nextMeeting, priceLabel } from '@/lib/core/circle.core';
-import { formatDateTime } from '@/lib/core/format.core';
+import { countdownLabel, formatDateTime } from '@/lib/core/format.core';
+import { formatDuration } from '@/lib/core/library.core';
 import { LatestArticles } from '@/components/articles/LatestArticles';
 import { listArticles } from '@/lib/articles/queries';
 
@@ -94,8 +97,34 @@ export default async function CirclePage() {
   );
 }
 
-function MemberView() {
+async function MemberView() {
   const meetUrl = process.env.CIRCLE_MEET_URL?.trim();
+  const now = new Date();
+
+  // As gravações passadas, que é o que faltava aqui: a tela dizia a data do
+  // próximo encontro e mais nada, então na segunda-feira, quando o encontro
+  // está longe, ela não tinha o que oferecer. O catálogo é a view sem
+  // `youtube_id`, e o destravamento sai do que a política devolveu, pela
+  // mesma regra da biblioteca.
+  const supabase = await serverClient();
+  const [{ data: recorded }, { data: entitled }] = await Promise.all([
+    supabase
+      .from('content_catalog')
+      .select('id, slug, title, duration_seconds, season')
+      .eq('collection', 'encontros')
+      .order('sort_order', { ascending: false })
+      .limit(3),
+    supabase.from('content_items').select('id'),
+  ]);
+
+  const mine = new Set((entitled ?? []).map((row) => row.id as string));
+  const replays = (recorded ?? []).map((row) => ({
+    slug: row.slug as string,
+    title: row.title as string,
+    duration_seconds: row.duration_seconds as number | null,
+    season: row.season as string | null,
+    locked: !mine.has(row.id as string),
+  }));
 
   return (
     <div className="container-lp w-full py-16">
@@ -129,7 +158,13 @@ function MemberView() {
         >
           <div className="border border-[var(--border)] bg-[var(--bg-card)] px-6 py-8">
             <p className="eyebrow">Quando</p>
-            <p className="card-title mt-4">{formatDateTime(nextMeeting(new Date()))}</p>
+            {/* A distância primeiro, a data embaixo: "Em 3 dias" é o que a
+                pessoa usa para decidir, e o dia da semana com a hora é o que
+                ela confere depois. É a mesma ordem da home. */}
+            <p className="stat-num mt-4">{countdownLabel(nextMeeting(now), now)}</p>
+            <p className="meta mt-3 text-[var(--text-3)]">
+              {formatDateTime(nextMeeting(now))}
+            </p>
 
             {meetUrl ? (
               <div className="mt-8">
@@ -143,6 +178,38 @@ function MemberView() {
           </div>
         </Band>
       </div>
+
+      {replays.length > 0 && (
+        <div className="mt-14">
+          <Band
+            eyebrow="Encontros anteriores"
+            title="O que já rolou."
+            lede="As gravações ficam na biblioteca. Nenhum encontro se perde por você ter faltado."
+          >
+            <CardGrid columns={2}>
+              {replays.map((replay) => (
+                <li key={replay.slug}>
+                  <Card
+                    href={replay.locked ? '/circle' : `/biblioteca/${replay.slug}`}
+                    locked={replay.locked}
+                  >
+                    <p className="card-title">{replay.title}</p>
+                    <Meta
+                      className="mt-3"
+                      parts={[
+                        'Gravação',
+                        formatDuration(replay.duration_seconds),
+                        replay.season,
+                      ]}
+                    />
+                    <CardAction>{replay.locked ? 'Bloqueado' : 'Assistir'}</CardAction>
+                  </Card>
+                </li>
+              ))}
+            </CardGrid>
+          </Band>
+        </div>
+      )}
     </div>
   );
 }
