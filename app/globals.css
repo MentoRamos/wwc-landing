@@ -48,6 +48,23 @@
     --accent-dim: #A68A3A;
     --accent-glow: rgba(201, 168, 76, 0.14);
 
+    /* Estado, e só estado.
+     *
+     * Os dois vêm do wealth-wellness-DESIGN.md, onde já eram "delta positivo"
+     * e "abaixo da meta" nos relatórios em PDF. Reaproveitá-los aqui faz o
+     * painel falar a mesma língua do documento que o aluno recebe na sexta,
+     * em vez de inventar um verde de aplicativo de corrida.
+     *
+     * Eles nunca são decoração: se um elemento está verde, alguma coisa está
+     * em dia; se está âmbar, alguma coisa vence. O ouro continua sendo o
+     * acento da marca e não diz estado nenhum. */
+    --good: #4C7A57;
+    --good-text: #8FBF9C;
+    --good-glow: rgba(76, 122, 87, 0.16);
+    --warn: #B7752A;
+    --warn-text: #D9A263;
+    --warn-glow: rgba(183, 117, 42, 0.16);
+
     --bg-locked: #121212;
     --border: rgba(244, 242, 238, 0.11);
     --border-hover: rgba(201, 168, 76, 0.25);
@@ -923,6 +940,13 @@ html[data-theme='light'] {
   --accent: #8C7440;
   --accent-dim: #A8894F;
   --accent-glow: rgba(140, 116, 64, 0.12);
+  --good: #4C7A57;
+  --good-text: #3A5E43;
+  --good-glow: rgba(76, 122, 87, 0.14);
+  --warn: #B7752A;
+  --warn-text: #8C5A20;
+  --warn-glow: rgba(183, 117, 42, 0.14);
+
   --bg-locked: #ECE8E0;
   --border: rgba(26, 23, 18, 0.12);
   --border-hover: rgba(140, 116, 64, 0.5);

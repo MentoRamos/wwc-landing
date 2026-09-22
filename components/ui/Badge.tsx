@@ -1,11 +1,21 @@
 import { clsx } from 'clsx';
 
-type Tone = 'neutral' | 'accent' | 'muted';
+type Tone = 'neutral' | 'accent' | 'muted' | 'good' | 'warn';
 
+/**
+ * `good` e `warn` carregam fundo lavado, e os outros três não.
+ *
+ * Não é inconsistência: esses dois são os únicos que dizem estado de uma
+ * coisa que pode dar errado, e são os únicos que precisam ser achados numa
+ * varredura de olho por uma tabela de doze linhas. Contorno sozinho não é
+ * encontrado nessa varredura; fundo é. Os outros três rotulam, não alertam.
+ */
 const TONES: Record<Tone, string> = {
   neutral: 'border-[var(--border)] text-[var(--text-3)]',
   accent: 'border-[var(--border-hover)] text-[var(--accent)]',
   muted: 'border-[var(--border)] text-[var(--text-4)]',
+  good: 'border-[var(--good)]/45 bg-[var(--good-glow)] text-[var(--good-text)]',
+  warn: 'border-[var(--warn)]/45 bg-[var(--warn-glow)] text-[var(--warn-text)]',
 };
 
 /**
