@@ -36,7 +36,7 @@ import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
  */
 const CTA_CLASS =
   'inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-8 py-[18px] ' +
-  'text-base font-semibold text-[#0D0D0D] transition-colors duration-300 hover:bg-[#D4B85C] sm:w-auto';
+  'text-[1.0625rem] font-semibold text-[#0D0D0D] transition-colors duration-300 hover:bg-[#D4B85C] sm:w-auto';
 
 /** Um H2 só, usado por toda seção; a cor é a única coisa que muda com o fundo. */
 const H2 = 'font-display text-[1.75rem] md:text-[2.25rem] leading-[1.1] tracking-[-0.02em]';
@@ -44,16 +44,16 @@ const H2_DARK = `${H2} text-[var(--text-1)]`;
 const H2_LIGHT = `${H2} text-[#0D0D0D]`;
 
 /** Corpo de texto: 16px no celular, 17px a partir do desktop, como pedido. */
-const BODY_LIGHT = 'text-base md:text-[1.0625rem] leading-[1.65] text-[#2a2a2a]';
-const BODY_DARK = 'text-base md:text-[1.0625rem] leading-[1.65] text-[rgba(244,242,238,0.78)]';
+const BODY_LIGHT = 'text-[1.09375rem] md:text-[1.1875rem] leading-[1.6] text-[#2a2a2a]';
+const BODY_DARK = 'text-[1.09375rem] md:text-[1.1875rem] leading-[1.6] text-[rgba(244,242,238,0.78)]';
 
 /** Rótulo pequeno (data, "noite X"), grande o bastante e com contraste AA. */
-const CAPTION_DARK = 'text-[0.875rem] uppercase tracking-[0.08em] text-[rgba(244,242,238,0.78)]';
-const KICKER_GOLD = 'text-[0.8125rem] uppercase tracking-[0.1em] text-[var(--accent)]';
+const CAPTION_DARK = 'text-[0.9375rem] uppercase tracking-[0.08em] text-[rgba(244,242,238,0.78)]';
+const KICKER_GOLD = 'text-[0.875rem] uppercase tracking-[0.1em] text-[var(--accent)]';
 /** O eyebrow do herói precisa de um tamanho que `.eyebrow` (global) não dá
  *  sem o mesmo problema de especificidade descrito acima. */
 const HERO_EYEBROW =
-  'font-[family-name:var(--font-label)] text-[0.75rem] uppercase tracking-[0.15em] text-[var(--accent)] text-balance';
+  'font-[family-name:var(--font-label)] text-[0.8125rem] uppercase tracking-[0.15em] text-[var(--accent)] text-balance';
 
 export const metadata: Metadata = {
   title: 'Imersão Performance e Longevidade · 29 e 30/09',
@@ -242,7 +242,7 @@ export default function ImersaoPage() {
               },
             ].map((item, index) => (
               <div key={item.title} className="border border-[rgba(13,13,13,0.12)] bg-[#FCFBF8] p-6">
-                <span aria-hidden="true" className="font-display block text-[0.9375rem] text-[#8C7440]">
+                <span aria-hidden="true" className="font-display block text-[1rem] text-[#8C7440]">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <p className={`mt-2 ${BODY_LIGHT} text-[#0D0D0D]`}>
