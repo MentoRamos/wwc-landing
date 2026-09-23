@@ -161,6 +161,7 @@ export default function ImersaoPage() {
               alt="Kauã Ramos, health manager da Wealth & Wellness"
               fill
               sizes="(max-width: 768px) 100vw, 40vw"
+              quality={75}
               className="object-cover"
               priority
             />
@@ -413,6 +414,7 @@ export default function ImersaoPage() {
                 alt="Kauã Ramos, health manager da Wealth & Wellness"
                 fill
                 sizes="(max-width: 768px) 100vw, 280px"
+                quality={75}
                 className="object-cover"
                 // Sem `priority`, mas com `loading="eager"`: esta foto está
                 // abaixo da dobra, então não precisa do preload de LCP, mas
