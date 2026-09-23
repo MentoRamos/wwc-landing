@@ -2,10 +2,18 @@
 
 @theme inline {
   /*
-   * Didot é a serif da marca; Playfair é o fallback que o DESIGN.md nomeia, e
-   * é o que existe no Google Fonts. Didot vem primeiro para quem tiver.
+   * Didot é a serif da marca; Playfair é o fallback que o DESIGN.md nomeia.
+   * Didot vem primeiro para quem tiver.
+   *
+   * O fallback apontava para a família "Playfair Display" pelo nome literal,
+   * mas quem carrega essa fonte é o `next/font` em `app/layout.tsx`, que gera
+   * um nome de família próprio (hash) e o expõe só pela variável CSS
+   * `--font-playfair` — nunca pelo nome "Playfair Display" puro. Sem a
+   * variável, o navegador só encontra "Playfair Display" em máquinas que já
+   * têm a fonte instalada localmente; em todas as outras, o fallback pulava
+   * direto para Georgia/serif, calado, mesmo com o Google Font já baixado.
    */
-  --font-display: Didot, "Playfair Display", "Playfair Display Fallback", Georgia, serif;
+  --font-display: Didot, var(--font-playfair), Georgia, serif;
   /*
    * O corpo era Inter, que o design system proíbe por nome ("Proibido cair em
    * Inter/Roboto/Arial genérico"). A pilha do sistema é o que o doc pede, e
