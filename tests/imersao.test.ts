@@ -58,7 +58,14 @@ describe('/imersao', () => {
 
     // Masked, like the logo check: a doc comment explaining this exact rule
     // is allowed to mention what a broken `href={...}` would look like.
-    const pageHrefs = [...code(source).matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
+    //
+    // `href={d.src}` (the depoimentos section's "see the print full-size"
+    // zoom links) is excluded here on purpose: it points at a photo file,
+    // not the checkout, and the social-proof describe block below asserts
+    // that exact shape on its own.
+    const pageHrefs = [...code(source).matchAll(/href=\{([^}]*)\}/g)]
+      .map((m) => m[1].trim())
+      .filter((href) => href !== 'd.src');
     // Hero, after Programação, section 7's price box, and the closing — the
     // design review added two mid-page CTAs on top of the original two.
     expect(pageHrefs.length).toBe(4);
@@ -189,12 +196,23 @@ describe('/imersao social proof (student prints)', () => {
     expect(STUDENT_NAMES.test(code(page()))).toBe(false);
   });
 
-  it('adds no new CTA text or invented numbers to the proof section', () => {
+  it('adds no CTA/checkout link or invented numbers to the proof section; only zooms into the print itself', () => {
     const source = code(page());
     const section = source.slice(source.indexOf('id="depoimentos"'), source.indexOf('id="ingresso"'));
-    // Only the visible text counts: Tailwind classes like w-[78%] are not claims.
+    // Only the visible text counts: Tailwind classes like w-[82vw] are not claims.
     const visible = section.replace(/className=(\{`[^`]*`\}|"[^"]*")/g, '');
-    expect(visible).not.toMatch(/href=/);
+    // No checkout CTA belongs in a proof section — not the shared helper,
+    // not the button label.
+    expect(visible).not.toMatch(/imersaoCtaHref/);
+    expect(visible).not.toMatch(/GARANTIR/);
+    // The only href allowed here opens the print itself in a new tab: `d.src`
+    // is the exact same field the test above already proves lives under
+    // public/photos/depoimentos and resolves to a real .jpg.
+    const hrefs = [...visible.matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      expect(href).toBe('d.src');
+    }
     expect(visible).not.toMatch(/\d+\s*(alunos|clientes|%)/i);
   });
 });

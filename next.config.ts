@@ -50,8 +50,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ['image/avif', 'image/webp'],
-    // The logo asks for 95; Next 16 refuses any quality not listed here.
-    qualities: [75, 95],
+    // The logo asks for 95, the small /imersao testimonial prints ask for
+    // 85 (crisp at a ~260px display width); Next 16 refuses any quality
+    // not listed here.
+    qualities: [75, 85, 95],
     deviceSizes: [360, 414, 640, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
   },
 };

@@ -68,14 +68,78 @@ const HERO_EYEBROW =
  * Hora Fixa.
  */
 const DEPOIMENTOS = [
-  { src: '/photos/depoimentos/01-whoop-age.jpg', w: 630, h: 1270, alt: 'Print do Whoop de uma aluna: idade biológica 52,8, e a mensagem dela contando que estava em 62 quando começou' },
-  { src: '/photos/depoimentos/02-melhor-shape.jpg', w: 498, h: 746, alt: 'Mensagem de aluna: o melhor shape da vida depois dos 30, corpo leve e agradecimento pelo processo' },
-  { src: '/photos/depoimentos/03-antes-depois.jpg', w: 591, h: 1112, alt: 'Aluno envia fotos de quando entrou e de hoje: seco e desenhado como queria' },
-  { src: '/photos/depoimentos/04-correr-5k.jpg', w: 580, h: 666, alt: 'Mensagem de aluna: correu 5 km sem parar pela primeira vez' },
-  { src: '/photos/depoimentos/05-macarrao.jpg', w: 720, h: 319, alt: 'Mensagem de aluna: emagreci comendo macarrão, tô chocada' },
-  { src: '/photos/depoimentos/06-figado.jpg', w: 557, h: 718, alt: 'Mensagem de aluno: mais uma conquista, zero gordura no fígado' },
-  { src: '/photos/depoimentos/07-calca-42.jpg', w: 532, h: 680, alt: 'Mensagem de aluna: entrando numa calça 42, como estou feliz' },
-  { src: '/photos/depoimentos/08-bem-dividido.jpg', w: 720, h: 198, alt: 'Mensagem de aluno: o programa tá sendo muito legal, bem dividido, bom de executar' },
+  {
+    src: '/photos/depoimentos/01-whoop-age.jpg',
+    w: 630,
+    h: 1270,
+    alt: 'Print do Whoop de uma aluna: idade biológica 52,8, e a mensagem dela contando que estava em 62 quando começou',
+    label: 'Aluna · Whoop',
+    quote: 'Tava 62 qdo começamos.',
+    detail: 'Whoop Age hoje: 52,8',
+  },
+  {
+    src: '/photos/depoimentos/02-melhor-shape.jpg',
+    w: 498,
+    h: 746,
+    alt: 'Mensagem de aluna: o melhor shape da vida depois dos 30, corpo leve e agradecimento pelo processo',
+    label: 'Aluna',
+    quote: 'O melhor “shape” da minha vida, pós “30\'s”!!',
+    detail: undefined,
+  },
+  {
+    src: '/photos/depoimentos/03-antes-depois.jpg',
+    w: 591,
+    h: 1112,
+    alt: 'Aluno envia fotos de quando entrou e de hoje: seco e desenhado como queria',
+    label: 'Aluno',
+    quote: 'Seco e desenhado como eu queria.',
+    detail: undefined,
+  },
+  {
+    src: '/photos/depoimentos/04-correr-5k.jpg',
+    w: 580,
+    h: 666,
+    alt: 'Mensagem de aluna: correu 5 km sem parar pela primeira vez',
+    label: 'Aluna',
+    quote: 'Correr já é uma conquista, pois nunca consegui fazer isso antes.',
+    detail: undefined,
+  },
+  {
+    src: '/photos/depoimentos/05-macarrao.jpg',
+    w: 720,
+    h: 319,
+    alt: 'Mensagem de aluna: emagreci comendo macarrão, tô chocada',
+    label: 'Aluna',
+    quote: 'Gente, emagreci comendo macarrão. Tô chocada.',
+    detail: undefined,
+  },
+  {
+    src: '/photos/depoimentos/06-figado.jpg',
+    w: 557,
+    h: 718,
+    alt: 'Mensagem de aluno: mais uma conquista, zero gordura no fígado',
+    label: 'Aluno',
+    quote: 'Mais uma conquista: 0 gordura no fígado.',
+    detail: undefined,
+  },
+  {
+    src: '/photos/depoimentos/07-calca-42.jpg',
+    w: 532,
+    h: 680,
+    alt: 'Mensagem de aluna: entrando numa calça 42, como estou feliz',
+    label: 'Aluna',
+    quote: 'Entrando em uma calça 42 em 3… 2… 1…',
+    detail: undefined,
+  },
+  {
+    src: '/photos/depoimentos/08-bem-dividido.jpg',
+    w: 720,
+    h: 198,
+    alt: 'Mensagem de aluno: o programa tá sendo muito legal, bem dividido, bom de executar',
+    label: 'Aluno',
+    quote: 'O programa tá sendo muito legal… Bem dividido, tá sendo bom de executar.',
+    detail: undefined,
+  },
 ] as const;
 
 const TITLE = 'Imersão Performance e Longevidade · 29 e 30/09';
@@ -469,8 +533,13 @@ export default function ImersaoPage() {
         </div>
       </section>
 
-      {/* 8b. PROVA (light, continua o "quem vai conduzir") — prints reais de alunos,
-          nomes ocultos. No mobile é um carrossel lateral pra não somar altura. */}
+      {/* 8b. PROVA (light, continua o "quem vai conduzir") — cada depoimento é
+          um cartão: rótulo neutro, a frase em texto de verdade (o que se lê),
+          e o print embaixo só como evidência, pequeno de propósito pra
+          renderizar nítido em vez de esticado. Desktop = grid de 4 colunas
+          (8 prints ÷ 4 fecha 2 fileiras cheias, sem buraco de coluna
+          incompleta — por isso grid, não masonry). Mobile = carrossel
+          horizontal com espiada do próximo cartão, pra não somar altura. */}
       <section
         id="depoimentos"
         aria-labelledby="depoimentos-titulo"
@@ -487,26 +556,44 @@ export default function ImersaoPage() {
         </div>
         <div className="md:container-lp">
           <ul
-            className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 [scrollbar-width:none] md:block md:columns-3 md:gap-6 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden"
+            className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:grid md:grid-cols-2 md:items-start md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden"
             aria-label="Prints de mensagens de alunos"
           >
             {DEPOIMENTOS.map((d) => (
               <li
                 key={d.src}
-                className="w-[78%] max-w-[320px] shrink-0 snap-center self-start md:mb-6 md:w-full md:max-w-none md:break-inside-avoid"
+                className="w-[82vw] max-w-[340px] shrink-0 snap-center rounded-[14px] border border-[rgba(13,13,13,0.08)] bg-[#FCFBF8] p-5 shadow-[0_8px_24px_rgba(13,13,13,0.06)] md:w-auto md:max-w-none md:shrink"
               >
-                <Image
-                  src={d.src}
-                  alt={d.alt}
-                  width={d.w}
-                  height={d.h}
-                  sizes="(max-width: 768px) 78vw, 33vw"
-                  quality={75}
-                  className="h-auto w-full rounded-[14px] border border-[rgba(13,13,13,0.1)] shadow-[0_8px_24px_rgba(13,13,13,0.08)]"
-                />
+                <p className="text-[0.8125rem] uppercase tracking-[0.08em] text-[#8C7440]">{d.label}</p>
+                <blockquote className="mt-3 font-display text-[1.125rem] leading-[1.35] text-[#0D0D0D] md:text-[1.375rem]">
+                  “{d.quote}”
+                </blockquote>
+                {d.detail ? (
+                  <p className="mt-2 text-[0.9375rem] leading-[1.5] text-[#2a2a2a]">{d.detail}</p>
+                ) : null}
+                <a
+                  href={d.src}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Ver print em tamanho real"
+                  className="mt-4 flex min-h-[44px] items-center justify-center rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A84C]"
+                >
+                  <Image
+                    src={d.src}
+                    alt={d.alt}
+                    width={d.w}
+                    height={d.h}
+                    sizes="260px"
+                    quality={85}
+                    className="h-auto w-auto max-h-[340px] max-w-[260px] rounded-[10px] border border-[rgba(13,13,13,0.12)] object-contain"
+                  />
+                </a>
               </li>
             ))}
           </ul>
+          <p className="mt-3 px-6 text-[0.8125rem] text-[rgba(13,13,13,0.45)] md:hidden">
+            Arraste para ver mais →
+          </p>
         </div>
       </section>
 
