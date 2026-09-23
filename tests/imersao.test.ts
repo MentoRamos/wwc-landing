@@ -19,7 +19,9 @@ function code(source: string): string {
  * @testing-library) to add just for one page.
  */
 const PAGE_PATH = join(process.cwd(), 'app/imersao/page.tsx');
+const OG_IMAGE_PATH = join(process.cwd(), 'app/imersao/opengraph-image.tsx');
 const page = () => readFileSync(PAGE_PATH, 'utf8');
+const ogImage = () => readFileSync(OG_IMAGE_PATH, 'utf8');
 
 describe('/imersao', () => {
   it('renders exactly one h1, and it is the headline', () => {
@@ -38,6 +40,7 @@ describe('/imersao', () => {
 
   it('never references a logo or brand-mark asset', () => {
     expect(/logo/i.test(code(page()))).toBe(false);
+    expect(/logo/i.test(code(ogImage()))).toBe(false);
   });
 
   it('every CTA href is built from the checkout constant, not a literal URL', () => {
@@ -60,5 +63,34 @@ describe('/imersao', () => {
   it('resolves every CTA to #ingresso while the checkout URL is still null', () => {
     expect(IMERSAO_CHECKOUT_URL).toBeNull();
     expect(imersaoCtaHref()).toBe('#ingresso');
+  });
+});
+
+describe('/imersao link preview (Open Graph / Twitter)', () => {
+  it('declares openGraph and twitter metadata for the page', () => {
+    const source = page();
+    expect(source).toContain('openGraph:');
+    expect(source).toContain("type: 'website'");
+    expect(source).toContain("locale: 'pt_BR'");
+    expect(source).toContain('twitter:');
+    expect(source).toContain("card: 'summary_large_image'");
+  });
+
+  it('ships a 1200x630 opengraph-image next to the page', () => {
+    const source = ogImage();
+    expect(source).toContain('width: 1200');
+    expect(source).toContain('height: 630');
+    expect(source).toContain("contentType = 'image/png'");
+  });
+
+  it('draws the OG card with the brand copy, no logo, and no invented urgency', () => {
+    const source = ogImage();
+    expect(source).toContain('Performance e Longevidade');
+    expect(source).toContain('29 e 30/09');
+    expect(source).toContain('R$ 97');
+    expect(source).toContain('kaua-portrait-seated.jpg');
+    expect(source).toContain('#0D0D0D');
+    // No scarcity/urgency language invented for the card.
+    expect(/vagas|últim|corr(a|endo)|apenas hoje/i.test(source)).toBe(false);
   });
 });

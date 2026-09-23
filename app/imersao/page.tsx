@@ -55,10 +55,28 @@ const KICKER_GOLD = 'text-[0.875rem] uppercase tracking-[0.1em] text-[var(--acce
 const HERO_EYEBROW =
   'font-[family-name:var(--font-label)] text-[0.8125rem] uppercase tracking-[0.15em] text-[var(--accent)] text-balance';
 
+const TITLE = 'Imersão Performance e Longevidade · 29 e 30/09';
+const DESCRIPTION =
+  'Sem aumentar uma hora de treino e sem precisar dormir mais. Em duas noites ao vivo você define a hora que vai organizar o seu dia e aprende a ler, no seu próprio relógio ou anel, os três números que a nota da manhã esconde.';
+
 export const metadata: Metadata = {
-  title: 'Imersão Performance e Longevidade · 29 e 30/09',
-  description:
-    'Sem aumentar uma hora de treino e sem precisar dormir mais. Em duas noites ao vivo você define a hora que vai organizar o seu dia e aprende a ler, no seu próprio relógio ou anel, os três números que a nota da manhã esconde.',
+  title: TITLE,
+  description: DESCRIPTION,
+  // `metadataBase` (app/layout.tsx) resolve este caminho pra uma URL
+  // absoluta; o arquivo `opengraph-image.tsx` ao lado desta página já entra
+  // sozinho por convenção do Next, então não precisamos listar `images` aqui
+  // — listar de novo duplicaria a tag `og:image`.
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    type: 'website',
+    locale: 'pt_BR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+  },
   // O checkout da Hotmart ainda não existe (ver lib/imersao.ts). Enquanto
   // IMERSAO_CHECKOUT_URL for null, esta página não vende nada de verdade,
   // então não deve ser indexada.
