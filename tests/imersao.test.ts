@@ -171,3 +171,30 @@ describe('/imersao tracking scaffold', () => {
     expect([...source.matchAll(/<ImersaoAnalytics\s*\/>/g)]).toHaveLength(1);
   });
 });
+
+describe('/imersao social proof (student prints)', () => {
+  const STUDENT_NAMES = /tania|morita|renata|borr[aá]s|geraldo|lyla|chirico|alvicto|micaela|giselle|m[oô]nica|fernando|danilo|adriana|marcus/i;
+
+  it('renders a testimonials section with real student prints from public/photos/depoimentos', () => {
+    const source = code(page());
+    expect(source).toContain('id="depoimentos"');
+    const srcs = [...source.matchAll(/\/photos\/depoimentos\/[\w-]+\.jpg/g)].map((m) => m[0]);
+    expect(srcs.length).toBeGreaterThanOrEqual(6);
+    for (const src of srcs) {
+      expect(() => readFileSync(join(process.cwd(), 'public', src))).not.toThrow();
+    }
+  });
+
+  it('never names a student anywhere on the page (prints are anonymized)', () => {
+    expect(STUDENT_NAMES.test(code(page()))).toBe(false);
+  });
+
+  it('adds no new CTA text or invented numbers to the proof section', () => {
+    const source = code(page());
+    const section = source.slice(source.indexOf('id="depoimentos"'), source.indexOf('id="ingresso"'));
+    // Only the visible text counts: Tailwind classes like w-[78%] are not claims.
+    const visible = section.replace(/className=(\{`[^`]*`\}|"[^"]*")/g, '');
+    expect(visible).not.toMatch(/href=/);
+    expect(visible).not.toMatch(/\d+\s*(alunos|clientes|%)/i);
+  });
+});

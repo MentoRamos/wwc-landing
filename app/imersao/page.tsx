@@ -60,6 +60,24 @@ const KICKER_GOLD = 'text-[0.875rem] uppercase tracking-[0.1em] text-[var(--acce
 const HERO_EYEBROW =
   'font-[family-name:var(--font-label)] text-[0.8125rem] uppercase tracking-[0.15em] text-[var(--accent)] text-balance';
 
+/**
+ * Prints reais de alunos W&W (destaque "Depoimentos" do Instagram + grupos de
+ * acompanhamento), recortados só no balão da mensagem: sem nome, sem foto de
+ * perfil, sem e-mail. Publicados com o OK do Kauã em 23/09/2026. Ordem: o
+ * primeiro é o Whoop creditando a regularidade do sono, a prova direta da
+ * Hora Fixa.
+ */
+const DEPOIMENTOS = [
+  { src: '/photos/depoimentos/01-whoop-age.jpg', w: 630, h: 1270, alt: 'Print do Whoop de uma aluna: idade biológica 52,8, e a mensagem dela contando que estava em 62 quando começou' },
+  { src: '/photos/depoimentos/02-melhor-shape.jpg', w: 498, h: 746, alt: 'Mensagem de aluna: o melhor shape da vida depois dos 30, corpo leve e agradecimento pelo processo' },
+  { src: '/photos/depoimentos/03-antes-depois.jpg', w: 591, h: 1112, alt: 'Aluno envia fotos de quando entrou e de hoje: seco e desenhado como queria' },
+  { src: '/photos/depoimentos/04-correr-5k.jpg', w: 580, h: 666, alt: 'Mensagem de aluna: correu 5 km sem parar pela primeira vez' },
+  { src: '/photos/depoimentos/05-macarrao.jpg', w: 720, h: 319, alt: 'Mensagem de aluna: emagreci comendo macarrão, tô chocada' },
+  { src: '/photos/depoimentos/06-figado.jpg', w: 557, h: 718, alt: 'Mensagem de aluno: mais uma conquista, zero gordura no fígado' },
+  { src: '/photos/depoimentos/07-calca-42.jpg', w: 532, h: 680, alt: 'Mensagem de aluna: entrando numa calça 42, como estou feliz' },
+  { src: '/photos/depoimentos/08-bem-dividido.jpg', w: 720, h: 198, alt: 'Mensagem de aluno: o programa tá sendo muito legal, bem dividido, bom de executar' },
+] as const;
+
 const TITLE = 'Imersão Performance e Longevidade · 29 e 30/09';
 const DESCRIPTION =
   'Sem aumentar uma hora de treino e sem precisar dormir mais. Em duas noites ao vivo você define a hora que vai organizar o seu dia e aprende a ler, no seu próprio relógio ou anel, os três números que a nota da manhã esconde.';
@@ -448,6 +466,47 @@ export default function ImersaoPage() {
               nunca é treino a mais. Por isso esta imersão começa pela Hora Fixa.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* 8b. PROVA (light, continua o "quem vai conduzir") — prints reais de alunos,
+          nomes ocultos. No mobile é um carrossel lateral pra não somar altura. */}
+      <section
+        id="depoimentos"
+        aria-labelledby="depoimentos-titulo"
+        className="border-t border-[rgba(13,13,13,0.08)] bg-[#F4F2EE] pb-20 pt-16 md:pb-28 md:pt-20"
+      >
+        <div className="container-lp">
+          <p className="text-[0.875rem] uppercase tracking-[0.1em] text-[#8C7440]">Alunos W&W</p>
+          <h2 id="depoimentos-titulo" className={`${H2_LIGHT} mt-3`}>
+            O que chega no meu WhatsApp
+          </h2>
+          <p className={`mt-4 max-w-[680px] ${BODY_LIGHT}`}>
+            Prints reais de alunos do acompanhamento, com os nomes ocultos.
+          </p>
+        </div>
+        <div className="md:container-lp">
+          <ul
+            className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 [scrollbar-width:none] md:block md:columns-3 md:gap-6 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden"
+            aria-label="Prints de mensagens de alunos"
+          >
+            {DEPOIMENTOS.map((d) => (
+              <li
+                key={d.src}
+                className="w-[78%] max-w-[320px] shrink-0 snap-center self-start md:mb-6 md:w-full md:max-w-none md:break-inside-avoid"
+              >
+                <Image
+                  src={d.src}
+                  alt={d.alt}
+                  width={d.w}
+                  height={d.h}
+                  sizes="(max-width: 768px) 78vw, 33vw"
+                  quality={75}
+                  className="h-auto w-full rounded-[14px] border border-[rgba(13,13,13,0.1)] shadow-[0_8px_24px_rgba(13,13,13,0.08)]"
+                />
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
