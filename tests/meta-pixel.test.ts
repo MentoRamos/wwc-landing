@@ -14,9 +14,10 @@ describe('getMetaPixelId', () => {
     else process.env.NEXT_PUBLIC_META_PIXEL_ID = ORIGINAL;
   });
 
-  it('has no default pixel: nothing loads until the owner sets his own', () => {
+  it("defaults to Kauã's own pixel, not the NexGen-owned one", () => {
     delete process.env.NEXT_PUBLIC_META_PIXEL_ID;
-    expect(getMetaPixelId()).toBeNull();
+    expect(getMetaPixelId()).toBe('2300281810512294');
+    expect(getMetaPixelId()).not.toBe('1734438337865776');
   });
 
   it('lets a dedicated pixel override the default via env', () => {
@@ -26,7 +27,7 @@ describe('getMetaPixelId', () => {
 
   it('treats a blank env value as unset', () => {
     process.env.NEXT_PUBLIC_META_PIXEL_ID = '   ';
-    expect(getMetaPixelId()).toBeNull();
+    expect(getMetaPixelId()).toBe('2300281810512294');
   });
 });
 

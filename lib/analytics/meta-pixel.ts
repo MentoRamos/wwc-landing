@@ -1,15 +1,19 @@
 /**
  * Meta Pixel wiring for /imersao.
  *
- * No default ID on purpose: the pixel kauaramos.com runs lives in the NexGen
- * Labs business portfolio, which Kauã is leaving. The pixel only exists once
- * NEXT_PUBLIC_META_PIXEL_ID is set (Vercel project wwc-landing, Production,
- * then redeploy) to a pixel from his own Business Manager. Until then nothing
- * loads and no consent banner is shown — there is nothing to consent to.
+ * Default = "Kauã Ramos · Wealth & Wellness (site)", created 23/09/2026 in
+ * Kauã's own portfolio "Kauã Ramos's Business" (business_id 583013295464945),
+ * replacing the old pixel that lived in the NexGen Labs portfolio. The same ID
+ * runs on kauaramos.com (landing-kauaramos/assets/pixel.js).
+ * NEXT_PUBLIC_META_PIXEL_ID overrides it (a blank value is ignored). Setting
+ * DEFAULT_PIXEL_ID to null turns the pixel off, and then the consent banner
+ * never shows either, since there is nothing to consent to.
  */
+const DEFAULT_PIXEL_ID: string | null = '2300281810512294';
+
 export function getMetaPixelId(): string | null {
   const fromEnv = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim();
-  return fromEnv ? fromEnv : null;
+  return fromEnv ? fromEnv : DEFAULT_PIXEL_ID;
 }
 
 /** The Meta Pixel JS SDK, loaded via next/script, never inlined. */
