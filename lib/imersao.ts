@@ -2,15 +2,14 @@
  * Single source of truth for where the Imersao Performance e Longevidade
  * checkout lives.
  *
- * The Hotmart product does not exist yet, so this is `null` on purpose.
- * Every CTA on `/imersao` reads `imersaoCtaHref()` instead of a hardcoded
- * URL, so wiring up the real checkout later is a one-line change here
- * instead of a page-wide find-and-replace. While it is `null`, the CTA
- * points at `#ingresso` (the id of the closing section) so a click never
- * 404s, and the page sets `robots: { index: false, follow: false }` so a
- * crawler does not index a page that cannot yet sell anything.
+ * Kiwify checkout for the R$ 97 ticket (product "Imersão Performance e
+ * Longevidade", Pix + cartão, created 23/09/2026). Hotmart was the course's
+ * default, but the account was still in document review with the event six
+ * days away. Every CTA on `/imersao` reads `imersaoCtaHref()`, so swapping
+ * platforms is a one-line change here. Setting this back to `null` sends the
+ * CTAs to `#ingresso` and turns the page's `noindex` back on.
  */
-export const IMERSAO_CHECKOUT_URL: string | null = null;
+export const IMERSAO_CHECKOUT_URL: string | null = 'https://pay.kiwify.com.br/GpEp0dI';
 
 export function imersaoCtaHref(): string {
   return IMERSAO_CHECKOUT_URL ?? '#ingresso';

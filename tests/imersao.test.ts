@@ -87,9 +87,9 @@ describe('/imersao', () => {
     }
   });
 
-  it('resolves every CTA to #ingresso while the checkout URL is still null', () => {
-    expect(IMERSAO_CHECKOUT_URL).toBeNull();
-    expect(imersaoCtaHref()).toBe('#ingresso');
+  it('sends every CTA to the live Kiwify checkout for the R$ 97 ticket', () => {
+    expect(IMERSAO_CHECKOUT_URL).toBe('https://pay.kiwify.com.br/GpEp0dI');
+    expect(imersaoCtaHref()).toBe('https://pay.kiwify.com.br/GpEp0dI');
   });
 });
 
