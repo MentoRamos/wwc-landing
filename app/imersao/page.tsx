@@ -123,8 +123,13 @@ export default function ImersaoPage() {
     // visível enquanto ele estiver no ar; o próprio componente já some perto
     // de `#ingresso`, isto é só o cinto de segurança contra bounce/overscroll.
     <div className="pb-20 md:pb-0">
-      {/* 1. HERO (dark) */}
-      <section className="bg-[var(--bg)] pt-16 pb-20 md:pt-24 md:pb-28">
+      {/* 1. HERO (dark). `pt-10` (em vez de `pt-16`, só abaixo de `md`) e os
+          `mt-6 md:mt-8` na legenda e no preço: no celular, com o banner de
+          consentimento (MetaPixel) no ar antes de qualquer escolha, o herói
+          precisa terminar alto o bastante pra esse CTA nunca ficar embaixo
+          dele no primeiro carregamento, a 390×844. Desktop/tablet (`md:`)
+          ficam exatamente como estavam. */}
+      <section className="bg-[var(--bg)] pt-10 pb-20 md:pt-24 md:pb-28">
         <div className="container-lp grid items-center gap-12 md:grid-cols-[1.15fr_0.85fr] md:gap-16">
           <div>
             <p className={HERO_EYEBROW}>IMERSÃO PERFORMANCE E LONGEVIDADE · 2 noites ao vivo</p>
@@ -137,11 +142,11 @@ export default function ImersaoPage() {
               você define a hora que vai organizar o seu dia e aprende a ler, no seu próprio
               relógio ou anel, os três números que a nota da manhã esconde.
             </p>
-            <p className={`mt-8 ${CAPTION_DARK}`}>
+            <p className={`mt-6 md:mt-8 ${CAPTION_DARK}`}>
               29 e 30 de setembro, terça e quarta · 19h30 às 21h30 (Brasília) · Ao vivo no Google
               Meet, com gravação
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-6">
+            <div className="mt-6 flex flex-wrap items-center gap-6 md:mt-8">
               <p className="stat-num">Ingresso R$ 97</p>
             </div>
             <a
