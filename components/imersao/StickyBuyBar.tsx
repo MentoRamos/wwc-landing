@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { isExternalLink } from '@/lib/core/links.core';
 import { imersaoCtaHref } from '@/lib/imersao';
+import { useConsentDecision } from '@/lib/analytics/consent';
 
 /**
  * A barra fixa de compra do celular, o único motivo justificado de
@@ -14,11 +15,14 @@ import { imersaoCtaHref } from '@/lib/imersao';
  * ainda está visível (mostrar a barra ali seria CTA duplicado, não reforço),
  * e de novo quando a seção de fechamento (`#ingresso`) entra na tela (o
  * mesmo motivo, invertido — a página já está mostrando o card de compra
- * final).
+ * final). Ela também some enquanto o banner de consentimento do pixel está
+ * no ar, pro rodapé do celular nunca ter dois elementos fixos brigando pelo
+ * mesmo espaço.
  */
 export function StickyBuyBar() {
   const [heroVisible, setHeroVisible] = useState(true);
   const [closingVisible, setClosingVisible] = useState(false);
+  const consentBannerVisible = useConsentDecision() === 'ask';
 
   const cta = imersaoCtaHref();
   const external = isExternalLink(cta);
@@ -44,7 +48,7 @@ export function StickyBuyBar() {
     };
   }, []);
 
-  const visible = !heroVisible && !closingVisible;
+  const visible = !heroVisible && !closingVisible && !consentBannerVisible;
 
   return (
     <nav

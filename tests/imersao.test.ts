@@ -21,9 +21,13 @@ function code(source: string): string {
 const PAGE_PATH = join(process.cwd(), 'app/imersao/page.tsx');
 const OG_IMAGE_PATH = join(process.cwd(), 'app/imersao/opengraph-image.tsx');
 const STICKY_PATH = join(process.cwd(), 'components/imersao/StickyBuyBar.tsx');
+const META_PIXEL_PATH = join(process.cwd(), 'components/MetaPixel.tsx');
+const ANALYTICS_PATH = join(process.cwd(), 'components/imersao/ImersaoAnalytics.tsx');
 const page = () => readFileSync(PAGE_PATH, 'utf8');
 const ogImage = () => readFileSync(OG_IMAGE_PATH, 'utf8');
 const stickyBar = () => readFileSync(STICKY_PATH, 'utf8');
+const metaPixel = () => readFileSync(META_PIXEL_PATH, 'utf8');
+const analytics = () => readFileSync(ANALYTICS_PATH, 'utf8');
 
 describe('/imersao', () => {
   it('renders exactly one h1, and it is the headline', () => {
@@ -40,10 +44,12 @@ describe('/imersao', () => {
     expect(hits.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('never references a logo or brand-mark asset', () => {
+  it('never references a logo or brand-mark asset, anywhere on /imersao', () => {
     expect(/logo/i.test(code(page()))).toBe(false);
     expect(/logo/i.test(code(ogImage()))).toBe(false);
     expect(/logo/i.test(code(stickyBar()))).toBe(false);
+    expect(/logo/i.test(code(metaPixel()))).toBe(false);
+    expect(/logo/i.test(code(analytics()))).toBe(false);
   });
 
   it('every CTA href is built from the checkout constant, not a literal URL', () => {
@@ -130,5 +136,38 @@ describe('/imersao sticky mobile buy bar', () => {
 
   it('the page mounts the sticky bar exactly once', () => {
     expect([...page().matchAll(/<StickyBuyBar\s*\/>/g)]).toHaveLength(1);
+  });
+});
+
+describe('/imersao tracking scaffold', () => {
+  it('marks every page CTA with a data-cta attribute for the sticky bar and tracking to key off', () => {
+    const hits = [...page().matchAll(/data-cta="[^"]+"/g)];
+    expect(hits.length).toBe(4);
+  });
+
+  it('the pixel loader is a client component gated on consent, never rendering unconditionally', () => {
+    const source = metaPixel();
+    expect(source.trimStart().startsWith("'use client'")).toBe(true);
+    expect(source).toContain('next/script');
+    expect(source).toContain('useConsentDecision');
+  });
+
+  it('gates the pixel behind the same kr_consent key kauaramos.com already uses', () => {
+    expect(metaPixel()).toContain('CONSENT_STORAGE_KEY');
+    expect(readFileSync(join(process.cwd(), 'lib/analytics/consent.ts'), 'utf8')).toContain("'kr_consent'");
+  });
+
+  it('the analytics listener tracks InitiateCheckout on CTA clicks and ScrollDepth on scroll', () => {
+    const source = analytics();
+    expect(source.trimStart().startsWith("'use client'")).toBe(true);
+    expect(source).toContain('InitiateCheckout');
+    expect(source).toContain('ScrollDepth');
+    expect(source).toContain('data-cta');
+  });
+
+  it('the page mounts the pixel loader and the analytics listener exactly once', () => {
+    const source = page();
+    expect([...source.matchAll(/<MetaPixel\s*\/>/g)]).toHaveLength(1);
+    expect([...source.matchAll(/<ImersaoAnalytics\s*\/>/g)]).toHaveLength(1);
   });
 });

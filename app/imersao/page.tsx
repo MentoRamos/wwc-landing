@@ -3,6 +3,8 @@ import Image from 'next/image';
 import { isExternalLink } from '@/lib/core/links.core';
 import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
 import { StickyBuyBar } from '@/components/imersao/StickyBuyBar';
+import { MetaPixel } from '@/components/MetaPixel';
+import { ImersaoAnalytics } from '@/components/imersao/ImersaoAnalytics';
 
 /**
  * A página do evento ao vivo, isolada de propósito.
@@ -14,10 +16,10 @@ import { StickyBuyBar } from '@/components/imersao/StickyBuyBar';
  * título, sem logo, sem selo, sem cromo institucional.
  *
  * Server Component: a própria página não tem um único evento de interação
- * além de âncora e link. A única ilha de cliente que ela monta,
- * `StickyBuyBar`, existe por um motivo que só existe no navegador
- * (IntersectionObserver) e não precisa que a página em volta vire cliente
- * também.
+ * além de âncora e link. As três ilhas de cliente que ela monta —
+ * `StickyBuyBar`, `MetaPixel` e `ImersaoAnalytics` — existem por motivos que
+ * só existem no navegador (IntersectionObserver, localStorage, scroll) e
+ * nenhuma delas precisa que a página em volta vire cliente também.
  *
  * O CTA não usa o `components/ui/Button.tsx` compartilhado: aquele é o botão
  * de contorno fino do resto do site, e esta página pediu um botão sólido,
@@ -331,7 +333,7 @@ export default function ImersaoPage() {
           </div>
 
           <div className="mt-12 flex justify-center">
-            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={CTA_CLASS}>
+            <a href={cta} data-cta="programacao" target={ctaProps.target} rel={ctaProps.rel} className={CTA_CLASS}>
               GARANTIR MEU INGRESSO
             </a>
           </div>
@@ -387,7 +389,13 @@ export default function ImersaoPage() {
           <div className="shrink-0 border border-[var(--border-hover)] bg-[var(--bg-card)] px-10 py-10 text-center">
             <p className={CAPTION_DARK}>Ingresso</p>
             <p className="stat-num mt-2">R$ 97</p>
-            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={`${CTA_CLASS} mt-6`}>
+            <a
+              href={cta}
+              data-cta="oferta"
+              target={ctaProps.target}
+              rel={ctaProps.rel}
+              className={`${CTA_CLASS} mt-6`}
+            >
               GARANTIR MEU INGRESSO
             </a>
           </div>
@@ -452,7 +460,13 @@ export default function ImersaoPage() {
               29 e 30 de setembro · 19h30 às 21h30 · Ao vivo no Google Meet, com gravação
             </p>
             <p className="stat-num mt-8">Ingresso R$ 97</p>
-            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={`${CTA_CLASS} mt-8`}>
+            <a
+              href={cta}
+              data-cta="fechamento"
+              target={ctaProps.target}
+              rel={ctaProps.rel}
+              className={`${CTA_CLASS} mt-8`}
+            >
               GARANTIR MEU INGRESSO
             </a>
           </div>
@@ -460,6 +474,8 @@ export default function ImersaoPage() {
       </section>
 
       <StickyBuyBar />
+      <MetaPixel />
+      <ImersaoAnalytics />
     </div>
   );
 }
