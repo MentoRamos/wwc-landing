@@ -18,24 +18,42 @@ import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
  *
  * O CTA não usa o `components/ui/Button.tsx` compartilhado: aquele é o botão
  * de contorno fino do resto do site, e esta página pediu um botão sólido,
- * cor cheia, só dela. Também não vira um componente local `<CtaButton>`,
- * porque `tests/imersao.test.ts` lê o texto-fonte da página e procura
- * `href={cta}` literal em cada CTA; um wrapper que repassa a prop trocaria
- * isso por `href={href}` e quebraria a varredura sem quebrar nada de verdade.
- * A classe é uma constante para não duplicar a string, o `<a>` se repete.
+ * cor cheia, só dela. Também não vira um componente local que repassa a
+ * prop `href`, porque `tests/imersao.test.ts` lê o texto-fonte da página e
+ * procura `href={cta}` literal em cada CTA; um wrapper trocaria isso por
+ * `href={href}` e quebraria a varredura sem quebrar nada de verdade.
+ *
+ * `container-lp` (globals.css) trava `max-width: 1440px` sem estar dentro de
+ * um `@layer` — e CSS não em camada sempre vence CSS em camada, então um
+ * `max-w-[680px]` do Tailwind escrito NO MESMO elemento que `container-lp`
+ * é ignorado, calado. As seções 6 e 9 caíam nessa: o texto media a largura
+ * inteira do container (1440px), bem além dos ~680px pedidos. A saída é
+ * nunca combinar os dois na mesma tag — `container-lp` fica num elemento,
+ * o `max-w-[680px]` (com ou sem `mx-auto`) num filho dele. Pelo mesmo motivo
+ * `.section-title`/`.eyebrow`/`.meta` (também fora de `@layer`) não recebem
+ * um tamanho ou cor diferente colado na mesma classe: essas seções escrevem
+ * o estilo do zero em vez de tentar sobrescrever a classe global.
  */
 const CTA_CLASS =
   'inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-8 py-[18px] ' +
   'text-base font-semibold text-[#0D0D0D] transition-colors duration-300 hover:bg-[#D4B85C] sm:w-auto';
+
+/** Um H2 só, usado por toda seção; a cor é a única coisa que muda com o fundo. */
+const H2 = 'font-display text-[1.75rem] md:text-[2.25rem] leading-[1.1] tracking-[-0.02em]';
+const H2_DARK = `${H2} text-[var(--text-1)]`;
+const H2_LIGHT = `${H2} text-[#0D0D0D]`;
 
 /** Corpo de texto: 16px no celular, 17px a partir do desktop, como pedido. */
 const BODY_LIGHT = 'text-base md:text-[1.0625rem] leading-[1.65] text-[#2a2a2a]';
 const BODY_DARK = 'text-base md:text-[1.0625rem] leading-[1.65] text-[rgba(244,242,238,0.78)]';
 
 /** Rótulo pequeno (data, "noite X"), grande o bastante e com contraste AA. */
-const CAPTION_LIGHT = 'text-[0.8125rem] uppercase tracking-[0.08em] text-[rgba(42,42,42,0.85)]';
 const CAPTION_DARK = 'text-[0.875rem] uppercase tracking-[0.08em] text-[rgba(244,242,238,0.78)]';
 const KICKER_GOLD = 'text-[0.8125rem] uppercase tracking-[0.1em] text-[var(--accent)]';
+/** O eyebrow do herói precisa de um tamanho que `.eyebrow` (global) não dá
+ *  sem o mesmo problema de especificidade descrito acima. */
+const HERO_EYEBROW =
+  'font-[family-name:var(--font-label)] text-[0.75rem] uppercase tracking-[0.15em] text-[var(--accent)] text-balance';
 
 export const metadata: Metadata = {
   title: 'Imersão Performance e Longevidade · 29 e 30/09',
@@ -47,15 +65,23 @@ export const metadata: Metadata = {
   ...(IMERSAO_CHECKOUT_URL ? {} : { robots: { index: false, follow: false } }),
 };
 
-function Check({ light = false }: { light?: boolean }) {
+/** `tone`: `gold` (padrão, fundo escuro), `goldLight` (fundo claro, mesmo
+ *  gesto de "sim") e `muted` — o "não" da lista "Para quem não é", que não
+ *  ganha destaque dourado porque não é uma vantagem, é uma exclusão. */
+function Check({ tone = 'gold' }: { tone?: 'gold' | 'goldLight' | 'muted' }) {
+  const style =
+    tone === 'goldLight'
+      ? 'border-[#8C7440] text-[#8C7440]'
+      : tone === 'muted'
+        ? 'border-[rgba(244,242,238,0.5)] text-[rgba(244,242,238,0.5)]'
+        : 'border-[var(--accent)] text-[var(--accent)]';
+
   return (
     <span
       aria-hidden="true"
-      className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-full border text-center text-[10px] leading-[14px] ${
-        light ? 'border-[#8C7440] text-[#8C7440]' : 'border-[var(--accent)] text-[var(--accent)]'
-      }`}
+      className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-full border text-center text-[10px] leading-[14px] ${style}`}
     >
-      ✓
+      {tone === 'muted' ? '✕' : '✓'}
     </span>
   );
 }
@@ -63,6 +89,10 @@ function Check({ light = false }: { light?: boolean }) {
 export default function ImersaoPage() {
   const cta = imersaoCtaHref();
   const external = isExternalLink(cta);
+  const ctaProps = {
+    target: external ? '_blank' : undefined,
+    rel: external ? 'noopener noreferrer' : undefined,
+  } as const;
 
   return (
     <>
@@ -70,7 +100,7 @@ export default function ImersaoPage() {
       <section className="bg-[var(--bg)] pt-16 pb-20 md:pt-24 md:pb-28">
         <div className="container-lp grid items-center gap-12 md:grid-cols-[1.15fr_0.85fr] md:gap-16">
           <div>
-            <p className="eyebrow">IMERSÃO PERFORMANCE E LONGEVIDADE · 2 noites ao vivo</p>
+            <p className={HERO_EYEBROW}>IMERSÃO PERFORMANCE E LONGEVIDADE · 2 noites ao vivo</p>
             <h1 className="page-title mt-4 text-[2rem] leading-[1.08] md:text-[2.75rem] lg:text-[3.25rem]">
               O mesmo ritmo de trabalho, mais energia na reunião das 18h e o HRV subindo no seu wearable
               já na primeira semana.
@@ -87,12 +117,7 @@ export default function ImersaoPage() {
             <div className="mt-8 flex flex-wrap items-center gap-6">
               <p className="stat-num">Ingresso R$ 97</p>
             </div>
-            <a
-              href={cta}
-              target={external ? '_blank' : undefined}
-              rel={external ? 'noopener noreferrer' : undefined}
-              className={`${CTA_CLASS} mt-6`}
-            >
+            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={`${CTA_CLASS} mt-6`}>
               GARANTIR MEU INGRESSO · R$ 97
             </a>
           </div>
@@ -114,9 +139,7 @@ export default function ImersaoPage() {
       {/* 2. POR QUE VOCÊ AINDA NÃO CONSEGUIU (light) — título à esquerda, texto à direita no desktop */}
       <section className="bg-[#F4F2EE] py-20 md:py-28">
         <div className="container-lp grid gap-8 md:grid-cols-[280px_1fr] md:gap-16">
-          <h2 className="font-display text-[1.75rem] leading-[1.1] tracking-[-0.02em] text-[#0D0D0D] md:text-[2.25rem]">
-            Por que você ainda não conseguiu
-          </h2>
+          <h2 className={H2_LIGHT}>Por que você ainda não conseguiu</h2>
           <div className={`max-w-[680px] space-y-6 ${BODY_LIGHT}`}>
             <p>
               Não é falta de disciplina. Você já treinou cinco vezes por semana, já trocou de
@@ -131,8 +154,11 @@ export default function ImersaoPage() {
               quinta às 7h30, sábado às 9h. Cada horário diferente é um pequeno fuso que você
               mesmo provoca. Um estudo com mais de 60 mil pessoas do UK Biobank mostrou que a
               regularidade do sono pesou mais na saúde do que a quantidade de horas. É isso que eu
-              chamo de <strong className="font-display font-normal not-italic text-[#7C6339]">A Hora Fixa</strong>:
-              uma hora pra acordar, sete dias por semana, e três números no lugar da nota.
+              chamo de{' '}
+              <strong className="font-display font-semibold italic text-[#0D0D0D]">
+                A Hora Fixa
+              </strong>
+              : uma hora pra acordar, sete dias por semana, e três números no lugar da nota.
             </p>
             <p>
               Por isso uma semana basta. Não é construir condicionamento, é parar de bagunçar o
@@ -146,8 +172,8 @@ export default function ImersaoPage() {
       {/* 3. PARA QUEM É (dark) */}
       <section className="bg-[var(--bg-elevated)] py-20 md:py-28">
         <div className="container-lp">
-          <h2 className="section-title">Para quem é</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <h2 className={H2_DARK}>Para quem é</h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-[1.35fr_1fr] md:items-start">
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-8">
               <ul className={`space-y-4 ${BODY_DARK}`}>
                 <li className="flex gap-3">
@@ -177,12 +203,12 @@ export default function ImersaoPage() {
               <p className="card-title">Para quem não é</p>
               <ul className={`mt-5 space-y-4 ${BODY_DARK}`}>
                 <li className="flex gap-3">
-                  <Check />
+                  <Check tone="muted" />
                   Quem não usa relógio ou anel inteligente: a imersão inteira é feita em cima do
                   seu dado.
                 </li>
                 <li className="flex gap-3">
-                  <Check />
+                  <Check tone="muted" />
                   Quem procura tratamento de insônia ou de distúrbio do sono: isso é com o seu
                   médico.
                 </li>
@@ -195,9 +221,7 @@ export default function ImersaoPage() {
       {/* 4. MATERIAIS DIDÁTICOS (light) */}
       <section className="bg-[#F4F2EE] py-20 md:py-28">
         <div className="container-lp">
-          <h2 className="font-display text-[1.75rem] leading-[1.1] tracking-[-0.02em] text-[#0D0D0D] md:text-[2.25rem]">
-            Materiais didáticos
-          </h2>
+          <h2 className={H2_LIGHT}>Materiais didáticos</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
@@ -216,9 +240,12 @@ export default function ImersaoPage() {
                 title: 'Protocolo das Exceções.',
                 body: 'O que fazer na noite do jantar que acabou tarde, no voo cedo e no sábado, sem quebrar a hora fixa. Você usa já no primeiro fim de semana.',
               },
-            ].map((item) => (
+            ].map((item, index) => (
               <div key={item.title} className="border border-[rgba(13,13,13,0.12)] bg-[#FCFBF8] p-6">
-                <p className={`${BODY_LIGHT} text-[#0D0D0D]`}>
+                <span aria-hidden="true" className="font-display block text-[0.9375rem] text-[#8C7440]">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <p className={`mt-2 ${BODY_LIGHT} text-[#0D0D0D]`}>
                   <strong className="font-medium">{item.title}</strong> {item.body}
                 </p>
               </div>
@@ -230,8 +257,8 @@ export default function ImersaoPage() {
       {/* 5. PROGRAMAÇÃO (dark) */}
       <section id="programacao" className="bg-[var(--bg-elevated)] py-20 md:py-28">
         <div className="container-lp">
-          <h2 className="section-title">Programação</h2>
-          <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-stretch">
+          <h2 className={H2_DARK}>Programação</h2>
+          <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-start">
             <div className="flex-1 border border-[var(--border)] bg-[var(--bg-card)] p-8">
               <p className={KICKER_GOLD}>NOITE 1 · TERÇA, 29/09 · A SUA HORA</p>
               <p className={`mt-5 ${BODY_DARK}`}>
@@ -271,45 +298,49 @@ export default function ImersaoPage() {
               </p>
             </div>
           </div>
+
+          <div className="mt-12 flex justify-center">
+            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={CTA_CLASS}>
+              GARANTIR MEU INGRESSO
+            </a>
+          </div>
         </div>
       </section>
 
       {/* 6. O QUE VAI ACONTECER AO VIVO (light) */}
       <section className="bg-[#F4F2EE] py-20 md:py-28">
-        <div className="container-lp max-w-[680px]">
-          <h2 className="font-display text-[1.75rem] leading-[1.1] tracking-[-0.02em] text-[#0D0D0D] md:text-[2.25rem]">
-            O que vai acontecer ao vivo
-          </h2>
-          <ul className="mt-10 space-y-5">
-            <li className={`flex gap-3 ${BODY_LIGHT}`}>
-              <Check light />
-              Você define a sua hora com a agenda aberta, na minha frente, em vez de levar mais
-              uma regra pra testar sozinho.
-            </li>
-            <li className={`flex gap-3 ${BODY_LIGHT}`}>
-              <Check light />
-              Na segunda noite eu leio ao vivo o gráfico de quem quiser mostrar, e você vê como a
-              leitura muda de uma pessoa pra outra.
-            </li>
-            <li className={`flex gap-3 ${BODY_LIGHT}`}>
-              <Check light />
-              Pergunta respondida na hora, sobre o seu aparelho e a sua rotina.
-            </li>
-            <li className={`flex gap-3 ${BODY_LIGHT}`}>
-              <Check light />
-              Sala fechada no Google Meet, sem plateia de transmissão. A gravação fica com você.
-            </li>
-          </ul>
+        <div className="container-lp">
+          <div className="max-w-[680px]">
+            <h2 className={H2_LIGHT}>O que vai acontecer ao vivo</h2>
+            <ul className="mt-10 space-y-5">
+              <li className={`flex gap-3 ${BODY_LIGHT}`}>
+                <Check tone="goldLight" />
+                Você define a sua hora com a agenda aberta, na minha frente, em vez de levar mais
+                uma regra pra testar sozinho.
+              </li>
+              <li className={`flex gap-3 ${BODY_LIGHT}`}>
+                <Check tone="goldLight" />
+                Na segunda noite eu leio ao vivo o gráfico de quem quiser mostrar, e você vê como a
+                leitura muda de uma pessoa pra outra.
+              </li>
+              <li className={`flex gap-3 ${BODY_LIGHT}`}>
+                <Check tone="goldLight" />
+                Pergunta respondida na hora, sobre o seu aparelho e a sua rotina.
+              </li>
+              <li className={`flex gap-3 ${BODY_LIGHT}`}>
+                <Check tone="goldLight" />
+                Sala fechada no Google Meet, sem plateia de transmissão. A gravação fica com você.
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
 
       {/* 7. POR QUE O INGRESSO É BARATO E POR QUE NÃO É DE GRAÇA (dark) */}
       <section className="bg-[var(--bg-elevated)] py-20 md:py-28">
-        <div className="container-lp grid gap-12 md:grid-cols-[1fr_auto] md:items-center">
-          <div className="max-w-[680px]">
-            <h2 className="section-title">
-              Por que o ingresso é barato e por que não é de graça
-            </h2>
+        <div className="container-lp grid gap-12 md:grid-cols-[minmax(0,680px)_auto] md:justify-start md:gap-20 md:items-center">
+          <div>
+            <h2 className={H2_DARK}>Por que o ingresso é barato e por que não é de graça</h2>
             <div className={`mt-8 space-y-5 ${BODY_DARK}`}>
               <p>
                 É barato porque o preço não é o que deveria te separar disso. Eu quero você na
@@ -322,9 +353,12 @@ export default function ImersaoPage() {
               </p>
             </div>
           </div>
-          <div className="shrink-0 border border-[var(--border-hover)] bg-[var(--bg-card)] px-10 py-8 text-center">
+          <div className="shrink-0 border border-[var(--border-hover)] bg-[var(--bg-card)] px-10 py-10 text-center">
             <p className={CAPTION_DARK}>Ingresso</p>
             <p className="stat-num mt-2">R$ 97</p>
+            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={`${CTA_CLASS} mt-6`}>
+              GARANTIR MEU INGRESSO
+            </a>
           </div>
         </div>
       </section>
@@ -333,32 +367,25 @@ export default function ImersaoPage() {
       <section className="bg-[#F4F2EE] py-20 md:py-28">
         <div className="container-lp grid items-start gap-10 md:grid-cols-[280px_1fr] md:gap-16">
           <div>
-            <h2 className="font-display text-[1.75rem] leading-[1.1] tracking-[-0.02em] text-[#0D0D0D] md:text-[2.25rem]">
-              Quem vai conduzir
-            </h2>
-            <figure className="mt-6">
-              <div className="relative aspect-[3/4] w-full overflow-hidden">
-                <Image
-                  src="/photos/kaua-portrait-close.jpg"
-                  alt="Kauã Ramos"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 280px"
-                  className="object-cover"
-                  // Sem `priority`, mas com `loading="eager"`: esta foto está
-                  // abaixo da dobra, então não precisa do preload de LCP, mas
-                  // precisa existir no HTML sem depender do IntersectionObserver
-                  // do lazy-loading nativo. Um screenshot de página inteira
-                  // tirado logo após o load (sem esperar o scroll dar tempo do
-                  // navegador disparar o carregamento) capturava o card vazio,
-                  // só com a legenda — a imagem carregava, só que tarde demais
-                  // pro frame que já tinha sido composto.
-                  loading="eager"
-                />
-              </div>
-              <figcaption className={`mt-3 ${CAPTION_LIGHT}`}>
-                Kauã Ramos · Health manager
-              </figcaption>
-            </figure>
+            <h2 className={H2_LIGHT}>Quem vai conduzir</h2>
+            <div className="relative mt-6 aspect-[3/4] w-full overflow-hidden">
+              <Image
+                src="/photos/kaua-portrait-close.jpg"
+                alt="Kauã Ramos, health manager da Wealth & Wellness"
+                fill
+                sizes="(max-width: 768px) 100vw, 280px"
+                className="object-cover"
+                // Sem `priority`, mas com `loading="eager"`: esta foto está
+                // abaixo da dobra, então não precisa do preload de LCP, mas
+                // precisa existir no HTML sem depender do IntersectionObserver
+                // do lazy-loading nativo. Um screenshot de página inteira
+                // tirado logo após o load (sem esperar o scroll dar tempo do
+                // navegador disparar o carregamento) capturava o card vazio,
+                // só com a legenda — a imagem carregava, só que tarde demais
+                // pro frame que já tinha sido composto.
+                loading="eager"
+              />
+            </div>
           </div>
           <div className={`max-w-[680px] space-y-5 ${BODY_LIGHT}`}>
             <p>
@@ -380,27 +407,24 @@ export default function ImersaoPage() {
 
       {/* 9. FECHAMENTO (dark) */}
       <section id="ingresso" className="bg-[var(--bg)] py-20 md:py-28">
-        <div className="container-lp max-w-[680px] text-center">
-          <p className={`mx-auto ${BODY_DARK}`}>
-            Você quer manter o ritmo que tem hoje e chegar inteiro ao fim do dia. Em duas noites
-            você define a sua hora fixa e aprende a ler três números no lugar da nota. Sai com a
-            sua hora, a sua linha de base e o plano da primeira semana, e acompanha no seu próprio
-            aparelho se está funcionando.
-          </p>
+        <div className="container-lp text-center">
+          <div className="mx-auto max-w-[680px]">
+            <p className={BODY_DARK}>
+              Você quer manter o ritmo que tem hoje e chegar inteiro ao fim do dia. Em duas noites
+              você define a sua hora fixa e aprende a ler três números no lugar da nota. Sai com a
+              sua hora, a sua linha de base e o plano da primeira semana, e acompanha no seu próprio
+              aparelho se está funcionando.
+            </p>
 
-          <h2 className="section-title mt-10">Imersão Performance e Longevidade</h2>
-          <p className={`mt-4 ${CAPTION_DARK}`}>
-            29 e 30 de setembro · 19h30 às 21h30 · Ao vivo no Google Meet, com gravação
-          </p>
-          <p className="stat-num mt-8">Ingresso R$ 97</p>
-          <a
-            href={cta}
-            target={external ? '_blank' : undefined}
-            rel={external ? 'noopener noreferrer' : undefined}
-            className={`${CTA_CLASS} mt-8`}
-          >
-            GARANTIR MEU INGRESSO
-          </a>
+            <h2 className={`${H2_DARK} mt-10`}>Imersão Performance e Longevidade</h2>
+            <p className={`mt-4 ${CAPTION_DARK}`}>
+              29 e 30 de setembro · 19h30 às 21h30 · Ao vivo no Google Meet, com gravação
+            </p>
+            <p className="stat-num mt-8">Ingresso R$ 97</p>
+            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={`${CTA_CLASS} mt-8`}>
+              GARANTIR MEU INGRESSO
+            </a>
+          </div>
         </div>
       </section>
     </>

@@ -47,7 +47,9 @@ describe('/imersao', () => {
     // Masked, like the logo check: a doc comment explaining this exact rule
     // is allowed to mention what a broken `href={...}` would look like.
     const hrefs = [...code(source).matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
-    expect(hrefs.length).toBeGreaterThan(0);
+    // Hero, after Programação, section 7's price box, and the closing — the
+    // design review added two mid-page CTAs on top of the original two.
+    expect(hrefs.length).toBe(4);
     for (const href of hrefs) {
       // Either the call itself, or a local const bound to it near the top of
       // the component (the page also uses it for the button label price).
