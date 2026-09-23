@@ -14,9 +14,9 @@ describe('getMetaPixelId', () => {
     else process.env.NEXT_PUBLIC_META_PIXEL_ID = ORIGINAL;
   });
 
-  it('falls back to the same pixel kauaramos.com already uses', () => {
+  it('has no default pixel: nothing loads until the owner sets his own', () => {
     delete process.env.NEXT_PUBLIC_META_PIXEL_ID;
-    expect(getMetaPixelId()).toBe('1734438337865776');
+    expect(getMetaPixelId()).toBeNull();
   });
 
   it('lets a dedicated pixel override the default via env', () => {
@@ -26,7 +26,7 @@ describe('getMetaPixelId', () => {
 
   it('treats a blank env value as unset', () => {
     process.env.NEXT_PUBLIC_META_PIXEL_ID = '   ';
-    expect(getMetaPixelId()).toBe('1734438337865776');
+    expect(getMetaPixelId()).toBeNull();
   });
 });
 

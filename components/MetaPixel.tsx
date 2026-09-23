@@ -23,8 +23,9 @@ export function MetaPixel() {
   const decision = useConsentDecision();
 
   useEffect(() => {
-    if (decision === 'load') {
-      initializePixelStub(getMetaPixelId());
+    const pixelId = getMetaPixelId();
+    if (decision === 'load' && pixelId) {
+      initializePixelStub(pixelId);
       flushQueue();
     }
   }, [decision]);

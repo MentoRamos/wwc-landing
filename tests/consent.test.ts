@@ -31,3 +31,11 @@ describe('decideConsent', () => {
     expect(CONSENT_STORAGE_KEY).toBe('kr_consent');
   });
 });
+
+describe('decideConsent without a configured pixel', () => {
+  it('never asks and never loads when there is no pixel to load', () => {
+    expect(decideConsent(null, false)).toBe('skip');
+    expect(decideConsent('sim', false)).toBe('skip');
+    expect(decideConsent('nao', false)).toBe('skip');
+  });
+});

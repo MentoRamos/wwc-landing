@@ -1,19 +1,15 @@
 /**
  * Meta Pixel wiring for /imersao.
  *
- * Reuses the same pixel account kauaramos.com already runs (see
- * ~/Projects/wealth-wellness-protocol/landing-kauaramos/assets/pixel.js),
- * so ad performance for this event lands in the same dataset as the rest of
- * the site instead of starting a second, disconnected pixel. Override with
- * NEXT_PUBLIC_META_PIXEL_ID (Vercel project wwc-landing, Production,
- * redeploy) only if this event ever needs its own, separate pixel — nothing
- * needs to be added there for the default to work.
+ * No default ID on purpose: the pixel kauaramos.com runs lives in the NexGen
+ * Labs business portfolio, which Kauã is leaving. The pixel only exists once
+ * NEXT_PUBLIC_META_PIXEL_ID is set (Vercel project wwc-landing, Production,
+ * then redeploy) to a pixel from his own Business Manager. Until then nothing
+ * loads and no consent banner is shown — there is nothing to consent to.
  */
-const DEFAULT_PIXEL_ID = '1734438337865776';
-
-export function getMetaPixelId(): string {
+export function getMetaPixelId(): string | null {
   const fromEnv = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim();
-  return fromEnv ? fromEnv : DEFAULT_PIXEL_ID;
+  return fromEnv ? fromEnv : null;
 }
 
 /** The Meta Pixel JS SDK, loaded via next/script, never inlined. */

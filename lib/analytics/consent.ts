@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { getMetaPixelId } from '@/lib/analytics/meta-pixel';
 
 /**
  * The consent contract for the Meta Pixel on `/imersao`.
@@ -26,7 +27,9 @@ export const CONSENT_DECIDED_EVENT = 'kr-consent-decided';
 
 export type ConsentDecision = 'load' | 'skip' | 'ask';
 
-export function decideConsent(stored: string | null): ConsentDecision {
+/** Sem pixel configurado não há o que consentir: nem banner, nem carga. */
+export function decideConsent(stored: string | null, pixelConfigured = true): ConsentDecision {
+  if (!pixelConfigured) return 'skip';
   if (stored === 'sim') return 'load';
   if (stored === 'nao') return 'skip';
   return 'ask';
@@ -39,7 +42,7 @@ function readStoredConsent(): ConsentDecision {
   } catch {
     stored = null;
   }
-  return decideConsent(stored);
+  return decideConsent(stored, getMetaPixelId() !== null);
 }
 
 function subscribeToConsentChanges(onChange: () => void): () => void {
