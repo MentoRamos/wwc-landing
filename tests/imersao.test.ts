@@ -113,7 +113,7 @@ describe('/imersao link preview (Open Graph / Twitter)', () => {
   it('draws the OG card with the brand copy, no logo, and no invented urgency', () => {
     const source = ogImage();
     expect(source).toContain('Performance e Longevidade');
-    expect(source).toContain('29 e 30/09');
+    expect(source).toContain('28 e 29/10');
     expect(source).toContain('R$ 97');
     expect(source).toContain('kaua-portrait-seated.jpg');
     expect(source).toContain('#0D0D0D');
@@ -214,5 +214,15 @@ describe('/imersao social proof (student prints)', () => {
       expect(href).toBe('d.src');
     }
     expect(visible).not.toMatch(/\d+\s*(alunos|clientes|%)/i);
+  });
+});
+
+describe('/imersao event dates (moved to 28 e 29/10)', () => {
+  it('shows the new dates and none of the old ones', () => {
+    const source = page();
+    expect(source).toContain('28 e 29 de outubro, quarta e quinta');
+    expect(source).toContain('NOITE 1 · QUARTA, 28/10');
+    expect(source).toContain('NOITE 2 · QUINTA, 29/10');
+    expect(source).not.toMatch(/29 e 30|setembro|29\/09|30\/09/);
   });
 });

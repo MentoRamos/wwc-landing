@@ -142,7 +142,7 @@ const DEPOIMENTOS = [
   },
 ] as const;
 
-const TITLE = 'Imersão Performance e Longevidade · 29 e 30/09';
+const TITLE = 'Imersão Performance e Longevidade · 28 e 29/10';
 const DESCRIPTION =
   'Sem aumentar uma hora de treino e sem precisar dormir mais. Em duas noites ao vivo você define a hora que vai organizar o seu dia e aprende a ler, no seu próprio relógio ou anel, os três números que a nota da manhã esconde.';
 
@@ -225,7 +225,7 @@ export default function ImersaoPage() {
               relógio ou anel, os três números que a nota da manhã esconde.
             </p>
             <p className={`mt-6 md:mt-8 ${CAPTION_DARK}`}>
-              29 e 30 de setembro, terça e quarta · 19h30 às 21h30 (Brasília) · Ao vivo no Google
+              28 e 29 de outubro, quarta e quinta · 19h30 às 21h30 (Brasília) · Ao vivo no Google
               Meet, com gravação
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-6 md:mt-8">
@@ -355,7 +355,7 @@ export default function ImersaoPage() {
               },
               {
                 title: 'Painel dos Três Números.',
-                body: 'Uma página pra anotar a hora em que acordou, o HRV contra a sua média e a frequência cardíaca de repouso. Dois minutos por manhã, a partir de quarta.',
+                body: 'Uma página pra anotar a hora em que acordou, o HRV contra a sua média e a frequência cardíaca de repouso. Dois minutos por manhã, a partir de quinta.',
               },
               {
                 title: 'Protocolo das Exceções.',
@@ -381,7 +381,7 @@ export default function ImersaoPage() {
           <h2 className={H2_DARK}>Programação</h2>
           <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-start">
             <div className="flex-1 border border-[var(--border)] bg-[var(--bg-card)] p-8">
-              <p className={KICKER_GOLD}>NOITE 1 · TERÇA, 29/09 · A SUA HORA</p>
+              <p className={KICKER_GOLD}>NOITE 1 · QUARTA, 28/10 · A SUA HORA</p>
               <p className={`mt-5 ${BODY_DARK}`}>
                 Por que o horário pesa mais que as horas dormidas, e por que a nota da manhã
                 esconde isso. Você entende o que o seu aparelho mede de verdade e o que ele só
@@ -393,7 +393,7 @@ export default function ImersaoPage() {
               </p>
               <p className={`mt-4 ${BODY_DARK}`}>
                 <strong className="text-[var(--text-1)]">Você termina a primeira noite com:</strong>{' '}
-                a sua hora de acordar + a janela de 30 minutos + o plano pra quarta de manhã.
+                a sua hora de acordar + a janela de 30 minutos + o plano pra quinta de manhã.
               </p>
             </div>
 
@@ -402,7 +402,7 @@ export default function ImersaoPage() {
             </div>
 
             <div className="flex-1 border border-[var(--border)] bg-[var(--bg-card)] p-8">
-              <p className={KICKER_GOLD}>NOITE 2 · QUARTA, 30/09 · OS SEUS NÚMEROS</p>
+              <p className={KICKER_GOLD}>NOITE 2 · QUINTA, 29/10 · OS SEUS NÚMEROS</p>
               <p className={`mt-5 ${BODY_DARK}`}>
                 Você acorda na hora nova e chega com o aparelho na mão. Abrimos os seus últimos 30
                 dias e trocamos a nota por três números.
@@ -613,7 +613,7 @@ export default function ImersaoPage() {
 
             <h2 className={`${H2_DARK} mt-10`}>Imersão Performance e Longevidade</h2>
             <p className={`mt-4 ${CAPTION_DARK}`}>
-              29 e 30 de setembro · 19h30 às 21h30 · Ao vivo no Google Meet, com gravação
+              28 e 29 de outubro · 19h30 às 21h30 · Ao vivo no Google Meet, com gravação
             </p>
             <p className="stat-num mt-8">Ingresso R$ 97</p>
             <a

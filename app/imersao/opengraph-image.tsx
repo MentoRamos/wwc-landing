@@ -12,7 +12,7 @@ import { ImageResponse } from 'next/og';
  * pé nem de rede saindo do runtime da imagem, só do arquivo já existir no
  * filesystem — o mesmo motivo por que a fonte já é lida assim ao lado.
  */
-export const alt = 'Imersão Performance e Longevidade · 29 e 30/09';
+export const alt = 'Imersão Performance e Longevidade · 28 e 29/10';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -73,7 +73,7 @@ export default async function Image() {
             Performance e Longevidade
           </div>
           <div style={{ display: 'flex', fontSize: 24, color: MUTED }}>
-            29 e 30/09 · 19h30 · Ao vivo online
+            28 e 29/10 · 19h30 · Ao vivo online
           </div>
           <div style={{ display: 'flex', fontSize: 30, fontWeight: 600, color: GOLD }}>
             Ingresso R$ 97
