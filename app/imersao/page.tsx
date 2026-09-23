@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
+import { isExternalLink } from '@/lib/core/links.core';
 import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
 
 /**
@@ -15,7 +15,28 @@ import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
  * Server Component o tempo todo: a página não tem um único evento de
  * interação além de âncora e link, então não há motivo para JavaScript no
  * cliente.
+ *
+ * O CTA não usa o `components/ui/Button.tsx` compartilhado: aquele é o botão
+ * de contorno fino do resto do site, e esta página pediu um botão sólido,
+ * cor cheia, só dela. Também não vira um componente local `<CtaButton>`,
+ * porque `tests/imersao.test.ts` lê o texto-fonte da página e procura
+ * `href={cta}` literal em cada CTA; um wrapper que repassa a prop trocaria
+ * isso por `href={href}` e quebraria a varredura sem quebrar nada de verdade.
+ * A classe é uma constante para não duplicar a string, o `<a>` se repete.
  */
+const CTA_CLASS =
+  'inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-8 py-[18px] ' +
+  'text-base font-semibold text-[#0D0D0D] transition-colors duration-300 hover:bg-[#D4B85C] sm:w-auto';
+
+/** Corpo de texto: 16px no celular, 17px a partir do desktop, como pedido. */
+const BODY_LIGHT = 'text-base md:text-[1.0625rem] leading-[1.65] text-[#2a2a2a]';
+const BODY_DARK = 'text-base md:text-[1.0625rem] leading-[1.65] text-[rgba(244,242,238,0.78)]';
+
+/** Rótulo pequeno (data, "noite X"), grande o bastante e com contraste AA. */
+const CAPTION_LIGHT = 'text-[0.8125rem] uppercase tracking-[0.08em] text-[rgba(42,42,42,0.85)]';
+const CAPTION_DARK = 'text-[0.875rem] uppercase tracking-[0.08em] text-[rgba(244,242,238,0.78)]';
+const KICKER_GOLD = 'text-[0.8125rem] uppercase tracking-[0.1em] text-[var(--accent)]';
+
 export const metadata: Metadata = {
   title: 'Imersão Performance e Longevidade · 29 e 30/09',
   description:
@@ -41,6 +62,7 @@ function Check({ light = false }: { light?: boolean }) {
 
 export default function ImersaoPage() {
   const cta = imersaoCtaHref();
+  const external = isExternalLink(cta);
 
   return (
     <>
@@ -53,23 +75,26 @@ export default function ImersaoPage() {
               O mesmo ritmo de trabalho, mais energia na reunião das 18h e o HRV subindo no seu wearable
               já na primeira semana.
             </h1>
-            <p className="lede mt-6 max-w-none">
+            <p className={`mt-6 max-w-[560px] ${BODY_DARK}`}>
               Sem aumentar uma hora de treino e sem precisar dormir mais. Em duas noites ao vivo
               você define a hora que vai organizar o seu dia e aprende a ler, no seu próprio
               relógio ou anel, os três números que a nota da manhã esconde.
             </p>
-            <p className="meta mt-8">
+            <p className={`mt-8 ${CAPTION_DARK}`}>
               29 e 30 de setembro, terça e quarta · 19h30 às 21h30 (Brasília) · Ao vivo no Google
               Meet, com gravação
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-6">
-              <p className="stat-num">
-                Ingresso R$ 97
-              </p>
+              <p className="stat-num">Ingresso R$ 97</p>
             </div>
-            <Button href={cta} variant="primary" size="lg" className="mt-6 w-full sm:w-auto">
+            <a
+              href={cta}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+              className={`${CTA_CLASS} mt-6`}
+            >
               GARANTIR MEU INGRESSO · R$ 97
-            </Button>
+            </a>
           </div>
 
           <div className="relative aspect-[4/5] w-full overflow-hidden border border-[var(--border)] md:aspect-[3/4]">
@@ -86,13 +111,13 @@ export default function ImersaoPage() {
         </div>
       </section>
 
-      {/* 2. POR QUE VOCÊ AINDA NÃO CONSEGUIU (light) */}
+      {/* 2. POR QUE VOCÊ AINDA NÃO CONSEGUIU (light) — título à esquerda, texto à direita no desktop */}
       <section className="bg-[#F4F2EE] py-20 md:py-28">
-        <div className="container-lp max-w-3xl">
+        <div className="container-lp grid gap-8 md:grid-cols-[280px_1fr] md:gap-16">
           <h2 className="font-display text-[1.75rem] leading-[1.1] tracking-[-0.02em] text-[#0D0D0D] md:text-[2.25rem]">
             Por que você ainda não conseguiu
           </h2>
-          <div className="mt-8 space-y-6 text-[1.0625rem] leading-[1.75] text-[rgba(13,13,13,0.72)]">
+          <div className={`max-w-[680px] space-y-6 ${BODY_LIGHT}`}>
             <p>
               Não é falta de disciplina. Você já treinou cinco vezes por semana, já trocou de
               suplemento, já fez check-up que veio normal, já comprou o aparelho mais caro do
@@ -106,7 +131,7 @@ export default function ImersaoPage() {
               quinta às 7h30, sábado às 9h. Cada horário diferente é um pequeno fuso que você
               mesmo provoca. Um estudo com mais de 60 mil pessoas do UK Biobank mostrou que a
               regularidade do sono pesou mais na saúde do que a quantidade de horas. É isso que eu
-              chamo de <strong className="font-display font-normal not-italic text-[#8C7440]">A Hora Fixa</strong>:
+              chamo de <strong className="font-display font-normal not-italic text-[#7C6339]">A Hora Fixa</strong>:
               uma hora pra acordar, sete dias por semana, e três números no lugar da nota.
             </p>
             <p>
@@ -124,7 +149,7 @@ export default function ImersaoPage() {
           <h2 className="section-title">Para quem é</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-8">
-              <ul className="space-y-4 text-[0.9375rem] leading-[1.6] text-[var(--text-2)]">
+              <ul className={`space-y-4 ${BODY_DARK}`}>
                 <li className="flex gap-3">
                   <Check />
                   Você olha o Whoop, o Oura ou o Garmin toda manhã e não sabe o que fazer com
@@ -150,7 +175,7 @@ export default function ImersaoPage() {
             </div>
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-8">
               <p className="card-title">Para quem não é</p>
-              <ul className="mt-5 space-y-4 text-[0.9375rem] leading-[1.6] text-[var(--text-2)]">
+              <ul className={`mt-5 space-y-4 ${BODY_DARK}`}>
                 <li className="flex gap-3">
                   <Check />
                   Quem não usa relógio ou anel inteligente: a imersão inteira é feita em cima do
@@ -193,7 +218,7 @@ export default function ImersaoPage() {
               },
             ].map((item) => (
               <div key={item.title} className="border border-[rgba(13,13,13,0.12)] bg-[#FCFBF8] p-6">
-                <p className="text-[0.9375rem] leading-[1.6] text-[#0D0D0D]">
+                <p className={`${BODY_LIGHT} text-[#0D0D0D]`}>
                   <strong className="font-medium">{item.title}</strong> {item.body}
                 </p>
               </div>
@@ -208,17 +233,17 @@ export default function ImersaoPage() {
           <h2 className="section-title">Programação</h2>
           <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-stretch">
             <div className="flex-1 border border-[var(--border)] bg-[var(--bg-card)] p-8">
-              <p className="meta text-[var(--accent)]">NOITE 1 · TERÇA, 29/09 · A SUA HORA</p>
-              <p className="mt-5 text-[0.9375rem] leading-[1.7] text-[var(--text-2)]">
+              <p className={KICKER_GOLD}>NOITE 1 · TERÇA, 29/09 · A SUA HORA</p>
+              <p className={`mt-5 ${BODY_DARK}`}>
                 Por que o horário pesa mais que as horas dormidas, e por que a nota da manhã
                 esconde isso. Você entende o que o seu aparelho mede de verdade e o que ele só
                 estima.
               </p>
-              <p className="mt-4 text-[0.9375rem] leading-[1.7] text-[var(--text-2)]">
+              <p className={`mt-4 ${BODY_DARK}`}>
                 <strong className="text-[var(--text-1)]">Na prática:</strong> preenchemos juntos a
                 Ficha da Hora Fixa, em cima da sua agenda real, com as viagens e os jantares.
               </p>
-              <p className="mt-4 text-[0.9375rem] leading-[1.7] text-[var(--text-2)]">
+              <p className={`mt-4 ${BODY_DARK}`}>
                 <strong className="text-[var(--text-1)]">Você termina a primeira noite com:</strong>{' '}
                 a sua hora de acordar + a janela de 30 minutos + o plano pra quarta de manhã.
               </p>
@@ -229,17 +254,17 @@ export default function ImersaoPage() {
             </div>
 
             <div className="flex-1 border border-[var(--border)] bg-[var(--bg-card)] p-8">
-              <p className="meta text-[var(--accent)]">NOITE 2 · QUARTA, 30/09 · OS SEUS NÚMEROS</p>
-              <p className="mt-5 text-[0.9375rem] leading-[1.7] text-[var(--text-2)]">
+              <p className={KICKER_GOLD}>NOITE 2 · QUARTA, 30/09 · OS SEUS NÚMEROS</p>
+              <p className={`mt-5 ${BODY_DARK}`}>
                 Você acorda na hora nova e chega com o aparelho na mão. Abrimos os seus últimos 30
                 dias e trocamos a nota por três números.
               </p>
-              <p className="mt-4 text-[0.9375rem] leading-[1.7] text-[var(--text-2)]">
+              <p className={`mt-4 ${BODY_DARK}`}>
                 <strong className="text-[var(--text-1)]">Na prática:</strong> seguimos o Roteiro de
                 Leitura dos 30 Dias no seu próprio histórico e montamos o seu Painel dos Três
                 Números com a sua média.
               </p>
-              <p className="mt-4 text-[0.9375rem] leading-[1.7] text-[var(--text-2)]">
+              <p className={`mt-4 ${BODY_DARK}`}>
                 <strong className="text-[var(--text-1)]">Você termina a segunda noite com:</strong>{' '}
                 a sua linha de base de HRV e de frequência de repouso + o quanto o seu horário
                 variou no último mês + o Protocolo das Exceções pra primeira semana.
@@ -251,26 +276,26 @@ export default function ImersaoPage() {
 
       {/* 6. O QUE VAI ACONTECER AO VIVO (light) */}
       <section className="bg-[#F4F2EE] py-20 md:py-28">
-        <div className="container-lp max-w-3xl">
+        <div className="container-lp max-w-[680px]">
           <h2 className="font-display text-[1.75rem] leading-[1.1] tracking-[-0.02em] text-[#0D0D0D] md:text-[2.25rem]">
             O que vai acontecer ao vivo
           </h2>
           <ul className="mt-10 space-y-5">
-            <li className="flex gap-3 text-[0.9375rem] leading-[1.65] text-[rgba(13,13,13,0.72)]">
+            <li className={`flex gap-3 ${BODY_LIGHT}`}>
               <Check light />
               Você define a sua hora com a agenda aberta, na minha frente, em vez de levar mais
               uma regra pra testar sozinho.
             </li>
-            <li className="flex gap-3 text-[0.9375rem] leading-[1.65] text-[rgba(13,13,13,0.72)]">
+            <li className={`flex gap-3 ${BODY_LIGHT}`}>
               <Check light />
               Na segunda noite eu leio ao vivo o gráfico de quem quiser mostrar, e você vê como a
               leitura muda de uma pessoa pra outra.
             </li>
-            <li className="flex gap-3 text-[0.9375rem] leading-[1.65] text-[rgba(13,13,13,0.72)]">
+            <li className={`flex gap-3 ${BODY_LIGHT}`}>
               <Check light />
               Pergunta respondida na hora, sobre o seu aparelho e a sua rotina.
             </li>
-            <li className="flex gap-3 text-[0.9375rem] leading-[1.65] text-[rgba(13,13,13,0.72)]">
+            <li className={`flex gap-3 ${BODY_LIGHT}`}>
               <Check light />
               Sala fechada no Google Meet, sem plateia de transmissão. A gravação fica com você.
             </li>
@@ -281,11 +306,11 @@ export default function ImersaoPage() {
       {/* 7. POR QUE O INGRESSO É BARATO E POR QUE NÃO É DE GRAÇA (dark) */}
       <section className="bg-[var(--bg-elevated)] py-20 md:py-28">
         <div className="container-lp grid gap-12 md:grid-cols-[1fr_auto] md:items-center">
-          <div className="max-w-2xl">
+          <div className="max-w-[680px]">
             <h2 className="section-title">
               Por que o ingresso é barato e por que não é de graça
             </h2>
-            <div className="mt-8 space-y-5 text-[0.9375rem] leading-[1.75] text-[var(--text-2)]">
+            <div className={`mt-8 space-y-5 ${BODY_DARK}`}>
               <p>
                 É barato porque o preço não é o que deveria te separar disso. Eu quero você na
                 sala, com o aparelho na mão, saindo com a sua hora definida.
@@ -298,56 +323,65 @@ export default function ImersaoPage() {
             </div>
           </div>
           <div className="shrink-0 border border-[var(--border-hover)] bg-[var(--bg-card)] px-10 py-8 text-center">
-            <p className="meta">Ingresso</p>
+            <p className={CAPTION_DARK}>Ingresso</p>
             <p className="stat-num mt-2">R$ 97</p>
           </div>
         </div>
       </section>
 
-      {/* 8. QUEM VAI CONDUZIR (light) */}
+      {/* 8. QUEM VAI CONDUZIR (light) — título e foto à esquerda, texto à direita no desktop */}
       <section className="bg-[#F4F2EE] py-20 md:py-28">
-        <div className="container-lp grid items-start gap-10 md:grid-cols-[240px_1fr] md:gap-14">
-          <figure>
-            <div className="relative aspect-[3/4] w-full overflow-hidden">
-              <Image
-                src="/photos/kaua-portrait-close.jpg"
-                alt="Kauã Ramos"
-                fill
-                sizes="(max-width: 768px) 100vw, 240px"
-                className="object-cover"
-              />
-            </div>
-            <figcaption className="mt-3 text-[0.75rem] uppercase tracking-[0.16em] text-[rgba(13,13,13,0.5)]">
-              Kauã Ramos · Health manager
-            </figcaption>
-          </figure>
+        <div className="container-lp grid items-start gap-10 md:grid-cols-[280px_1fr] md:gap-16">
           <div>
             <h2 className="font-display text-[1.75rem] leading-[1.1] tracking-[-0.02em] text-[#0D0D0D] md:text-[2.25rem]">
               Quem vai conduzir
             </h2>
-            <div className="mt-6 space-y-5 text-[1.0625rem] leading-[1.75] text-[rgba(13,13,13,0.72)]">
-              <p>
-                Eu cuido da saúde, da performance e da longevidade de quem não tem tempo pra cuidar
-                delas. Sou Kauã Ramos, health manager, e passei por um hub internacional de
-                wellness acompanhando empresários de 45, 50 anos ou mais: agenda cheia, viagem,
-                jantar de negócios e um relógio caro no pulso. Já são centenas de clientes com esse
-                perfil.
-              </p>
-              <p>
-                Hoje, na Wealth & Wellness, eu acompanho cada cliente pelo dado do próprio
-                wearable, com uma leitura semanal do que os números mostraram. Estudo nutrição e
-                sou coach de CrossFit Level 1, mas pra esse perfil o que mais muda o jogo quase
-                nunca é treino a mais. Por isso esta imersão começa pela Hora Fixa.
-              </p>
-            </div>
+            <figure className="mt-6">
+              <div className="relative aspect-[3/4] w-full overflow-hidden">
+                <Image
+                  src="/photos/kaua-portrait-close.jpg"
+                  alt="Kauã Ramos"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 280px"
+                  className="object-cover"
+                  // Sem `priority`, mas com `loading="eager"`: esta foto está
+                  // abaixo da dobra, então não precisa do preload de LCP, mas
+                  // precisa existir no HTML sem depender do IntersectionObserver
+                  // do lazy-loading nativo. Um screenshot de página inteira
+                  // tirado logo após o load (sem esperar o scroll dar tempo do
+                  // navegador disparar o carregamento) capturava o card vazio,
+                  // só com a legenda — a imagem carregava, só que tarde demais
+                  // pro frame que já tinha sido composto.
+                  loading="eager"
+                />
+              </div>
+              <figcaption className={`mt-3 ${CAPTION_LIGHT}`}>
+                Kauã Ramos · Health manager
+              </figcaption>
+            </figure>
+          </div>
+          <div className={`max-w-[680px] space-y-5 ${BODY_LIGHT}`}>
+            <p>
+              Eu cuido da saúde, da performance e da longevidade de quem não tem tempo pra cuidar
+              delas. Sou Kauã Ramos, health manager, e passei por um hub internacional de
+              wellness acompanhando empresários de 45, 50 anos ou mais: agenda cheia, viagem,
+              jantar de negócios e um relógio caro no pulso. Já são centenas de clientes com esse
+              perfil.
+            </p>
+            <p>
+              Hoje, na Wealth & Wellness, eu acompanho cada cliente pelo dado do próprio
+              wearable, com uma leitura semanal do que os números mostraram. Estudo nutrição e
+              sou coach de CrossFit Level 1, mas pra esse perfil o que mais muda o jogo quase
+              nunca é treino a mais. Por isso esta imersão começa pela Hora Fixa.
+            </p>
           </div>
         </div>
       </section>
 
       {/* 9. FECHAMENTO (dark) */}
       <section id="ingresso" className="bg-[var(--bg)] py-20 md:py-28">
-        <div className="container-lp max-w-2xl text-center">
-          <p className="lede mx-auto max-w-none">
+        <div className="container-lp max-w-[680px] text-center">
+          <p className={`mx-auto ${BODY_DARK}`}>
             Você quer manter o ritmo que tem hoje e chegar inteiro ao fim do dia. Em duas noites
             você define a sua hora fixa e aprende a ler três números no lugar da nota. Sai com a
             sua hora, a sua linha de base e o plano da primeira semana, e acompanha no seu próprio
@@ -355,13 +389,18 @@ export default function ImersaoPage() {
           </p>
 
           <h2 className="section-title mt-10">Imersão Performance e Longevidade</h2>
-          <p className="meta mt-4">
+          <p className={`mt-4 ${CAPTION_DARK}`}>
             29 e 30 de setembro · 19h30 às 21h30 · Ao vivo no Google Meet, com gravação
           </p>
           <p className="stat-num mt-8">Ingresso R$ 97</p>
-          <Button href={cta} variant="primary" size="lg" className="mt-8 w-full sm:w-auto">
+          <a
+            href={cta}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+            className={`${CTA_CLASS} mt-8`}
+          >
             GARANTIR MEU INGRESSO
-          </Button>
+          </a>
         </div>
       </section>
     </>

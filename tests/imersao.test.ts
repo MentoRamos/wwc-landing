@@ -44,7 +44,9 @@ describe('/imersao', () => {
     const source = page();
     expect(source).toContain("import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao'");
 
-    const hrefs = [...source.matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
+    // Masked, like the logo check: a doc comment explaining this exact rule
+    // is allowed to mention what a broken `href={...}` would look like.
+    const hrefs = [...code(source).matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
     expect(hrefs.length).toBeGreaterThan(0);
     for (const href of hrefs) {
       // Either the call itself, or a local const bound to it near the top of
