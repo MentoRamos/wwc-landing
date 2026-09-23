@@ -177,7 +177,7 @@ export function AboutSection() {
             >
               <Image
                 src="/photos/kaua-portrait-color.jpg"
-                alt="Kauã Ramos — Host & Curador do WWC"
+                alt="Kauã Ramos, Host e Curador do WWC"
                 fill
                 sizes="(max-width: 768px) 100vw, 420px"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"

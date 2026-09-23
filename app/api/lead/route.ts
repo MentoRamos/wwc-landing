@@ -33,12 +33,14 @@ export async function POST(request: Request) {
       });
 
       if (!res.ok) {
-        console.error('Supabase error:', await res.text());
+        // Only the status: a Postgres constraint error echoes the offending
+        // value back, which here would be the lead's own email.
+        console.error('Supabase rejected the lead insert. status=%d', res.status);
         return Response.json({ error: 'Failed to save lead' }, { status: 500 });
       }
     } else {
-      // Log to console when Supabase is not configured
-      console.log('New lead (no Supabase):', data);
+      // Never log the lead itself: name, email and whatsapp are personal data.
+      console.warn('Lead received but Supabase is not configured; nothing was stored.');
     }
 
     return Response.json({ success: true });

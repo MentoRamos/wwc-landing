@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-display: "Playfair Display", "Playfair Display Fallback", serif;
-  --font-body: "Inter", "Inter Fallback", sans-serif;
+  /*
+   * Didot é a serif da marca; Playfair é o fallback que o DESIGN.md nomeia, e
+   * é o que existe no Google Fonts. Didot vem primeiro para quem tiver.
+   */
+  --font-display: Didot, "Playfair Display", "Playfair Display Fallback", Georgia, serif;
+  /*
+   * O corpo era Inter, que o design system proíbe por nome ("Proibido cair em
+   * Inter/Roboto/Arial genérico"). A pilha do sistema é o que o doc pede, e
+   * tem o efeito colateral de tirar uma fonte da rede do caminho crítico.
+   */
+  --font-body: var(--font-barlow), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "Segoe UI", sans-serif;
+  /* Caixa alta com tracking largo: rótulo, kicker, cabeçalho de tabela.
+     É o "cromo de navegação" do design system, e nunca corpo de texto. */
+  --font-label: var(--font-barlow-condensed), var(--font-barlow), "Helvetica Neue", sans-serif;
   --color-gold: #C9A84C;
   --color-gold-dim: #A68A3A;
   --color-gold-glow: rgba(201, 168, 76, 0.14);
@@ -10,21 +22,51 @@
 
 @layer base {
   :root {
-    --bg: #0C0C0C;
-    --bg-elevated: #111111;
-    --bg-card: #161616;
-    --bg-card-hover: #1C1C1C;
+    /*
+     * A família inteira do texto era cinza-azulada (#F2F3F5 / #B4B8BF), fria,
+     * e é a razão de a plataforma ler como app em vez de impresso. O DESIGN.md
+     * pede ivory quente (#F4F2EE) e as opacidades derivadas dela: assim toda
+     * palavra na tela pertence à mesma tinta, que é o que dá o ar editorial.
+     */
+    --bg: #0D0D0D;
+    --bg-elevated: #121212;
+    --bg-card: #181818;
+    --bg-card-hover: #1F1F1F;
     --surface: #232323;
-    --text-1: #F2F3F5;
-    --text-2: #B4B8BF;
-    --text-3: #8A8E96;
-    --text-4: #6B6F78;
+    --text-1: #F4F2EE;
+    --text-2: rgba(244, 242, 238, 0.66);
+    /*
+     * O doc diz "faint .40" para legenda. `--text-3` carrega rótulo e dado
+     * acionável em 61 lugares, e a .40 sobre este fundo reprova AA — é o mesmo
+     * erro que o design system do report já documenta sobre `--ink-3`. Fica em
+     * .52 (~4,6:1, passa AA) e a .40 real vive em `--text-4`, que é legenda.
+     */
+    --text-3: rgba(244, 242, 238, 0.52);
+    --text-4: rgba(244, 242, 238, 0.4);
 
     --accent: #C9A84C;
     --accent-dim: #A68A3A;
     --accent-glow: rgba(201, 168, 76, 0.14);
 
-    --border: rgba(255, 255, 255, 0.06);
+    /* Estado, e só estado.
+     *
+     * Os dois vêm do wealth-wellness-DESIGN.md, onde já eram "delta positivo"
+     * e "abaixo da meta" nos relatórios em PDF. Reaproveitá-los aqui faz o
+     * painel falar a mesma língua do documento que o aluno recebe na sexta,
+     * em vez de inventar um verde de aplicativo de corrida.
+     *
+     * Eles nunca são decoração: se um elemento está verde, alguma coisa está
+     * em dia; se está âmbar, alguma coisa vence. O ouro continua sendo o
+     * acento da marca e não diz estado nenhum. */
+    --good: #4C7A57;
+    --good-text: #8FBF9C;
+    --good-glow: rgba(76, 122, 87, 0.16);
+    --warn: #B7752A;
+    --warn-text: #D9A263;
+    --warn-glow: rgba(183, 117, 42, 0.16);
+
+    --bg-locked: #121212;
+    --border: rgba(244, 242, 238, 0.11);
     --border-hover: rgba(201, 168, 76, 0.25);
 
     --header-height: 80px;
@@ -77,6 +119,73 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--text-4); border-radius: 2px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   EDITORIAL SCALE — the platform pages
+   The event page keeps its bespoke type; these are for everything else, so a
+   heading is the same size on /circle as it is on /conta. Before this each
+   page reached for `text-4xl` and a hand-written eyebrow, which is how six
+   pages end up with six different ideas of the same level.
+───────────────────────────────────────────────────────────────────────────── */
+
+.eyebrow {
+  /* Barlow Condensed em caixa alta e tracking largo: é isto que o design
+     system chama de assinatura, e o que separa um rótulo da marca de um
+     rótulo de qualquer app. Condensed também rende: o mesmo rótulo cabe em
+     menos largura, que importa quando ele encabeça coluna de tabela. */
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.125rem, 1.55rem + 2.4vw, 3.25rem);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+/* The one opening paragraph under a page title. */
+.lede {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--text-2);
+  max-width: 58ch;
+}
+
+.prose-body {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--text-2);
+  max-width: 66ch;
+}
+
+/* The line under a thing that says what it is: kind, duration, valid until. */
+.meta {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-4);
 }
 
 /* Container */
@@ -421,6 +530,70 @@ a:focus-visible {
   .stagger-children > * { opacity: 1; animation: none; }
 }
 
+/* 12b. Reveal ao rolar que nao depende de JS para existir.
+
+   O /connect entregava 236 elementos com `opacity:0` no HTML: o Framer
+   Motion serializa o `initial` no servidor, entao a pagina do evento so
+   existia depois que o JavaScript hidratava. Com JS lento a tela ficava
+   branca; com JS desligado ficava branca para sempre.
+
+   Aqui o estado de repouso e VISIVEL. O escondido so entra quando o
+   componente arma o elemento (`data-armed`), e ele so arma o que esta
+   abaixo da dobra — o que ja estava na tela quando a pagina abriu nunca
+   pisca, porque nunca chega a ser escondido. */
+.reveal { opacity: 1; }
+.reveal[data-armed='true'] {
+  opacity: 0;
+  transform: translateY(var(--reveal-y, 40px));
+}
+.reveal[data-armed='true'].is-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
+  transition-delay: var(--reveal-delay, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal[data-armed='true'],
+  .reveal[data-armed='true'].is-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* 12c. A entrada do hero, em CSS.
+
+   Isto era Framer com `initial="hidden"`, e o estado escondido do titulo nao
+   era opacidade e sim `clip-path: inset(100% 0 0 0)`: sem JavaScript, o maior
+   texto da pagina do evento tinha altura zero. Estava no HTML, para o Google,
+   e invisivel para gente.
+
+   Animacao de CSS nao espera hidratacao nem depende de JS existir, entao aqui
+   ela e melhor que a biblioteca nos dois eixos: aparece antes e aparece
+   sempre. `both` segura o primeiro quadro durante o atraso. */
+@keyframes hero-mask-up {
+  from { clip-path: inset(100% 0 0 0); transform: translateY(30%); }
+  to   { clip-path: inset(0 0 0 0);    transform: none; }
+}
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-mask-up {
+  animation: hero-mask-up 1.25s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0s);
+}
+.hero-fade-up {
+  animation: hero-fade-up 1s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-mask-up,
+  .hero-fade-up { animation: none; }
+}
+
 /* 13. Parallax layer */
 .parallax-layer {
   transform-style: preserve-3d;
@@ -467,4 +640,356 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ÊNFASE DA MARCA
+   O DESIGN.md define a assinatura em uma linha: "Itálico serif = ênfase (a
+   palavra-acento em dourado)". Não existia na plataforma, então toda ênfase
+   virava negrito — que é o gesto de app, não de impresso.
+
+   Uma por bloco. Duas deixam de ser ênfase e viram decoração, que é a mesma
+   regra do "um gesto de destaque por página".
+───────────────────────────────────────────────────────────────────────────── */
+
+.accent-word {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   VOCABULÁRIO DE INTERAÇÃO DA PLATAFORMA
+
+   A área logada tinha um único gesto: trocar `--bg-card` por `--bg-card-hover`.
+   Dois cinzas separados por 7% de luminância, sem nada mais acontecendo — e é
+   por isso que a plataforma lia como estática mesmo com dezesseis utilitários
+   premium já escritos neste arquivo (tilt 3D, magnetic, glass, parallax). Eles
+   foram feitos para a landing do evento e nenhuma página logada os usa.
+
+   Não é para usá-los aqui. Tilt e sombra grande são o gesto de dashboard que o
+   DESIGN.md proíbe por nome. A profundidade de uma peça editorial vem de outro
+   lugar: régua, escala de tipo, imagem e tempo.
+
+   O gesto desta camada é UM só, e é emprestado da própria marca: o design
+   system do report define "uma régua dourada curta ancorada à esquerda" como
+   assinatura do cabeçalho. Aqui ela deixa de ser ornamento parado e vira o
+   evento de interação — ela DESENHA quando você aponta. Um gesto repetido em
+   toda superfície clicável ensina a mão o que é clicável sem nenhuma borda
+   nova.
+───────────────────────────────────────────────────────────────────────────── */
+
+/*
+ * A régua que desenha. `scaleX` com `transform-origin:left` anima na GPU e não
+ * reflui nada — de propósito, porque isto roda em cima de cada card de uma
+ * grade e `width` aqui custaria layout em todos eles.
+ */
+.rule-draw {
+  position: relative;
+}
+.rule-draw::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1px;
+  width: 52px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.55s var(--ease-out-expo);
+  pointer-events: none;
+}
+/*
+ * `:focus-visible` junto com `:hover` porque quem navega por teclado precisa
+ * do mesmo sinal. O anel de foco global (utilitário 8) diz "estou aqui"; a
+ * régua diz "e isto abre alguma coisa".
+ */
+.rule-draw:hover::before,
+.rule-draw:focus-visible::before {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rule-draw::before { transition: none; }
+}
+
+/*
+ * A seta que anda. Fica em `--text-4` parada e vira ouro andando 4px — o
+ * suficiente para o olho registrar direção sem nada se mexer de lugar.
+ */
+.nudge-x {
+  display: inline-block;
+  transition: transform 0.45s var(--ease-out-expo), color 0.3s ease;
+}
+.rule-draw:hover .nudge-x,
+.rule-draw:focus-visible .nudge-x {
+  transform: translateX(4px);
+  color: var(--accent);
+}
+
+/*
+ * Sublinhado que desenha, para link de texto. Mesmo gesto da régua, em corpo
+ * de parágrafo: o link não muda de cor no repouso (cor em texto corrido é o
+ * que o DESIGN.md chama de ouro virando base), só ganha a linha ao apontar.
+ */
+.link-draw {
+  position: relative;
+  color: var(--text-1);
+}
+.link-draw::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s var(--ease-out-expo);
+}
+.link-draw:hover::after,
+.link-draw:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ESCALA EDITORIAL QUE FALTAVA
+
+   Todo card da plataforma escrevia seu título em `text-lg` — a mesma medida
+   do parágrafo ao lado, na fonte do parágrafo. Com display e corpo no mesmo
+   tamanho e na mesma família, não existe hierarquia dentro do card, e é a
+   segunda razão de a tela ler como lista de texto em caixas.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* O título de um card: a serif, no tamanho em que ela ainda é serif. */
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.3125rem;
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+/*
+ * O número grande. É a assinatura editorial que o design system do report usa
+ * (`.ig-num`, `.tv`) e que a plataforma nunca teve: um dado sozinho, grande,
+ * em serif, com o rótulo pequeno e espaçado embaixo. É o que diferencia
+ * relatório de private bank de tabela de app.
+ */
+.stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 1.8rem + 1.8vw, 3rem);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A régua dourada parada, como divisor de seção ancorado à esquerda. */
+.rule-gold {
+  width: 52px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Artigos do Circle.
+
+   A coluna de leitura é o único lugar da plataforma com texto corrido longo, e
+   é por isso que ela não usa `.prose-body` (15px, pensado para duas linhas sob
+   um título). Aqui a medida é de livro: ~68 caracteres, 1.0625rem, entrelinha
+   folgada. Ouro só no marcador de citação e no sublinhado do link, nunca no
+   corpo, como o DESIGN.md pede.
+───────────────────────────────────────────────────────────────────────────── */
+
+.article-prose {
+  max-width: 68ch;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--text-2);
+}
+
+.article-prose > * + * {
+  margin-top: 1.25em;
+}
+
+.article-prose h2 {
+  margin-top: 2.4em;
+  font-family: var(--font-display);
+  font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+.article-prose h3 {
+  margin-top: 2em;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-1);
+}
+
+.article-prose h2 + *,
+.article-prose h3 + * {
+  margin-top: 0.75em;
+}
+
+.article-prose strong {
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.article-prose a {
+  color: var(--text-1);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-dim);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.2s;
+}
+
+.article-prose a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.article-prose ul,
+.article-prose ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  padding-left: 1.25em;
+}
+
+.article-prose ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.article-prose ul > li {
+  position: relative;
+  padding-left: 1.75em;
+}
+
+/* A mesma régua curta que o /circle usa como marcador: diz "item" sem fingir
+   ser pontuação. */
+.article-prose ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.9em;
+  width: 1em;
+  height: 1px;
+  background: var(--text-4);
+}
+
+.article-prose ol > li::marker {
+  font-family: var(--font-display);
+  color: var(--text-3);
+}
+
+.article-prose blockquote {
+  border-left: 1px solid var(--accent);
+  padding-left: 1.25em;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.1875rem;
+  color: var(--text-1);
+}
+
+.article-prose hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin-block: 2.5em;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Modo leitura (claro), só nas páginas de artigo.
+
+   É a paleta clara oficial do W&W, a mesma dos reports em PDF
+   (wealth-wellness-DESIGN.md): papel marfim, tinta quase preta, ouro só como
+   acento. Aqui só se redefinem os tokens; tudo que usa var(--...) acompanha.
+
+   O ouro de acento escurece para #8C7440: o #A8894F do documento, sobre
+   marfim, dá ~3:1 e reprova AA no rótulo pequeno. O mais claro fica em
+   --accent-dim, que só decora (sublinhado, filete).
+
+   Quem liga é components/articles/ReadingThemeToggle; quem desliga ao sair dos
+   artigos também. O resto da plataforma nunca vê este bloco.
+───────────────────────────────────────────────────────────────────────────── */
+
+html[data-theme='light'] {
+  color-scheme: light;
+  --bg: #F4F2EE;
+  --bg-elevated: #FCFBF8;
+  --bg-card: #FCFBF8;
+  --bg-card-hover: #FFFFFF;
+  --surface: #ECE8E0;
+  --text-1: #1A1712;
+  --text-2: rgba(26, 23, 18, 0.74);
+  --text-3: rgba(26, 23, 18, 0.6);
+  --text-4: rgba(26, 23, 18, 0.46);
+  --accent: #8C7440;
+  --accent-dim: #A8894F;
+  --accent-glow: rgba(140, 116, 64, 0.12);
+  --good: #4C7A57;
+  --good-text: #3A5E43;
+  --good-glow: rgba(76, 122, 87, 0.14);
+  --warn: #B7752A;
+  --warn-text: #8C5A20;
+  --warn-glow: rgba(183, 117, 42, 0.14);
+
+  --bg-locked: #ECE8E0;
+  --border: rgba(26, 23, 18, 0.12);
+  --border-hover: rgba(140, 116, 64, 0.5);
+}
+
+html[data-theme='light'] body {
+  background: var(--bg);
+  color: var(--text-1);
+}
+
+/* A capa foi feita para fundo escuro; no papel ela ganha uma moldura fina
+   para não parecer um buraco na página. */
+html[data-theme='light'] .article-cover {
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Leitura por dispositivo.
+
+   Celular: coluna estreita, letra maior, entrelinha folgada. É leitura de
+   polegar, com o texto ocupando a tela de ponta a ponta.
+   Desktop: a coluna de texto fica mais larga (~72 caracteres) e as laterais
+   deixam de ser vazio: sumário à esquerda, ações e Circle à direita.
+───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .article-prose {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+  .article-prose h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .article-prose {
+    max-width: 72ch;
+    font-size: 1.125rem;
+  }
+}
+
+/* O link do sumário leva ao título sem ele ficar escondido sob o cabeçalho fixo. */
+.article-prose h2 {
+  scroll-margin-top: 6rem;
 }
