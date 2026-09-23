@@ -20,8 +20,10 @@ function code(source: string): string {
  */
 const PAGE_PATH = join(process.cwd(), 'app/imersao/page.tsx');
 const OG_IMAGE_PATH = join(process.cwd(), 'app/imersao/opengraph-image.tsx');
+const STICKY_PATH = join(process.cwd(), 'components/imersao/StickyBuyBar.tsx');
 const page = () => readFileSync(PAGE_PATH, 'utf8');
 const ogImage = () => readFileSync(OG_IMAGE_PATH, 'utf8');
+const stickyBar = () => readFileSync(STICKY_PATH, 'utf8');
 
 describe('/imersao', () => {
   it('renders exactly one h1, and it is the headline', () => {
@@ -41,6 +43,7 @@ describe('/imersao', () => {
   it('never references a logo or brand-mark asset', () => {
     expect(/logo/i.test(code(page()))).toBe(false);
     expect(/logo/i.test(code(ogImage()))).toBe(false);
+    expect(/logo/i.test(code(stickyBar()))).toBe(false);
   });
 
   it('every CTA href is built from the checkout constant, not a literal URL', () => {
@@ -49,10 +52,21 @@ describe('/imersao', () => {
 
     // Masked, like the logo check: a doc comment explaining this exact rule
     // is allowed to mention what a broken `href={...}` would look like.
-    const hrefs = [...code(source).matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
+    const pageHrefs = [...code(source).matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
     // Hero, after Programação, section 7's price box, and the closing — the
     // design review added two mid-page CTAs on top of the original two.
-    expect(hrefs.length).toBe(4);
+    expect(pageHrefs.length).toBe(4);
+
+    // The sticky mobile buy bar lives in its own client component, and it
+    // calls imersaoCtaHref() itself instead of receiving `cta` as a prop:
+    // a prop would still satisfy "not a literal URL" in spirit, but a direct
+    // call keeps this exact source-scan test able to see it, the same way it
+    // sees the page's own CTAs.
+    const stickyHrefs = [...code(stickyBar()).matchAll(/href=\{([^}]*)\}/g)].map((m) => m[1].trim());
+    expect(stickyHrefs.length).toBe(1);
+
+    const hrefs = [...pageHrefs, ...stickyHrefs];
+    expect(hrefs.length).toBe(5);
     for (const href of hrefs) {
       // Either the call itself, or a local const bound to it near the top of
       // the component (the page also uses it for the button label price).
@@ -92,5 +106,29 @@ describe('/imersao link preview (Open Graph / Twitter)', () => {
     expect(source).toContain('#0D0D0D');
     // No scarcity/urgency language invented for the card.
     expect(/vagas|últim|corr(a|endo)|apenas hoje/i.test(source)).toBe(false);
+  });
+});
+
+describe('/imersao sticky mobile buy bar', () => {
+  it('is a client component gated to mobile, with an accessible landmark', () => {
+    const source = stickyBar();
+    expect(source.trimStart().startsWith("'use client'")).toBe(true);
+    expect(source).toContain('aria-label');
+    expect(source).toContain('md:hidden');
+  });
+
+  it('shows the same single CTA text as the rest of the page', () => {
+    expect(code(stickyBar())).toContain('GARANTIR MEU INGRESSO');
+  });
+
+  it('drives visibility off the hero CTA and the closing section via IntersectionObserver', () => {
+    const source = stickyBar();
+    expect(source).toContain('IntersectionObserver');
+    expect(source).toContain('data-cta="hero"');
+    expect(source).toContain("getElementById('ingresso')");
+  });
+
+  it('the page mounts the sticky bar exactly once', () => {
+    expect([...page().matchAll(/<StickyBuyBar\s*\/>/g)]).toHaveLength(1);
   });
 });

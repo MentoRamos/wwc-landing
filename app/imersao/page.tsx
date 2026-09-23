@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { isExternalLink } from '@/lib/core/links.core';
 import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
+import { StickyBuyBar } from '@/components/imersao/StickyBuyBar';
 
 /**
  * A página do evento ao vivo, isolada de propósito.
@@ -12,9 +13,11 @@ import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
  * dourado do `/connect` — a regra desta venda é que o topo da página é o
  * título, sem logo, sem selo, sem cromo institucional.
  *
- * Server Component o tempo todo: a página não tem um único evento de
- * interação além de âncora e link, então não há motivo para JavaScript no
- * cliente.
+ * Server Component: a própria página não tem um único evento de interação
+ * além de âncora e link. A única ilha de cliente que ela monta,
+ * `StickyBuyBar`, existe por um motivo que só existe no navegador
+ * (IntersectionObserver) e não precisa que a página em volta vire cliente
+ * também.
  *
  * O CTA não usa o `components/ui/Button.tsx` compartilhado: aquele é o botão
  * de contorno fino do resto do site, e esta página pediu um botão sólido,
@@ -113,7 +116,11 @@ export default function ImersaoPage() {
   } as const;
 
   return (
-    <>
+    // `pb-20 md:pb-0`: espaço reservado pro rodapé fixo do celular
+    // (StickyBuyBar, ~64px + safe-area) nunca tampar o fim da última seção
+    // visível enquanto ele estiver no ar; o próprio componente já some perto
+    // de `#ingresso`, isto é só o cinto de segurança contra bounce/overscroll.
+    <div className="pb-20 md:pb-0">
       {/* 1. HERO (dark) */}
       <section className="bg-[var(--bg)] pt-16 pb-20 md:pt-24 md:pb-28">
         <div className="container-lp grid items-center gap-12 md:grid-cols-[1.15fr_0.85fr] md:gap-16">
@@ -135,7 +142,13 @@ export default function ImersaoPage() {
             <div className="mt-8 flex flex-wrap items-center gap-6">
               <p className="stat-num">Ingresso R$ 97</p>
             </div>
-            <a href={cta} target={ctaProps.target} rel={ctaProps.rel} className={`${CTA_CLASS} mt-6`}>
+            <a
+              href={cta}
+              data-cta="hero"
+              target={ctaProps.target}
+              rel={ctaProps.rel}
+              className={`${CTA_CLASS} mt-6`}
+            >
               GARANTIR MEU INGRESSO · R$ 97
             </a>
           </div>
@@ -445,6 +458,8 @@ export default function ImersaoPage() {
           </div>
         </div>
       </section>
-    </>
+
+      <StickyBuyBar />
+    </div>
   );
 }
