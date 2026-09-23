@@ -554,7 +554,10 @@ export default function ImersaoPage() {
             Prints reais de alunos do acompanhamento, com os nomes ocultos.
           </p>
         </div>
-        <div className="md:container-lp">
+        {/* `container-lp` is plain CSS, so `md:container-lp` would do nothing: the
+            same box is rebuilt with utilities so it only applies from md up and the
+            mobile carousel keeps running edge to edge. */}
+        <div className="md:mx-auto md:max-w-[1440px] md:px-10 lg:px-16">
           <ul
             className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:grid md:grid-cols-2 md:items-start md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden"
             aria-label="Prints de mensagens de alunos"
