@@ -51,9 +51,16 @@ const CTA_CLASS =
   'inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-8 py-[18px] ' +
   'text-[1.0625rem] font-semibold text-[#0D0D0D] transition-colors duration-300 hover:bg-[#D4B85C] sm:w-auto';
 
-const CTA_OUTLINE_CLASS =
-  'inline-flex w-full items-center justify-center rounded-full border border-[var(--border-hover)] px-8 py-[18px] ' +
-  'text-[1.0625rem] font-semibold text-[var(--text-1)] transition-colors duration-300 hover:border-[var(--accent)] sm:w-auto';
+/** Same buttons, narrower padding and a 16px label on phones: used inside the
+ *  padded plan/offer cards, where the full-size label would wrap onto two
+ *  lines at 390px (and did, on desktop too, with two buttons side by side). */
+const CTA_IN_CARD_CLASS =
+  'inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-6 py-[18px] text-center ' +
+  'text-[1rem] font-semibold text-[#0D0D0D] transition-colors duration-300 hover:bg-[#D4B85C] sm:w-auto sm:px-8 sm:text-[1.0625rem]';
+
+const CTA_OUTLINE_IN_CARD_CLASS =
+  'inline-flex w-full items-center justify-center rounded-full border border-[var(--border-hover)] px-6 py-[18px] text-center ' +
+  'text-[1rem] font-semibold text-[var(--text-1)] transition-colors duration-300 hover:border-[var(--accent)] sm:w-auto sm:px-8 sm:text-[1.0625rem]';
 
 const H2 = 'font-display text-[1.75rem] md:text-[2.25rem] leading-[1.1] tracking-[-0.02em]';
 const H2_DARK = `${H2} text-[var(--text-1)]`;
@@ -469,7 +476,7 @@ export default function ProtocoloPage() {
                 </span>
                 <div>
                   <p className={KICKER_GOLD}>{step.t}</p>
-                  <p className={`mt-2 ${BODY_DARK}`}>{step.b}</p>
+                  <p className={`mt-2 max-w-[760px] ${BODY_DARK}`}>{step.b}</p>
                 </div>
               </li>
             ))}
@@ -495,7 +502,7 @@ export default function ProtocoloPage() {
 
           <h3 className={`${H2_DARK} mt-16 text-[1.5rem] md:text-[1.75rem]`}>90 ou 180 dias</h3>
           <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <div className="border border-[var(--accent)] bg-[var(--bg-card)] p-8">
+            <div className="border border-[var(--accent)] bg-[var(--bg-card)] p-6 md:p-8">
               <p className={KICKER_GOLD}>180 dias · recomendado</p>
               <ul className={`mt-5 space-y-3 ${BODY_DARK}`}>
                 <li>Trilha de 12 semanas: inteira</li>
@@ -510,12 +517,12 @@ export default function ProtocoloPage() {
                 data-plan="180d"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${CTA_CLASS} mt-6`}
+                className={`${CTA_IN_CARD_CLASS} mt-6`}
               >
                 QUERO O PROTOCOL DE 180 DIAS
               </a>
             </div>
-            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-8">
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6 md:p-8">
               <p className={KICKER_GOLD}>90 dias</p>
               <ul className={`mt-5 space-y-3 ${BODY_DARK}`}>
                 <li>Trilha de 12 semanas: inteira</li>
@@ -530,7 +537,7 @@ export default function ProtocoloPage() {
                 data-plan="90d"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${CTA_OUTLINE_CLASS} mt-6`}
+                className={`${CTA_OUTLINE_IN_CARD_CLASS} mt-6`}
               >
                 QUERO O PROTOCOL DE 90 DIAS
               </a>
@@ -646,7 +653,7 @@ export default function ProtocoloPage() {
                 <Check tone="goldLight" />
                 <div>
                   <p className={`${BODY_LIGHT} text-[#0D0D0D] font-medium`}>{item.t}</p>
-                  <p className={`mt-2 ${BODY_LIGHT}`}>{item.b}</p>
+                  <p className={`mt-2 max-w-[760px] ${BODY_LIGHT}`}>{item.b}</p>
                 </div>
               </div>
             ))}
@@ -907,16 +914,16 @@ export default function ProtocoloPage() {
         <div className="container-lp">
           <h2 className={`${H2_DARK} text-center`}>Dois caminhos, os dois válidos</h2>
 
-          <div className="mx-auto mt-12 max-w-[680px] border border-[var(--border-hover)] bg-[var(--bg-card)] p-8 text-center">
+          <div className="mx-auto mt-12 max-w-[680px] border border-[var(--border-hover)] bg-[var(--bg-card)] p-6 text-center md:p-8">
             <p className="card-title">Já decidi</p>
-            <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <div className="mt-6 flex flex-col items-center gap-4">
               <a
                 href={cta180}
                 data-cta="cta-final-180"
                 data-plan="180d"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={CTA_CLASS}
+                className={CTA_IN_CARD_CLASS}
               >
                 QUERO O PROTOCOL DE 180 DIAS
               </a>
@@ -926,14 +933,14 @@ export default function ProtocoloPage() {
                 data-plan="90d"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={CTA_OUTLINE_CLASS}
+                className={CTA_OUTLINE_IN_CARD_CLASS}
               >
                 QUERO O PROTOCOL DE 90 DIAS
               </a>
             </div>
           </div>
 
-          <div className="mx-auto mt-8 max-w-[680px] border border-[var(--border)] bg-[var(--bg-card)] p-8 text-center">
+          <div className="mx-auto mt-8 max-w-[680px] border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center md:p-8">
             <p className="card-title">Quero conversar antes</p>
             <p className={`mt-4 ${BODY_DARK}`}>
               Eu trabalho com poucas pessoas, e precisa fazer sentido dos dois lados. Se você quer ter
@@ -945,7 +952,7 @@ export default function ProtocoloPage() {
               data-cta="whatsapp-conversar"
               target="_blank"
               rel="noopener noreferrer"
-              className={`${CTA_OUTLINE_CLASS} mt-6`}
+              className={`${CTA_OUTLINE_IN_CARD_CLASS} mt-6`}
             >
               CONVERSAR NO WHATSAPP
             </a>
@@ -974,7 +981,7 @@ export default function ProtocoloPage() {
                 data-cta="whatsapp-cadastro"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={CTA_CLASS}
+                className={CTA_OUTLINE_IN_CARD_CLASS}
               >
                 FAZER MEU CADASTRO NO WHATSAPP
               </a>
