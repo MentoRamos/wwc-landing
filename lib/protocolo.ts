@@ -62,9 +62,11 @@ export const CONDICAO: {
   semanaOnboarding: string | null;
   proximaTurma: string | null;
 } = {
-  prazo: null,
-  semanaOnboarding: null,
-  // Confirmado pelo Kauã em 24/09/2026.
+  // Confirmados pelo Kauã em 24/09/2026. O prazo é o "último minuto do
+  // evento": o fim da sessão extra (21h30-22h15), onde ele responde no WhatsApp
+  // quem quer conversar antes de fechar.
+  prazo: 'quinta 29/10 às 22h15',
+  semanaOnboarding: 'semana seguinte, entre terça 3/11 e quinta 5/11',
   proximaTurma: 'janeiro de 2027',
 };
 
@@ -102,7 +104,7 @@ export function proximaTurmaTexto(): string {
 /** Texto (desktop) da barra fixa de rodapé (S20). */
 export function stickyBarTextoDesktop(): string {
   if (CONDICAO.semanaOnboarding && CONDICAO.prazo) {
-    return `W&W Protocol · onboarding garantido na ${CONDICAO.semanaOnboarding} pra quem fechar até ${CONDICAO.prazo}.`;
+    return `W&W Protocol · onboarding garantido na ${CONDICAO.semanaOnboarding}, pra quem fechar até ${CONDICAO.prazo}.`;
   }
   return 'W&W Protocol · onboarding garantido pra quem fechar durante a condição da imersão.';
 }

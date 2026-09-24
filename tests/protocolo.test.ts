@@ -6,7 +6,12 @@ import {
   PROTOCOLO_CHECKOUT_URL_180D,
   PROTOCOLO_CHECKOUT_URL_90D,
   WHATSAPP_NUMBER,
+  condicaoRodape,
+  condicaoTexto,
   protocoloCtaHref,
+  proximaTurmaTexto,
+  stickyBarTextoDesktop,
+  stickyBarTextoMobile,
   whatsappHref,
 } from '@/lib/protocolo';
 import { commentMask } from './helpers/source';
@@ -46,8 +51,8 @@ describe('lib/protocolo helpers', () => {
     expect(WHATSAPP_NUMBER).toBe('15619865175');
   });
 
-  it('the condição dates are unresolved placeholders, so the page must stay noindex', () => {
-    expect(CONDICAO_RESOLVIDA).toBe(false);
+  it('the condição dates are set (Kauã, 24/09), so the page can be indexed', () => {
+    expect(CONDICAO_RESOLVIDA).toBe(true);
   });
 });
 
@@ -265,15 +270,31 @@ describe('/imersao/protocolo analytics', () => {
   });
 });
 
-describe('lib/protocolo neutral copy while the condição dates are unresolved', () => {
-  it('never lets condicaoTexto/proximaTurmaTexto/stickyBar text leak a bracket placeholder', () => {
+describe('lib/protocolo condição dates (Kauã, 24/09)', () => {
+  it('ends the condição at the last minute of the event, the end of the sessão extra', () => {
     const source = lib();
-    // The doc comments are allowed to mention the bracket form; only check
-    // that CONDICAO is set to null, i.e. still unresolved.
-    expect(source).toContain('prazo: null');
-    expect(source).toContain('semanaOnboarding: null');
-    // Kauã confirmed the next class (24/09); the other two stay open.
+    expect(source).toContain("prazo: 'quinta 29/10 às 22h15'");
+    expect(source).toContain("semanaOnboarding: 'semana seguinte, entre terça 3/11 e quinta 5/11'");
     expect(source).toContain("proximaTurma: 'janeiro de 2027'");
+  });
+
+  it('prints the dates in every condição text, with no bracket placeholder', () => {
+    const texts = [
+      condicaoTexto(),
+      condicaoRodape(),
+      stickyBarTextoDesktop(),
+      stickyBarTextoMobile(),
+      proximaTurmaTexto(),
+    ];
+    for (const text of texts) expect(text).not.toMatch(/\[|\]/);
+    expect(condicaoTexto()).toContain(
+      'Quem fechar até quinta 29/10 às 22h15 tem o onboarding garantido na semana seguinte, entre terça 3/11 e quinta 5/11, e a semana',
+    );
+    expect(condicaoRodape()).toContain('Válida até quinta 29/10 às 22h15');
+    expect(stickyBarTextoDesktop()).toBe(
+      'W&W Protocol · onboarding garantido na semana seguinte, entre terça 3/11 e quinta 5/11, pra quem fechar até quinta 29/10 às 22h15.',
+    );
+    expect(stickyBarTextoMobile()).toBe('Condição da imersão até quinta 29/10 às 22h15.');
   });
 });
 
