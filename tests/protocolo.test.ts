@@ -457,3 +457,57 @@ describe('/imersao/protocolo copy rules across every source it renders', () => {
     }
   });
 });
+
+// ─── Ladeira audit (24/09/2026): offer-page rules from the course ─────────
+
+describe('/imersao/protocolo follows the course offer-page model', () => {
+  it('keeps the section order of the Cátia "Aperta & Solta" page, with garantia, vagas and the CTA before the FAQ', () => {
+    const source = code(page());
+    const ORDER = [
+      'onde', // S2 onde tudo acontece (the app block)
+      'depoimentos', // S3
+      'como-funciona', // S4 (funções)
+      'beneficios', // S5
+      'jeito-comum', // S6 jeito errado
+      'jeito-ww', // S7 jeito certo
+      'por-que-funciona', // S8
+      'ciclos', // S9 + S10
+      'callout', // S11
+      'condicao', // S12 (in place of bônus)
+      'estudo', // S13
+      'autoridade', // S14
+      'garantia', // S16
+      'vagas', // S17
+      'oferta', // S18
+      'faq', // S19
+    ];
+    const positions = ORDER.map((id) => source.indexOf(`id="${id}"`));
+    positions.forEach((p, i) => expect(p, ORDER[i]).toBeGreaterThan(-1));
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
+  it('has no logo or institutional header: the top of the page is the headline', () => {
+    const source = code(page());
+    expect(source).not.toMatch(/SiteHeader|SiteFooter/);
+    expect(source).not.toMatch(/src=["{][^"}]*logo/i);
+  });
+
+  it('the closing section recaps the destination before the buttons, instead of jumping straight to them', () => {
+    const source = code(page());
+    const start = source.indexOf('id="oferta"');
+    const firstButton = source.indexOf('data-cta="cta-final-180"');
+    expect(start).toBeGreaterThan(-1);
+    expect(firstButton).toBeGreaterThan(start);
+    // JSX collapses the line wrap inside text, so compare with whitespace collapsed.
+    const beforeButtons = source.slice(start, firstButton).replace(/\s+/g, ' ');
+    expect(beforeButtons).toContain('até você ler os seus números sozinho');
+  });
+
+  it('no exclamation mark in the copy (Light Copy); only the students’ own words in the prints keep theirs', () => {
+    for (const path of PROTOCOLO_SOURCES) {
+      let source = code(read(path));
+      source = source.replace(/const DEPOIMENTOS = \[[\s\S]*?\] as const;/, '');
+      expect(source, path).not.toMatch(/[A-Za-zÀ-ú”"')]!+(?=[\s'"`<,.”]|$)/m);
+    }
+  });
+});

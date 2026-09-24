@@ -1248,6 +1248,13 @@ export default function ProtocoloPage() {
       <section id="oferta" className="bg-[var(--bg)] py-20 md:py-28">
         <div className="container-lp">
           <h2 className={`${H2_DARK} text-center`}>Dois caminhos, os dois válidos</h2>
+          {/* Fechamento (Ladeira): recap of the destination before the buttons.
+              Built only from the approved hero subheadline, no new claim. */}
+          <p className={`mx-auto mt-6 max-w-[680px] text-center ${BODY_DARK}`}>
+            Acompanhamento individual comigo, por 90 ou 180 dias: doze semanas em três ciclos, um
+            Weekly Report por semana e uma call a cada quinze dias, até você ler os seus números
+            sozinho.
+          </p>
 
           <ScrollReveal className="mx-auto mt-12 max-w-[680px] border border-[var(--border-hover)] bg-[var(--bg-card)] p-6 text-center md:p-8">
             <p className="card-title">Já decidi</p>
