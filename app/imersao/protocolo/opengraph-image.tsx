@@ -80,7 +80,7 @@ export default async function Image() {
             </div>
           </div>
           <div style={{ display: 'flex', maxWidth: 560, fontSize: 21, lineHeight: 1.4, color: MUTED }}>
-            Acompanhamento individual com Kauã Ramos · 90 ou 180 dias
+            Acompanhamento individual com Kauã Ramos · 90 ou 180 dias
           </div>
         </div>
         <div style={{ position: 'relative', width: 480, height: 630, display: 'flex' }}>
