@@ -113,3 +113,47 @@ export function stickyBarTextoMobile(): string {
   }
   return 'Condição da imersão por tempo limitado.';
 }
+
+/**
+ * Liga os visuais que ainda não existem: dois recortes anonimizados de Weekly
+ * Report real (S2 "Onde tudo acontece" e S8 "Por que funciona") e o print da
+ * área do aluno numa conta de demonstração (S2). Os três dependem de material
+ * que o Kauã ainda vai providenciar (autorização escrita dos alunos, conta de
+ * demonstração), então a página sai com a flag desligada e nenhum desses
+ * arquivos é pedido ao servidor.
+ *
+ * Pra ligar: salvar os três arquivos em `public/photos/protocolo/` com estes
+ * nomes e trocar a flag pra `true`. A página já tem a moldura desenhada
+ * (navegador pra plataforma, folha pra relatório) em `VisualFrame`, e
+ * `tests/protocolo.test.ts` passa a exigir que os três arquivos existam.
+ */
+export const VISUAIS_PROTOCOLO = false;
+
+export type VisualProtocolo = {
+  src: string;
+  alt: string;
+  caption: string;
+  /** Proporção largura/altura da moldura, pra reservar o espaço sem layout shift. */
+  aspect: string;
+};
+
+export const VISUAIS = {
+  weeklyReport1: {
+    src: '/photos/protocolo/weekly-report-1.jpg',
+    alt: 'Recorte de um Weekly Report real, anonimizado: os números da semana contra a linha de base do aluno e a leitura escrita embaixo',
+    caption: 'Weekly Report real, anonimizado, com autorização do aluno.',
+    aspect: '4 / 5',
+  },
+  weeklyReport2: {
+    src: '/photos/protocolo/weekly-report-2.jpg',
+    alt: 'Recorte de outro Weekly Report real, anonimizado: a leitura da semana com o que fazer na segunda de manhã',
+    caption: 'Weekly Report real, anonimizado, com autorização do aluno.',
+    aspect: '4 / 5',
+  },
+  plataforma: {
+    src: '/photos/protocolo/plataforma.jpg',
+    alt: 'Área do aluno na plataforma W&W, numa conta de demonstração, com as quatro prateleiras: Plano do Ciclo, Weekly Reports, materiais e contrato',
+    caption: 'A sua área na plataforma W&W (conta de demonstração).',
+    aspect: '16 / 10',
+  },
+} as const satisfies Record<string, VisualProtocolo>;
