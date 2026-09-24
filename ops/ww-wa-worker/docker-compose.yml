@@ -1,0 +1,38 @@
+# ww-wa-worker: its own compose project, next to (not inside) /opt/ww-evolution.
+# It joins the Evolution network as an external network, so it reaches
+# http://ww-evolution:8080 without any published port, and it never touches
+# the Evolution stack's containers or config.
+#
+# Start it with ./start.sh, not `docker compose up` directly: start.sh reads
+# the Evolution API key from the running ww-evolution container and hands it
+# over through the environment, so the key never lands in a file here.
+name: ww-wa-worker
+
+services:
+  worker:
+    build: .
+    image: ww-wa-worker:local
+    # Fixed name = one worker only (design R3: never two workers claiming).
+    container_name: ww-wa-worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # `:?` refuses to (re)create the container without the key instead of
+      # starting a worker that fails every Evolution call.
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:?use ./start.sh}
+      EVOLUTION_URL: http://ww-evolution:8080
+      EVOLUTION_INSTANCE: ww
+      TZ: America/Sao_Paulo
+    networks: [evolution]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "3" }
+
+networks:
+  evolution:
+    external: true
+    name: ww-evolution_default
