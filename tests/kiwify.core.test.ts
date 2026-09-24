@@ -7,7 +7,7 @@ import {
   interpret,
   isActionable,
   lockKey,
-  readApprovedAt,
+  readPurchasedAt,
   readContact,
   readEvent,
   type KiwifyEvent,
@@ -460,22 +460,42 @@ describe('readContact', () => {
   });
 });
 
-describe('readApprovedAt', () => {
+describe('readPurchasedAt', () => {
   const now = new Date('2026-10-01T15:00:00Z');
 
   it('lê `approved_date` sem fuso como horário de Brasília', () => {
-    expect(readApprovedAt({ approved_date: '2026-09-24 10:30' }, now).toISOString()).toBe('2026-09-24T13:30:00.000Z');
+    expect(readPurchasedAt({ approved_date: '2026-09-24 10:30' }, now)).toEqual({
+      at: new Date('2026-09-24T13:30:00.000Z'),
+      source: 'approved_date',
+    });
   });
 
   it('aceita data com fuso', () => {
-    expect(readApprovedAt({ approved_date: '2026-09-24T13:30:00Z' }, now).toISOString()).toBe(
+    expect(readPurchasedAt({ approved_date: '2026-09-24T13:30:00Z' }, now).at.toISOString()).toBe(
       '2026-09-24T13:30:00.000Z',
     );
   });
 
-  it('usa o agora quando falta, é ilegível ou está no futuro', () => {
-    expect(readApprovedAt({}, now)).toEqual(now);
-    expect(readApprovedAt({ approved_date: 'ontem' }, now)).toEqual(now);
-    expect(readApprovedAt({ approved_date: '2026-12-01 10:00' }, now)).toEqual(now);
+  /**
+   * Sem `approved_date`, o `created_at` do pedido ainda é a hora da compra;
+   * cair direto no `now` jogaria uma reentrega atrasada para depois do corte
+   * da gravação e tiraria a gravação de quem comprou antes.
+   */
+  it('sem `approved_date` legível, usa o `created_at` do pedido', () => {
+    expect(readPurchasedAt({ created_at: '2026-09-24 10:30' }, now)).toEqual({
+      at: new Date('2026-09-24T13:30:00.000Z'),
+      source: 'created_at',
+    });
+    expect(readPurchasedAt({ approved_date: 'ontem', created_at: '2026-09-24 10:30' }, now).source).toBe('created_at');
+    expect(readPurchasedAt({ approved_date: '2026-12-01 10:00', created_at: '2026-09-24 10:30' }, now).source).toBe(
+      'created_at',
+    );
+  });
+
+  it('usa o agora, e diz que usou, quando nenhuma das duas serve', () => {
+    expect(readPurchasedAt({}, now)).toEqual({ at: now, source: 'now' });
+    expect(readPurchasedAt({ approved_date: 'ontem', created_at: 'hoje' }, now)).toEqual({ at: now, source: 'now' });
+    expect(readPurchasedAt({ created_at: '2026-12-01 10:00' }, now)).toEqual({ at: now, source: 'now' });
+    expect(readPurchasedAt(null, now)).toEqual({ at: now, source: 'now' });
   });
 });

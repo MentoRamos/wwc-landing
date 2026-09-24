@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { readApprovedAt, readContact, type KiwifyEvent } from '@/lib/core/kiwify.core';
+import { readContact, readPurchasedAt, type KiwifyEvent } from '@/lib/core/kiwify.core';
 import {
   displayFirstName,
   eventoAction,
@@ -34,12 +34,15 @@ export async function applyEventoEvent(
 ): Promise<EventoOutcome> {
   const { event, payload, now } = input;
   const action = eventoAction(event, eventoConfig().testProductIds);
+  const purchased = readPurchasedAt(payload, now);
+  // Sem `approved_date`, a data foi inferida; o resultado diz de onde veio.
+  const dated = (result: string) => (purchased.source === 'approved_date' ? result : `${result}:data=${purchased.source}`);
 
   if (action.op === 'ignore') return { result: `evento:ignorado:${action.reason}` };
 
   if (action.op === 'register') {
     const contact = readContact(payload);
-    const purchasedAt = readApprovedAt(payload, now);
+    const purchasedAt = purchased.at;
     const recording = includesRecording(purchasedAt);
     const jobs = planJobs({ purchasedAt, includesRecording: recording }).map((job) => ({
       channel: job.channel,
@@ -62,7 +65,7 @@ export async function applyEventoEvent(
     const row = (data as Array<{ buyer_id: string; created: boolean; t0_email_job_id: string | null }> | null)?.[0];
     if (!row) return failed('registro', 'sem-linha', event);
     return {
-      result: row.created ? 'evento:registrado' : 'evento:ja-registrado',
+      result: dated(row.created ? 'evento:registrado' : 'evento:ja-registrado'),
       ...(row.t0_email_job_id ? { t0JobId: row.t0_email_job_id } : {}),
     };
   }
@@ -94,10 +97,10 @@ export async function applyEventoEvent(
   const { data, error } = await admin.rpc('evento_mark_purchase', {
     p_email: event.email,
     p_kind: action.kind,
-    p_at: readApprovedAt(payload, now).toISOString(),
+    p_at: purchased.at.toISOString(),
   });
   if (error) return failed('marcacao', error.code, event);
-  return { result: `evento:${action.kind}:${typeof data === 'number' ? data : 0}` };
+  return { result: dated(`evento:${action.kind}:${typeof data === 'number' ? data : 0}`) };
 }
 
 function failed(step: string, code: string | undefined, event: KiwifyEvent): EventoOutcome {

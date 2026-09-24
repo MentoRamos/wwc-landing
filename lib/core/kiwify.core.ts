@@ -332,20 +332,31 @@ export function readContact(payload: unknown): KiwifyContact {
 }
 
 /**
- * Quando a compra foi aprovada.
+ * Quando a compra aconteceu, e de onde veio essa data.
  *
- * A Kiwify escreve `approved_date` como `2026-09-24 10:30`, sem fuso, no
- * horário de Brasília (o mesmo que `meta-capi.core` já trata). O que falta,
- * não dá para ler ou está no futuro vira `now`: a data decide a agenda e se a
- * gravação está incluída, e uma data inventada no futuro empurraria tudo.
+ * A Kiwify escreve as datas como `2026-09-24 10:30`, sem fuso, no horário de
+ * Brasília (o mesmo que `meta-capi.core` já trata). A ordem é
+ * `approved_date`, depois `created_at` do pedido, depois `now`: a data decide
+ * a agenda e se a gravação está incluída, e uma reentrega atrasada sem
+ * `approved_date` não pode virar compra de agora e perder a gravação. Data
+ * ilegível ou no futuro não serve (empurraria tudo). `source` diz qual valeu,
+ * para o `billing_events.result` mostrar quando a data foi inferida.
  */
-export function readApprovedAt(payload: unknown, now: Date): Date {
-  const value = str(pick(payload, 'approved_date'));
-  if (!value) return now;
+export type PurchasedAt = { at: Date; source: 'approved_date' | 'created_at' | 'now' };
 
+export function readPurchasedAt(payload: unknown, now: Date): PurchasedAt {
+  for (const key of ['approved_date', 'created_at'] as const) {
+    const at = parseKiwifyDate(str(pick(payload, key)), now);
+    if (at) return { at, source: key };
+  }
+  return { at: now, source: 'now' };
+}
+
+function parseKiwifyDate(value: string | undefined, now: Date): Date | undefined {
+  if (!value) return undefined;
   const local = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(:\d{2})?$/.exec(value);
   const ms = local ? Date.parse(`${local[1]}T${local[2]}${local[3] ?? ':00'}-03:00`) : Date.parse(value);
-  if (Number.isNaN(ms) || ms > now.getTime()) return now;
+  if (Number.isNaN(ms) || ms > now.getTime()) return undefined;
   return new Date(ms);
 }
 
