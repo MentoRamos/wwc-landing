@@ -268,3 +268,192 @@ describe('/imersao/protocolo S3 and S13 follow the copy doc', () => {
     expect(page()).toContain('no grupo com o sono mais regular (o quintil mais regular)');
   });
 });
+
+// ─── v2 iteration (Kauã's review of the preview, 24/09/2026) ──────────────
+
+const MOTION_COMPONENTS = [
+  'components/protocolo/ScrollProgressBar.tsx',
+  'components/protocolo/HeroParallax.tsx',
+  'components/protocolo/StatCounter.tsx',
+  'components/protocolo/TimelineProgress.tsx',
+  'components/protocolo/TrilhaTabs.tsx',
+];
+const read = (path: string) => readFileSync(join(process.cwd(), path), 'utf8');
+const PROTOCOLO_SOURCES = [
+  'app/imersao/protocolo/page.tsx',
+  'lib/protocolo.ts',
+  'components/protocolo/ProtocoloAnalytics.tsx',
+  'components/protocolo/StickyBuyBar.tsx',
+  'components/protocolo/VisualFrame.tsx',
+  ...MOTION_COMPONENTS,
+];
+
+describe('/imersao/protocolo motion (item 5)', () => {
+  it('every motion component is a client component that checks prefers-reduced-motion', () => {
+    for (const path of MOTION_COMPONENTS) {
+      const source = read(path);
+      expect(source.trimStart().startsWith("'use client'"), path).toBe(true);
+      expect(code(source), path).toContain('prefers-reduced-motion');
+    }
+  });
+
+  it('never ships hidden content in the server HTML: no framer-motion, no inline opacity 0', () => {
+    for (const path of [...MOTION_COMPONENTS, 'app/imersao/protocolo/page.tsx']) {
+      const source = code(read(path));
+      expect(source, path).not.toContain('framer-motion');
+      expect(source, path).not.toMatch(/opacity:\s*0(?![.\d])/);
+    }
+  });
+
+  it('reveals sections with the progressive-enhancement ScrollReveal (visible without JS)', () => {
+    const source = code(page());
+    expect(source).toContain("from '@/components/animations/ScrollReveal'");
+    expect([...source.matchAll(/<ScrollReveal\b/g)].length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('mounts the scroll progress bar once and wraps the hero photo in the parallax layer', () => {
+    const source = code(page());
+    expect([...source.matchAll(/<ProtocoloScrollProgress\s*\/>/g)]).toHaveLength(1);
+    expect(source).toMatch(/<HeroParallax>[\s\S]*kaua-portrait-seated\.jpg[\s\S]*<\/HeroParallax>/);
+  });
+
+  it('counters render the final number on the server and only animate below the fold', () => {
+    const source = code(read('components/protocolo/StatCounter.tsx'));
+    expect(source).toContain('getBoundingClientRect');
+    expect(source).toContain('IntersectionObserver');
+    expect(source).toContain('sr-only');
+    // The UK Biobank numbers go through the counter, with the literal text for screen readers.
+    const pageSource = code(page());
+    expect(pageSource).toMatch(/<StatCounter value=\{30\}[^>]*srText="30% menos"/);
+    expect(pageSource).toMatch(/<StatCounter value=\{38\}[^>]*srText="38% menos"/);
+  });
+
+  it('drives the "Como funciona" timeline with a scroll-linked progress line', () => {
+    const source = code(page());
+    expect(source).toMatch(/<TimelineProgress>[\s\S]*ETAPAS\.map[\s\S]*<\/TimelineProgress>/);
+    expect(source).toMatch(/const ETAPAS = \[[\s\S]*DAY ZERO/);
+  });
+});
+
+describe('/imersao/protocolo "faixa extra" of the 180d plan (item 1)', () => {
+  it('explains what it is, when it happens and what it means, in three labelled lines', () => {
+    const source = code(page());
+    expect(source).toContain('Ciclos 4 a 6 · manutenção');
+    expect(source).toContain('O que é');
+    expect(source).toContain('Quando');
+    expect(source).toContain('O que muda pra você');
+    expect(source).not.toContain('FAIXA EXTRA');
+  });
+});
+
+describe('/imersao/protocolo "O que você recebe" (item 2)', () => {
+  it('leads with the Weekly Report as the hero deliverable and groups the rest into clusters', () => {
+    const source = code(page());
+    expect(source).toContain('ENTREGAVEIS_GRUPOS');
+    expect(source).toMatch(/data-entregavel="hero"[\s\S]*Weekly Report/);
+  });
+
+  it('does not repeat the 90 x 180 comparison numbers inside the deliverables', () => {
+    const block = code(page()).match(/const ENTREGAVEIS_GRUPOS[\s\S]*?\n\];/)?.[0] ?? '';
+    expect(block.length).toBeGreaterThan(0);
+    expect(block).not.toMatch(/26 semanas|13 semanas|6 no programa|12 no de 180|até [36]x/);
+  });
+});
+
+describe('/imersao/protocolo Trilha Mestre W&W (item 3)', () => {
+  it('is an accessible tab stepper with a no-JS fallback that shows every panel', () => {
+    const source = code(read('components/protocolo/TrilhaTabs.tsx'));
+    expect(source).toContain('role="tablist"');
+    expect(source).toContain('role="tab"');
+    expect(source).toContain('role="tabpanel"');
+    expect(source).toContain('aria-selected');
+    expect(source).toContain('aria-controls');
+    expect(source).toContain('ArrowRight');
+    expect(source).toContain('<noscript>');
+  });
+
+  it('details every pillar with when, what you do, what Kauã does and what you take away', () => {
+    const source = code(page());
+    for (const title of [
+      'A Hora Fixa como base',
+      'Anamnese antes de qualquer estratégia',
+      'Linha de base antes de qualquer plano',
+      'Leitura humana, toda semana, com contexto',
+      'Só o que você consegue repetir sozinho',
+    ]) {
+      expect(source).toContain(title);
+    }
+    for (const field of ['quando:', 'voce:', 'eu:', 'leva:']) {
+      expect([...source.matchAll(new RegExp(`\\b${field}`, 'g'))].length, field).toBeGreaterThanOrEqual(5);
+    }
+    // The six baseline numbers from the Período Diagnóstico.
+    expect(source).toContain('Calorias e proteína');
+    expect(source).toContain('Peso médio');
+  });
+
+  it('presents the method as reading raw numbers against a personal baseline, never as the colored morning score', () => {
+    const source = code(page());
+    expect(source).not.toMatch(/sem[aá]foro/i);
+    expect(source).not.toMatch(/nota colorida/i);
+    expect(source).not.toMatch(/\brecovery\b/i);
+  });
+});
+
+describe('/imersao/protocolo FAQ (item 4)', () => {
+  it('uses a native details/summary accordion', () => {
+    const source = code(page());
+    expect(source).toMatch(/FAQ\.map\([\s\S]*?<details[\s\S]*?<summary/);
+  });
+});
+
+describe('/imersao/protocolo scope (item 6)', () => {
+  it('never references W&W Connect anywhere in the page, its components or its lib', () => {
+    for (const path of PROTOCOLO_SOURCES) {
+      // Word boundary: `observer.disconnect()` is not a mention of the event.
+      expect(read(path), path).not.toMatch(/\bconnect\b/i);
+    }
+  });
+});
+
+describe('/imersao/protocolo future visuals (item 8)', () => {
+  it('keeps the Weekly Report and platform image slots behind a flag that ships off', async () => {
+    const lib = await import('@/lib/protocolo');
+    expect(lib.VISUAIS_PROTOCOLO).toBe(false);
+    expect(lib.VISUAIS.weeklyReport1.src).toBe('/photos/protocolo/weekly-report-1.jpg');
+    expect(lib.VISUAIS.weeklyReport2.src).toBe('/photos/protocolo/weekly-report-2.jpg');
+    expect(lib.VISUAIS.plataforma.src).toBe('/photos/protocolo/plataforma.jpg');
+  });
+
+  it('the page renders each slot only inside a VISUAIS_PROTOCOLO guard, in a designed frame', () => {
+    const source = code(page());
+    const guarded = [...source.matchAll(/\{VISUAIS_PROTOCOLO \? \(([\s\S]*?)\) : null\}/g)].map((m) => m[1]);
+    const all = guarded.join('\n');
+    expect(all).toContain('VISUAIS.weeklyReport1');
+    expect(all).toContain('VISUAIS.weeklyReport2');
+    expect(all).toContain('VISUAIS.plataforma');
+    expect(all).toContain('<VisualFrame');
+    // Outside the guards, no slot is referenced.
+    const unguarded = guarded.reduce((acc, g) => acc.replace(g, ''), source);
+    expect(unguarded).not.toMatch(/VISUAIS\.\w+/);
+  });
+
+  it('when the flag is flipped on, every image file must exist', async () => {
+    const lib = await import('@/lib/protocolo');
+    if (!lib.VISUAIS_PROTOCOLO) return;
+    for (const v of Object.values(lib.VISUAIS)) {
+      expect(() => readFileSync(join(process.cwd(), 'public', v.src))).not.toThrow();
+    }
+  });
+});
+
+describe('/imersao/protocolo copy rules across every source it renders', () => {
+  it('no em dash, no price and no forbidden Light Copy constructions', () => {
+    for (const path of PROTOCOLO_SOURCES) {
+      const source = code(read(path));
+      expect(source, path).not.toContain('—');
+      expect(/R\$\s?\d/.test(source), path).toBe(false);
+      expect(source, path).not.toMatch(/mesmo que|sem precisar/i);
+      expect(source, path).not.toMatch(/Não é [^.]{1,60}\. É /);
+    }
+  });
+});
