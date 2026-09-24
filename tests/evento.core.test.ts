@@ -151,6 +151,37 @@ describe('a agenda de um comprador', () => {
     expect(jobs['whatsapp:gravacao_oferta']).toBe(iso('2026-10-06T08:30:00'));
   });
 
+  /**
+   * O passo adiado vai para 8h30 e o seguinte, que já caía fora do silêncio,
+   * não pode passar na frente dele: cada passo sai pelo menos 15 minutos
+   * depois do anterior.
+   */
+  it('compra às 02h10: vídeos (08h10 cru) não passam na frente da gravação e do grupo', () => {
+    const jobs = byKey(planJobs({ purchasedAt: at('2026-10-06T02:10:00'), includesRecording: false }));
+    expect(jobs['whatsapp:gravacao_oferta']).toBe(iso('2026-10-06T08:30:00'));
+    expect(jobs['whatsapp:grupo_convite']).toBe(iso('2026-10-06T08:45:00'));
+    expect(jobs['whatsapp:videos']).toBe(iso('2026-10-06T09:00:00'));
+  });
+
+  it('compra às 05h10: o grupo (08h10 cru) sai depois da gravação, e os vídeos no horário', () => {
+    const jobs = byKey(planJobs({ purchasedAt: at('2026-10-06T05:10:00'), includesRecording: false }));
+    expect(jobs['whatsapp:gravacao_oferta']).toBe(iso('2026-10-06T08:30:00'));
+    expect(jobs['whatsapp:grupo_convite']).toBe(iso('2026-10-06T08:45:00'));
+    expect(jobs['whatsapp:videos']).toBe(iso('2026-10-06T11:10:00'));
+  });
+
+  it('em qualquer minuto do dia, gravação, grupo e vídeos saem em ordem, 15 min ou mais entre eles', () => {
+    for (let minute = 0; minute < 24 * 60; minute += 5) {
+      const purchasedAt = new Date(at('2026-10-06T00:00:00').getTime() + minute * 60_000);
+      const jobs = byKey(planJobs({ purchasedAt, includesRecording: false }));
+      const times = ['whatsapp:gravacao_oferta', 'whatsapp:grupo_convite', 'whatsapp:videos'].map((key) =>
+        Date.parse(jobs[key]),
+      );
+      expect(times[1] - times[0], purchasedAt.toISOString()).toBeGreaterThanOrEqual(15 * 60_000);
+      expect(times[2] - times[1], purchasedAt.toISOString()).toBeGreaterThanOrEqual(15 * 60_000);
+    }
+  });
+
   it('quem já tem a gravação recebe a mensagem de gravação incluída no lugar da oferta', () => {
     const jobs = byKey(planJobs({ purchasedAt: at('2026-09-23T20:00:00'), includesRecording: true }));
     expect(jobs['whatsapp:gravacao_oferta']).toBeUndefined();

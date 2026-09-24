@@ -126,12 +126,15 @@ export function planJobs(input: { purchasedAt: Date; includesRecording: boolean 
         { stepKey: 'grupo_convite', offset: 3 * HOUR },
         { stepKey: 'videos', offset: 6 * HOUR },
       ];
+      // Um passo adiado pelo silêncio vai para 8h30+; o seguinte, que caiu
+      // fora do silêncio (compra às 02h10: vídeos às 08h10), passaria na
+      // frente. Cada passo sai pelo menos 15 min depois do anterior.
+      let previous: number | undefined;
       sequence.forEach((step, position) => {
-        jobs.push({
-          channel: 'whatsapp',
-          stepKey: step.stepKey,
-          dueAt: quietHoursAdjust(new Date(base + step.offset), position),
-        });
+        const adjusted = quietHoursAdjust(new Date(base + step.offset), position).getTime();
+        const due = previous === undefined ? adjusted : Math.max(adjusted, previous + 15 * MINUTE);
+        previous = due;
+        jobs.push({ channel: 'whatsapp', stepKey: step.stepKey, dueAt: new Date(due) });
       });
     }
   }
