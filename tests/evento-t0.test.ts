@@ -124,3 +124,13 @@ describe('a guarda de marcador', () => {
     }
   });
 });
+
+describe('a T0 de quem comprou depois que a sala abriu', () => {
+  it('manda a variação do replay, não "Nos vemos no dia 28"', async () => {
+    const { admin } = fakeAdmin(buyer({ purchased_at: '2026-10-29T13:00:00.000Z' }));
+    expect(await sendT0Email(admin, 'job-1')).toBe('sent');
+    const html = sendEmail.mock.calls[0][2] as string;
+    expect(html).toContain('01/11');
+    expect(html).not.toContain('Nos vemos no dia 28');
+  });
+});

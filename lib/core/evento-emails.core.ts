@@ -11,6 +11,8 @@
  * "mesmo que" e sem "sem precisar". O teste confere.
  */
 
+import type { T0Variant } from './evento.core';
+
 export type Rendered = { subject: string; html: string };
 
 function escapeHtml(value: string): string {
@@ -43,18 +45,25 @@ export function renderT0Email(input: {
   firstName: string | null;
   surveyUrl: string;
   groupUrl: string;
-  variant: 'padrao' | 'tarefa';
+  variant: T0Variant;
 }): Rendered {
   const name = input.firstName?.trim();
   const opening = name
     ? `${escapeHtml(name)}, aqui é o Kauã Ramos. O seu ingresso da Imersão Performance e Longevidade está confirmado.`
     : 'Aqui é o Kauã Ramos. O seu ingresso da Imersão Performance e Longevidade está confirmado.';
 
+  const started = input.variant === 'iniciado';
+  const groupLink = `<a href="${escapeHtml(input.groupUrl)}" style="color:#C9A84C">${escapeHtml(input.groupUrl)}</a>`;
+
   const body =
     P(opening) +
-    P(
-      'Anota na agenda: quarta 28/10 e quinta 29/10, das 19h30 às 21h30, ao vivo no Google Meet. Na quinta eu fico na sala até 22h15 pra quem quiser tirar dúvida.',
-    ) +
+    (started
+      ? P(
+          'A imersão já começou. As noites são quarta 28/10 e quinta 29/10, das 19h30 às 21h30, ao vivo no Google Meet, e o replay fica no grupo oficial da imersão no WhatsApp até domingo, 01/11, às 23h59.',
+        )
+      : P(
+          'Anota na agenda: quarta 28/10 e quinta 29/10, das 19h30 às 21h30, ao vivo no Google Meet. Na quinta eu fico na sala até 22h15 pra quem quiser tirar dúvida.',
+        )) +
     P(
       'Antes de tudo, eu tenho um presente pra você: a Ficha da Hora Fixa, a mesma que a gente preenche junto na primeira noite. Pra receber, responde uma pesquisa de dois minutos. A Ficha abre pra download no final.',
     ) +
@@ -64,10 +73,12 @@ export function renderT0Email(input: {
           'A turma já começou uma tarefa de 7 dias: anotar toda manhã a hora em que acordou, o HRV contra a média do seu aparelho e a frequência de repouso. Começa amanhã de manhã; os dias que faltarem não atrapalham a noite 2.',
         )
       : '') +
-    P(
-      `O link da sala e os materiais saem no grupo oficial da imersão no WhatsApp. Se você ainda não entrou, o link é este: <a href="${escapeHtml(input.groupUrl)}" style="color:#C9A84C">${escapeHtml(input.groupUrl)}</a>`,
-    ) +
-    P('Nos vemos no dia 28.');
+    (started
+      ? P(`O link da sala, o replay e os materiais estão no grupo. Entra por aqui: ${groupLink}`) +
+        P('Te espero no grupo.')
+      : P(
+          `O link da sala e os materiais saem no grupo oficial da imersão no WhatsApp. Se você ainda não entrou, o link é este: ${groupLink}`,
+        ) + P('Nos vemos no dia 28.'));
 
   return { subject: 'Ingresso confirmado: Imersão Performance e Longevidade', html: layout(body) };
 }

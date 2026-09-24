@@ -182,11 +182,17 @@ export function quietHoursAdjust(due: Date, position: number): Date {
   return new Date(morning + position * 15 * MINUTE);
 }
 
+export type T0Variant = 'padrao' | 'tarefa' | 'iniciado';
+
 /**
  * A T0 de quem compra entre 21/10 e 27/10 ganha uma linha sobre a tarefa de
- * 7 dias, que já começou.
+ * 7 dias, que já começou. Quem tem a compra aprovada depois que a sala abriu
+ * (Pix ou boleto que compensou tarde) recebe a variação `iniciado`: o evento
+ * já começou e o replay fica no grupo até domingo 01/11, no lugar de "Nos
+ * vemos no dia 28".
  */
-export function t0Variant(purchasedAt: Date): 'padrao' | 'tarefa' {
+export function t0Variant(purchasedAt: Date): T0Variant {
+  if (purchasedAt.getTime() >= EVENT_NIGHT_1.getTime()) return 'iniciado';
   const day = civilDateISO(purchasedAt);
   return day >= '2026-10-21' && day <= '2026-10-27' ? 'tarefa' : 'padrao';
 }

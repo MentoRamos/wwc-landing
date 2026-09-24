@@ -232,6 +232,14 @@ describe('a variação da T0', () => {
     expect(t0Variant(at('2026-10-27T23:59:00'))).toBe('tarefa');
     expect(t0Variant(at('2026-10-28T08:00:00'))).toBe('padrao');
   });
+
+  /** Compra aprovada depois que a sala abriu (Pix ou boleto que compensou tarde). */
+  it('depois de 28/10 19h30 vira a variação de evento já começado', () => {
+    expect(t0Variant(at('2026-10-28T19:29:59'))).toBe('padrao');
+    expect(t0Variant(EVENT_NIGHT_1)).toBe('iniciado');
+    expect(t0Variant(at('2026-10-29T10:00:00'))).toBe('iniciado');
+    expect(t0Variant(at('2026-11-01T20:00:00'))).toBe('iniciado');
+  });
 });
 
 describe('o telefone brasileiro', () => {

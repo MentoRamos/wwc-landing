@@ -44,6 +44,16 @@ describe('o e-mail T0', () => {
     expect(render({ variant: 'tarefa' }).html).toContain('A turma já começou uma tarefa de 7 dias');
   });
 
+  it('depois que a sala abriu, diz que o evento começou e onde fica o replay', () => {
+    const { html } = render({ variant: 'iniciado' });
+    expect(html).toContain('A imersão já começou');
+    expect(html).toContain('o replay fica no grupo oficial da imersão no WhatsApp até domingo, 01/11, às 23h59');
+    expect(html).toContain(GRUPO);
+    expect(html).toContain('Ficha da Hora Fixa');
+    expect(html).not.toContain('Nos vemos no dia 28');
+    expect(html).not.toContain('Anota na agenda');
+  });
+
   it('não sai com marcador sobrando', () => {
     const { subject, html } = render();
     expect(hasPlaceholder(subject)).toBe(false);
@@ -51,7 +61,7 @@ describe('o e-mail T0', () => {
   });
 
   it('segue a Light Copy: sem travessão, sem exclamação, sem as muletas proibidas', () => {
-    for (const variant of ['padrao', 'tarefa'] as const) {
+    for (const variant of ['padrao', 'tarefa', 'iniciado'] as const) {
       const { subject, html } = render({ variant });
       const text = `${subject} ${html.replace(/<[^>]+>/g, ' ')}`;
       expect(text).not.toMatch(/[—–]/);
