@@ -107,3 +107,20 @@ describe('a reserva da T0', () => {
     expect(deferred.updates.at(-1)!.fields).toMatchObject({ status: 'pending', lease_until: null });
   });
 });
+
+describe('a guarda de marcador', () => {
+  /**
+   * O nome é digitado por quem comprou. `[Ana]` parece marcador para a
+   * guarda, e conferir o texto depois de pôr o nome bloqueava a T0 dessa
+   * pessoa para sempre. A guarda olha o modelo, antes do nome.
+   */
+  it('nome com colchetes não trava a T0', async () => {
+    for (const firstName of ['[Ana]', '[LINK DA PESQUISA]', 'Ana [PREÇO]']) {
+      sendEmail.mockClear();
+      const { admin, updates } = fakeAdmin(buyer({ first_name: firstName }));
+      expect(await sendT0Email(admin, 'job-1'), firstName).toBe('sent');
+      expect(updates.at(-1)!.fields).toMatchObject({ status: 'sent' });
+      expect(sendEmail).toHaveBeenCalledTimes(1);
+    }
+  });
+});

@@ -83,15 +83,19 @@ export async function sendT0Email(admin: SupabaseClient, jobId: string, now: Dat
   if (!emailConfigured()) return defer('resend-nao-configurado');
   if (!(await eventoEmailAllowed(admin, now))) return defer('cota-resend');
 
-  const rendered = renderT0Email({
-    firstName: displayFirstName(buyer.first_name as string | null),
+  const input = {
     surveyUrl: surveyUrl(buyer.id as string, config.linkSecret),
     groupUrl: IMERSAO_GRUPO_WHATSAPP_URL,
     variant: t0Variant(new Date(buyer.purchased_at as string)),
-  });
-  if (hasPlaceholder(rendered.subject) || hasPlaceholder(rendered.html.replace(/<[^>]+>/g, ' '))) {
+  };
+  // A guarda olha o modelo com um nome neutro, antes do nome de verdade: o
+  // nome é digitado por quem comprou, e `[Ana]` pareceria marcador e
+  // travaria a T0 dessa pessoa para sempre. O nome sai escapado no HTML.
+  const template = renderT0Email({ ...input, firstName: 'Nome' });
+  if (hasPlaceholder(template.subject) || hasPlaceholder(template.html.replace(/<[^>]+>/g, ' '))) {
     return finish({ status: 'blocked', error: 'placeholder' }, 'blocked', 'placeholder');
   }
+  const rendered = renderT0Email({ ...input, firstName: displayFirstName(buyer.first_name as string | null) });
 
   const sent = await sendEmail(recipient, rendered.subject, rendered.html, { idempotencyKey: `evento-${jobId}` });
   if (sent.ok) return finish({ status: 'sent', sent_at: new Date().toISOString(), error: null }, 'sent');
