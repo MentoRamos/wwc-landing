@@ -1,10 +1,26 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { isExternalLink } from '@/lib/core/links.core';
-import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao';
+import {
+  IMERSAO_CHECKOUT_URL,
+  IMERSAO_SALES_CLOSED_MESSAGE,
+  imersaoCtaHref,
+  imersaoSalesOpen,
+} from '@/lib/imersao';
 import { StickyBuyBar } from '@/components/imersao/StickyBuyBar';
 import { MetaPixel } from '@/components/MetaPixel';
 import { ImersaoAnalytics } from '@/components/imersao/ImersaoAnalytics';
+
+/**
+ * A página é gerada estaticamente, mas o fechamento das vendas (ver
+ * `IMERSAO_SALES_CLOSE_AT` em `lib/imersao.ts`) é um relógio, não um deploy.
+ * `revalidate = 60` transforma isto em ISR: no máximo um minuto depois de
+ * 28/10 às 19h30, a próxima visita já recebe a página regenerada com
+ * `imersaoSalesOpen()` falso, sem precisar de `npx vercel --prod` na hora do
+ * evento. O check do lado do cliente em `ImersaoAnalytics` cobre a janela de
+ * até 60s em que um HTML gerado antes do fechamento ainda pode estar servido.
+ */
+export const revalidate = 60;
 
 /**
  * A página do evento ao vivo, isolada de propósito.
@@ -194,6 +210,7 @@ function Check({ tone = 'gold' }: { tone?: 'gold' | 'goldLight' | 'muted' }) {
 export default function ImersaoPage() {
   const cta = imersaoCtaHref();
   const external = isExternalLink(cta);
+  const salesOpen = imersaoSalesOpen();
   const ctaProps = {
     target: external ? '_blank' : undefined,
     rel: external ? 'noopener noreferrer' : undefined,
@@ -231,15 +248,17 @@ export default function ImersaoPage() {
             <div className="mt-6 flex flex-wrap items-center gap-6 md:mt-8">
               <p className="stat-num">Ingresso R$ 97</p>
             </div>
-            <a
-              href={cta}
-              data-cta="hero"
-              target={ctaProps.target}
-              rel={ctaProps.rel}
-              className={`${CTA_CLASS} mt-6`}
-            >
-              GARANTIR MEU INGRESSO · R$ 97
-            </a>
+            {salesOpen && (
+              <a
+                href={cta}
+                data-cta="hero"
+                target={ctaProps.target}
+                rel={ctaProps.rel}
+                className={`${CTA_CLASS} mt-6`}
+              >
+                GARANTIR MEU INGRESSO · R$ 97
+              </a>
+            )}
           </div>
 
           <div className="relative aspect-[4/5] w-full overflow-hidden border border-[var(--border)] md:aspect-[3/4]">
@@ -420,11 +439,13 @@ export default function ImersaoPage() {
             </div>
           </div>
 
-          <div className="mt-12 flex justify-center">
-            <a href={cta} data-cta="programacao" target={ctaProps.target} rel={ctaProps.rel} className={CTA_CLASS}>
-              GARANTIR MEU INGRESSO
-            </a>
-          </div>
+          {salesOpen && (
+            <div className="mt-12 flex justify-center">
+              <a href={cta} data-cta="programacao" target={ctaProps.target} rel={ctaProps.rel} className={CTA_CLASS}>
+                GARANTIR MEU INGRESSO
+              </a>
+            </div>
+          )}
         </div>
       </section>
 
@@ -478,15 +499,17 @@ export default function ImersaoPage() {
           <div className="shrink-0 border border-[var(--border-hover)] bg-[var(--bg-card)] px-10 py-10 text-center">
             <p className={CAPTION_DARK}>Ingresso</p>
             <p className="stat-num mt-2">R$ 97</p>
-            <a
-              href={cta}
-              data-cta="oferta"
-              target={ctaProps.target}
-              rel={ctaProps.rel}
-              className={`${CTA_CLASS} mt-6`}
-            >
-              GARANTIR MEU INGRESSO
-            </a>
+            {salesOpen && (
+              <a
+                href={cta}
+                data-cta="oferta"
+                target={ctaProps.target}
+                rel={ctaProps.rel}
+                className={`${CTA_CLASS} mt-6`}
+              >
+                GARANTIR MEU INGRESSO
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -618,15 +641,19 @@ export default function ImersaoPage() {
               domingo, 01/11, às 23h59
             </p>
             <p className="stat-num mt-8">Ingresso R$ 97</p>
-            <a
-              href={cta}
-              data-cta="fechamento"
-              target={ctaProps.target}
-              rel={ctaProps.rel}
-              className={`${CTA_CLASS} mt-8`}
-            >
-              GARANTIR MEU INGRESSO
-            </a>
+            {salesOpen ? (
+              <a
+                href={cta}
+                data-cta="fechamento"
+                target={ctaProps.target}
+                rel={ctaProps.rel}
+                className={`${CTA_CLASS} mt-8`}
+              >
+                GARANTIR MEU INGRESSO
+              </a>
+            ) : (
+              <p className={`mt-8 ${BODY_DARK}`}>{IMERSAO_SALES_CLOSED_MESSAGE}</p>
+            )}
           </div>
         </div>
       </section>

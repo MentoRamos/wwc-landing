@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { IMERSAO_CHECKOUT_URL } from '@/lib/imersao';
+import { IMERSAO_CHECKOUT_URL, imersaoSalesOpen } from '@/lib/imersao';
 import { mergeCheckoutUtm } from '@/lib/analytics/utm';
 import { queueOrSendEvent } from '@/lib/analytics/meta-pixel';
 
@@ -48,6 +48,18 @@ export function ImersaoAnalytics() {
       if (!(target instanceof Element)) return;
       const link = target.closest<HTMLAnchorElement>('a[data-cta]');
       if (!link) return;
+
+      // Reavalia com o relógio do cliente, não com o horário em que o HTML
+      // foi gerado: a página roda em ISR (`revalidate = 60`, ver
+      // `app/imersao/page.tsx`) e pode servir, por até um minuto, uma versão
+      // renderizada antes do fechamento das vendas — com o `href` real da
+      // Kiwify já embutido no HTML em cache. Se pro relógio de quem clicou as
+      // vendas já fecharam, barra a navegação aqui, antes de sequer chegar
+      // no rewrite de UTM abaixo.
+      if (!imersaoSalesOpen()) {
+        event.preventDefault();
+        return;
+      }
 
       queueOrSendEvent('InitiateCheckout', {
         value: TICKET_PRICE_BRL,

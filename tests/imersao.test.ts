@@ -54,7 +54,14 @@ describe('/imersao', () => {
 
   it('every CTA href is built from the checkout constant, not a literal URL', () => {
     const source = page();
-    expect(source).toContain("import { IMERSAO_CHECKOUT_URL, imersaoCtaHref } from '@/lib/imersao'");
+    // The import grew a `imersaoSalesOpen`/`IMERSAO_SALES_CLOSED_MESSAGE`
+    // pair alongside these two (see tests/imersao-sales-close.test.ts), so
+    // this checks the two original names are still imported from the same
+    // module rather than pinning the exact multi-line import block.
+    const importMatch = source.match(/import\s*\{([^}]*)\}\s*from\s*'@\/lib\/imersao'/);
+    expect(importMatch).not.toBeNull();
+    expect(importMatch![1]).toMatch(/\bIMERSAO_CHECKOUT_URL\b/);
+    expect(importMatch![1]).toMatch(/\bimersaoCtaHref\b/);
 
     // Masked, like the logo check: a doc comment explaining this exact rule
     // is allowed to mention what a broken `href={...}` would look like.

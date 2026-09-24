@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { isExternalLink } from '@/lib/core/links.core';
-import { imersaoCtaHref } from '@/lib/imersao';
+import { imersaoCtaHref, imersaoSalesOpen } from '@/lib/imersao';
 import { useConsentDecision } from '@/lib/analytics/consent';
 
 /**
@@ -23,9 +23,6 @@ export function StickyBuyBar() {
   const [heroVisible, setHeroVisible] = useState(true);
   const [closingVisible, setClosingVisible] = useState(false);
   const consentBannerVisible = useConsentDecision() === 'ask';
-
-  const cta = imersaoCtaHref();
-  const external = isExternalLink(cta);
 
   useEffect(() => {
     const hero = document.querySelector('[data-cta="hero"]');
@@ -48,6 +45,13 @@ export function StickyBuyBar() {
     };
   }, []);
 
+  // Depois de rodar todos os hooks (regra do React: nunca condicionar a
+  // chamada de um hook), a barra some de vez quando as vendas fecham — não
+  // só fica invisível como o resto dos gates abaixo, ela nem monta.
+  if (!imersaoSalesOpen()) return null;
+
+  const cta = imersaoCtaHref();
+  const external = isExternalLink(cta);
   const visible = !heroVisible && !closingVisible && !consentBannerVisible;
 
   return (
