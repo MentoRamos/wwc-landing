@@ -13,6 +13,14 @@ import { CONSENT_VERSION, readSurveyForm, type SurveyState } from '@/lib/evento/
  * é identificado pelo token assinado do e-mail T0 ou, sem ele, pelo e-mail da
  * compra. Só comprador com ingresso pago grava e recebe a Ficha.
  *
+ * Quem pode reescrever: só o caminho com token HMAC válido atualiza uma
+ * resposta que já existe. Sem token, pelo e-mail digitado, é inserir ou
+ * nada (`ignoreDuplicates`): quem sabe o e-mail de um comprador não
+ * sobrescreve o que ele respondeu. Se já havia resposta, a devolutiva é a
+ * mesma do caminho normal (a Ficha de novo), sem dizer que havia. O abuso
+ * por volume fica com a regra de rate limit no Firewall da Vercel
+ * (`docs/evento/marco-1.md`).
+ *
  * A escrita é com o service role, como em `interest`: a tabela não tem
  * política de escrita para ninguém. A Ficha sai por URL assinada de 10
  * minutos de um bucket privado, e só depois de a resposta estar gravada.
@@ -70,7 +78,7 @@ export async function submitSurvey(_previous: SurveyState, formData: FormData): 
       consent_version: CONSENT_VERSION,
       consent_at: now,
     },
-    { onConflict: 'edition_id,email_norm' },
+    { onConflict: 'edition_id,email_norm', ignoreDuplicates: !buyerId },
   );
   if (saveError) {
     console.error('[pesquisa] gravação falhou', { buyer: buyer.id, code: saveError.code });

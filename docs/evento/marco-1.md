@@ -31,6 +31,26 @@ para produção. Design completo: `Automação - Pós-compra e aquecimento
    `landing-kauaramos`, então `/imersao/pesquisa` e o POST da server action
    já chegam aqui sem mudança lá.
 
+## Rate limit da pesquisa (passo manual, Firewall da Vercel)
+
+A server action da pesquisa é um POST público. Sem o token do e-mail T0, ela
+só insere resposta nova (nunca sobrescreve a de outra pessoa), mas continua
+respondendo se um e-mail tem ingresso. Para segurar enumeração e spam por
+volume, criar à mão, antes de virar `live`:
+
+- Vercel → projeto `wwc-landing` → Firewall → Configure → New Rule.
+- Nome: `imersao-pesquisa-rate-limit`.
+- If: Request Path equals `/imersao/pesquisa` **and** Method equals `POST`.
+- Then: Rate Limit, Fixed Window, 60 s, **10 requisições**, chave por IP;
+  ação ao estourar: Deny (429).
+- Publicar e conferir com 11 POSTs seguidos de um IP (o 11º volta 429).
+
+O rewrite do `landing-kauaramos` repassa `/imersao/:path*`; a regra vale no
+projeto que recebe a requisição final (`wwc-landing`). Se o POST chegar pelo
+domínio `kauaramos.com`, conferir também se o IP que a Vercel vê é o do
+visitante e não o do proxy do outro projeto; se for o do proxy, a regra tem
+que ir para o `landing-kauaramos`.
+
 ## Upload da Ficha da Hora Fixa
 
 O bucket `evento` é privado e não tem política para ninguém; só a server
