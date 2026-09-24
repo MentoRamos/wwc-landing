@@ -20,8 +20,12 @@ para produção. Design completo: `Automação - Pós-compra e aquecimento
 
 1. Revisar e aplicar a migration `supabase/migrations/20260925120000_evento_automacao.sql`
    (`npx supabase db push --linked`, só com OK do Kauã).
-2. Confirmar `RECORDING_CUTOFF_AT` em `lib/core/evento.core.ts` com o horário
-   do deploy de `f805e12` na Vercel (hoje é provisório: 24/09 17:30Z).
+2. `RECORDING_CUTOFF_AT` (`lib/core/evento.core.ts`) já está fechado em
+   **24/09 17:35Z (14:35 -03:00)**, commit `498b7d1`: o deploy de `f805e12`
+   na Vercel (`wwc-landing-ajqc1s5vi`) foi criado às 14:29:21 -03:00, e o
+   corte tem 5 minutos de folga a favor de quem comprou. Nada a fazer aqui,
+   a não ser que o Kauã queira outro horário (mudar antes do primeiro
+   comprador registrado: a coluna `includes_recording` não é recalculada).
 3. Variáveis na Vercel (valores fora do chat): `EVENTO_LINK_SECRET`,
    `EVENTO_MODE`, `EVENTO_SANDBOX_ALLOWLIST`, `EVENTO_TEST_PRODUCT_IDS`,
    `RESEND_DAILY_BUDGET`. Começar com `EVENTO_MODE` vazio (sandbox) e o
