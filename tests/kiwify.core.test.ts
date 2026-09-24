@@ -6,6 +6,9 @@ import {
   detectSignature,
   interpret,
   isActionable,
+  lockKey,
+  readApprovedAt,
+  readContact,
   readEvent,
   type KiwifyEvent,
 } from '@/lib/core/kiwify.core';
@@ -391,5 +394,88 @@ describe('isActionable', () => {
 
     expect(decision.kind).toBe('ignore');
     expect(isActionable('order_approved')).toBe(true);
+  });
+});
+
+/**
+ * A trava de idempotência e o reembolso do mesmo pedido.
+ *
+ * `readEvent` usa o `order_id` como id do evento. A documentação pública da
+ * Kiwify não diz se o `order_refunded` e o `chargeback` chegam com o MESMO
+ * `order_id` da aprovação (o mais provável: é o mesmo pedido) ou com outro.
+ * Se for o mesmo, a chave antiga colidia com a linha da aprovação em
+ * `billing_events` e o reembolso era descartado como duplicata. Os dois casos
+ * precisam funcionar, e a duplicata exata continua sendo duplicata.
+ */
+describe('lockKey', () => {
+  const ev = (over: Partial<KiwifyEvent>): KiwifyEvent => ({
+    id: 'o-1',
+    type: 'order_approved',
+    email: 'a@x.com',
+    productId: 'p-1',
+    subscriptionId: 'o-1',
+    ...over,
+  });
+
+  it('mantém a chave de sempre para a aprovação, então reentrega antiga continua colidindo', () => {
+    expect(lockKey(ev({}))).toBe('o-1');
+    expect(lockKey(ev({ type: 'subscription_renewed' }))).toBe('o-1');
+  });
+
+  it('separa reembolso e chargeback da aprovação do mesmo pedido', () => {
+    expect(lockKey(ev({ type: 'order_refunded' }))).toBe('o-1:order_refunded');
+    expect(lockKey(ev({ type: 'chargeback' }))).toBe('o-1:chargeback');
+    expect(lockKey(ev({ type: 'order_refunded' }))).not.toBe(lockKey(ev({})));
+  });
+
+  it('dá a mesma chave para o mesmo reembolso entregue duas vezes', () => {
+    expect(lockKey(ev({ type: 'order_refunded' }))).toBe(lockKey(ev({ type: 'order_refunded' })));
+  });
+
+  it('funciona igual quando o reembolso vem com outro order_id', () => {
+    expect(lockKey(ev({ id: 'o-9', type: 'order_refunded' }))).toBe('o-9:order_refunded');
+  });
+});
+
+describe('readContact', () => {
+  it('lê nome e telefone do formato que a Kiwify manda', () => {
+    expect(
+      readContact({
+        Customer: { full_name: 'Maria Clara Souza', first_name: 'Maria', mobile: '+55 (11) 98765-4321' },
+      }),
+    ).toEqual({ fullName: 'Maria Clara Souza', firstName: 'Maria', phone: '+55 (11) 98765-4321' });
+  });
+
+  it('cai para `phone` e para o primeiro nome do nome completo', () => {
+    expect(readContact({ Customer: { full_name: '  joão  pereira ', phone: '11987654321' } })).toEqual({
+      fullName: 'joão pereira',
+      firstName: 'joão',
+      phone: '11987654321',
+    });
+  });
+
+  it('não inventa nada quando o payload não traz', () => {
+    expect(readContact({})).toEqual({});
+    expect(readContact(null)).toEqual({});
+  });
+});
+
+describe('readApprovedAt', () => {
+  const now = new Date('2026-10-01T15:00:00Z');
+
+  it('lê `approved_date` sem fuso como horário de Brasília', () => {
+    expect(readApprovedAt({ approved_date: '2026-09-24 10:30' }, now).toISOString()).toBe('2026-09-24T13:30:00.000Z');
+  });
+
+  it('aceita data com fuso', () => {
+    expect(readApprovedAt({ approved_date: '2026-09-24T13:30:00Z' }, now).toISOString()).toBe(
+      '2026-09-24T13:30:00.000Z',
+    );
+  });
+
+  it('usa o agora quando falta, é ilegível ou está no futuro', () => {
+    expect(readApprovedAt({}, now)).toEqual(now);
+    expect(readApprovedAt({ approved_date: 'ontem' }, now)).toEqual(now);
+    expect(readApprovedAt({ approved_date: '2026-12-01 10:00' }, now)).toEqual(now);
   });
 });

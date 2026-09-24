@@ -151,6 +151,25 @@ export function isActionable(type: string): boolean {
   return GRANTS.has(type) || REVOKES.has(type);
 }
 
+/**
+ * A chave que vai para `billing_events.external_event_id`, isto é, a trava.
+ *
+ * `readEvent` usa o `order_id` como id, e a documentação pública da Kiwify
+ * não diz se o reembolso e o chargeback repetem o `order_id` da aprovação. Se
+ * repetem (o mais provável, é o mesmo pedido), a chave antiga fazia o
+ * reembolso colidir com a aprovação e ser descartado como duplicata: quem
+ * pediu o dinheiro de volta continuava recebendo mensagem de venda.
+ *
+ * Por isso só os eventos que desfazem a compra ganham o tipo na chave. A
+ * aprovação e a renovação ficam com a chave de sempre, de propósito: as
+ * linhas que já existem em produção foram gravadas assim, e uma reentrega de
+ * uma aprovação antiga precisa continuar colidindo com elas. Se o reembolso
+ * vier com outro `order_id`, a chave continua única do mesmo jeito.
+ */
+export function lockKey(event: KiwifyEvent): string {
+  return REVOKES.has(event.type) ? `${event.id}:${event.type}` : event.id;
+}
+
 export function interpret(input: {
   event: KiwifyEvent;
   productFor: (externalProductId: string) => Product | undefined;
@@ -287,6 +306,47 @@ function pick(source: unknown, ...path: string[]): unknown {
     cursor = (cursor as Record<string, unknown>)[key];
   }
   return cursor;
+}
+
+/**
+ * Nome e telefone de quem comprou, do jeito que vieram.
+ *
+ * `readEvent` não lê nenhum dos dois porque a plataforma nunca precisou: o
+ * acesso é por e-mail. O pós-compra da imersão precisa, para chamar a pessoa
+ * pelo nome e para o WhatsApp. Os caminhos são os mesmos que a CAPI já lê
+ * (`Customer.first_name`, `full_name`, `mobile`, `phone`). O telefone volta
+ * cru: normalizar é regra do evento, não do formato da Kiwify.
+ */
+export type KiwifyContact = { fullName?: string; firstName?: string; phone?: string };
+
+export function readContact(payload: unknown): KiwifyContact {
+  const customer = pick(payload, 'Customer') ?? pick(payload, 'customer');
+  const fullName = str(pick(customer, 'full_name'))?.replace(/\s+/g, ' ');
+  const firstName = str(pick(customer, 'first_name')) ?? fullName?.split(' ')[0];
+  const phone = str(pick(customer, 'mobile')) ?? str(pick(customer, 'phone'));
+  return {
+    ...(fullName ? { fullName } : {}),
+    ...(firstName ? { firstName } : {}),
+    ...(phone ? { phone } : {}),
+  };
+}
+
+/**
+ * Quando a compra foi aprovada.
+ *
+ * A Kiwify escreve `approved_date` como `2026-09-24 10:30`, sem fuso, no
+ * horário de Brasília (o mesmo que `meta-capi.core` já trata). O que falta,
+ * não dá para ler ou está no futuro vira `now`: a data decide a agenda e se a
+ * gravação está incluída, e uma data inventada no futuro empurraria tudo.
+ */
+export function readApprovedAt(payload: unknown, now: Date): Date {
+  const value = str(pick(payload, 'approved_date'));
+  if (!value) return now;
+
+  const local = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(:\d{2})?$/.exec(value);
+  const ms = local ? Date.parse(`${local[1]}T${local[2]}${local[3] ?? ':00'}-03:00`) : Date.parse(value);
+  if (Number.isNaN(ms) || ms > now.getTime()) return now;
+  return new Date(ms);
 }
 
 /** The keys a payload carried, and nothing it contained. Safe to log. */
