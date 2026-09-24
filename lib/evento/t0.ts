@@ -12,7 +12,13 @@ import { eventoConfig, surveyUrl } from './config';
  * A ordem é a da régua do Circle, com uma diferença que o design pediu:
  *
  *   1. RESERVA o job (`pending` para `claimed`, condicionado a ainda estar
- *      `pending`). Se não voltar linha, outro envio já pegou e este desiste.
+ *      `pending`) com `lease_until = now + 10 min`. Se não voltar linha,
+ *      outro envio já pegou e este desiste. Se a função morrer no meio (o
+ *      `after()` estoura o tempo), o job fica `claimed` com lease vencido; o
+ *      tick de e-mail do Marco 3 devolve esses para `pending` e tenta de
+ *      novo, e o `Idempotency-Key = evento-<jobId>` garante que um envio que
+ *      chegou a sair não vira segundo e-mail. (No WhatsApp, lease vencido
+ *      vira `unknown`, não `pending`: lá não há chave de idempotência.)
  *   2. Confere o que pode ter mudado: comprador ainda pago, cota do Resend,
  *      modo (live/sandbox), segredo do link, marcador sobrando.
  *   3. Envia com `Idempotency-Key = job.id`, então uma nova tentativa do
@@ -27,10 +33,16 @@ import { eventoConfig, surveyUrl } from './config';
  */
 export type T0Result = 'sent' | 'deferred' | 'canceled' | 'blocked' | 'skipped';
 
+const LEASE_MS = 10 * 60 * 1000;
+
 export async function sendT0Email(admin: SupabaseClient, jobId: string, now: Date = new Date()): Promise<T0Result> {
   const { data: job, error: claimError } = await admin
     .from('message_jobs')
-    .update({ status: 'claimed', claimed_at: now.toISOString() })
+    .update({
+      status: 'claimed',
+      claimed_at: now.toISOString(),
+      lease_until: new Date(now.getTime() + LEASE_MS).toISOString(),
+    })
     .eq('id', jobId)
     .eq('status', 'pending')
     .eq('channel', 'email')
@@ -45,7 +57,7 @@ export async function sendT0Email(admin: SupabaseClient, jobId: string, now: Dat
 
   const attempts = (job.attempts as number) + 1;
   const finish = async (fields: Record<string, unknown>, result: T0Result, reason?: string) => {
-    await admin.from('message_jobs').update({ attempts, ...fields }).eq('id', jobId);
+    await admin.from('message_jobs').update({ attempts, lease_until: null, ...fields }).eq('id', jobId);
     console.info('[evento/t0]', { job: jobId, result, ...(reason ? { reason } : {}) });
     return result;
   };
