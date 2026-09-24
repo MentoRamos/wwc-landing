@@ -49,4 +49,8 @@ describe('Kiwify webhook and the Conversions API', () => {
       expect(args).not.toMatch(/\b(parsed|raw|purchase|conversion|sent)\b/);
     }
   });
+
+  it('logs every CAPI outcome with id, type and result only', () => {
+    expect(code()).toMatch(/console\.info\('\[kiwify\] capi', \{ event: event\.id, type: event\.type, result: outcome \}\)/);
+  });
 });

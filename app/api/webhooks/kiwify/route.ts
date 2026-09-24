@@ -121,6 +121,9 @@ export async function POST(request: Request) {
         ? await sendCapiEvent(purchase.body, { pixelId: getMetaPixelId(), token: capiAccessToken() })
         : undefined;
     const outcome = capiResult(purchase, sent);
+    // Só o id e o resultado: é o que responde "a venda chegou na Meta?" sem
+    // depender do painel dela, que leva até meia hora pra mostrar.
+    console.info('[kiwify] capi', { event: event.id, type: event.type, result: outcome });
 
     if (sent && !sent.ok) {
       console.error('[kiwify] purchase não chegou na meta', { event: event.id, result: outcome });
