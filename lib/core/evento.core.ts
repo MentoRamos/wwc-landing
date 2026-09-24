@@ -304,20 +304,26 @@ export function verifyLinkToken(token: string | null | undefined, secret: string
 // ------------------------------------------------------------------ sandbox
 
 /**
- * Para quem o e-mail vai de verdade.
+ * Para quem o e-mail vai de verdade, ou null para não enviar agora.
  *
- * `EVENTO_MODE=live` é a única forma de chegar ao comprador; qualquer outro
- * valor, inclusive a variável ausente, é sandbox, e sandbox manda para o
- * primeiro endereço de `EVENTO_SANDBOX_ALLOWLIST` ou para ninguém. Fechado
- * por padrão: esquecer a variável não pode disparar e-mail para cliente.
+ * - Comprador de teste (produto de `EVENTO_TEST_PRODUCT_IDS`, `source =
+ *   'sandbox'`): sempre para o primeiro endereço de
+ *   `EVENTO_SANDBOX_ALLOWLIST`, nunca para o endereço da compra.
+ * - Comprador de verdade: só com `EVENTO_MODE=live`. Qualquer outro valor,
+ *   inclusive a variável ausente, devolve null e o job continua pendente.
+ *
+ * Fechado por padrão: esquecer a variável não dispara e-mail para cliente.
+ * E o comprador real nunca é desviado para a allowlist, porque aí o job
+ * ficaria como enviado e a pessoa nunca receberia a confirmação depois.
  */
 export function resolveRecipient(input: {
   mode: string | undefined;
   allowlist: readonly string[];
   email: string;
+  sandboxBuyer: boolean;
 }): string | null {
-  if (input.mode?.trim().toLowerCase() === 'live') return input.email;
-  return input.allowlist.find((address) => address.trim())?.trim() ?? null;
+  if (input.sandboxBuyer) return input.allowlist.find((address) => address.trim())?.trim() ?? null;
+  return input.mode?.trim().toLowerCase() === 'live' ? input.email : null;
 }
 
 // ------------------------------------------------------------------ webhook

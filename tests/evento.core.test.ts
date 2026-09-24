@@ -321,22 +321,31 @@ describe('o link pessoal da pesquisa', () => {
 });
 
 describe('o destinatário do e-mail', () => {
+  const base = { allowlist: ['kaua@x.com'], email: 'a@x.com', sandboxBuyer: false };
+
   it('em live vai para quem comprou', () => {
-    expect(resolveRecipient({ mode: 'live', allowlist: [], email: 'a@x.com' })).toBe('a@x.com');
+    expect(resolveRecipient({ ...base, mode: 'live' })).toBe('a@x.com');
+    expect(resolveRecipient({ ...base, mode: 'LIVE ' })).toBe('a@x.com');
   });
 
-  it('em sandbox vai para a allowlist, nunca para o comprador', () => {
-    expect(resolveRecipient({ mode: 'sandbox', allowlist: ['kaua@x.com'], email: 'a@x.com' })).toBe('kaua@x.com');
+  /**
+   * Fora de live, o comprador de verdade não recebe nada, e o job também não
+   * vai para a allowlist: se fosse, ele ficaria marcado como enviado e a
+   * pessoa nunca receberia a confirmação quando o modo virasse live.
+   */
+  it('fora de live, comprador de verdade não recebe e não é desviado', () => {
+    expect(resolveRecipient({ ...base, mode: 'sandbox' })).toBeNull();
+    expect(resolveRecipient({ ...base, mode: undefined })).toBeNull();
+    expect(resolveRecipient({ ...base, mode: 'producao' })).toBeNull();
   });
 
-  it('em sandbox sem allowlist não vai para ninguém', () => {
-    expect(resolveRecipient({ mode: 'sandbox', allowlist: [], email: 'a@x.com' })).toBeNull();
+  it('comprador de teste vai sempre para a allowlist, em qualquer modo', () => {
+    expect(resolveRecipient({ ...base, mode: 'sandbox', sandboxBuyer: true })).toBe('kaua@x.com');
+    expect(resolveRecipient({ ...base, mode: 'live', sandboxBuyer: true })).toBe('kaua@x.com');
   });
 
-  it('qualquer modo desconhecido ou ausente é sandbox', () => {
-    expect(resolveRecipient({ mode: undefined, allowlist: [], email: 'a@x.com' })).toBeNull();
-    expect(resolveRecipient({ mode: 'LIVE ', allowlist: [], email: 'a@x.com' })).toBe('a@x.com');
-    expect(resolveRecipient({ mode: 'producao', allowlist: [], email: 'a@x.com' })).toBeNull();
+  it('comprador de teste sem allowlist não vai para ninguém', () => {
+    expect(resolveRecipient({ ...base, allowlist: [], mode: 'live', sandboxBuyer: true })).toBeNull();
   });
 });
 
