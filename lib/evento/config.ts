@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { resolveSiteUrl } from '@/lib/core/site.core';
 import { signLinkToken } from '@/lib/core/evento.core';
+import { readWaDailyCap } from '@/lib/core/evento-wa.core';
 
 /**
  * As variáveis de ambiente do evento, validadas num lugar só.
@@ -54,11 +55,46 @@ export function eventoConfig(): EventoConfig {
   };
 }
 
-/** O link pessoal da pesquisa: domínio público + token, nunca o e-mail. */
-export function surveyUrl(buyerId: string, secret: string): string {
+/**
+ * O link pessoal da pesquisa: domínio público + token, nunca o e-mail.
+ * `from = 'antigos'` marca a origem da resposta (`?o=antigos`, que a página
+ * da pesquisa já lê) para a T0 dos compradores do backfill.
+ */
+export function surveyUrl(buyerId: string, secret: string, from?: 'antigos'): string {
   const origin = resolveSiteUrl({
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
   });
-  return `${origin}/imersao/pesquisa?t=${encodeURIComponent(signLinkToken(buyerId, secret))}`;
+  const query = `t=${encodeURIComponent(signLinkToken(buyerId, secret))}${from ? `&o=${from}` : ''}`;
+  return `${origin}/imersao/pesquisa?${query}`;
+}
+
+export type WaConfig = {
+  /** Kill switch: só `WA_ENABLED=true` libera o claim. Ausente fecha. */
+  enabled: boolean;
+  dailyCap: number;
+  /** `EVENTO_VIDEOS_URL`, só se for https. Sem ele o passo `videos` espera. */
+  videosUrl: string | undefined;
+  /** `EVENTO_ANTIGOS_LIBERADO=true`: o OK do Kauã para o envio aos compradores do backfill. */
+  antigosReleased: boolean;
+};
+
+export function waConfig(): WaConfig {
+  const videos = process.env.EVENTO_VIDEOS_URL?.trim();
+  return {
+    enabled: process.env.WA_ENABLED?.trim().toLowerCase() === 'true',
+    dailyCap: readWaDailyCap(process.env.WA_DAILY_CAP),
+    // O valor cru, não o `href` normalizado: um marcador esquecido na
+    // variável (`https://.../[LINK]`) tem que continuar visível para a guarda.
+    videosUrl: videos && isHttps(videos) ? videos : undefined,
+    antigosReleased: process.env.EVENTO_ANTIGOS_LIBERADO?.trim().toLowerCase() === 'true',
+  };
+}
+
+function isHttps(value: string): boolean {
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
