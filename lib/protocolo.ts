@@ -64,7 +64,8 @@ export const CONDICAO: {
 } = {
   prazo: null,
   semanaOnboarding: null,
-  proximaTurma: null,
+  // Confirmado pelo Kauã em 24/09/2026.
+  proximaTurma: 'janeiro de 2027',
 };
 
 /** `true` só quando as três datas da condição já foram preenchidas. Controla

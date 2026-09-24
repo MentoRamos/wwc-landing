@@ -251,7 +251,26 @@ describe('lib/protocolo neutral copy while the condição dates are unresolved',
     // that CONDICAO is set to null, i.e. still unresolved.
     expect(source).toContain('prazo: null');
     expect(source).toContain('semanaOnboarding: null');
-    expect(source).toContain('proximaTurma: null');
+    // Kauã confirmed the next class (24/09); the other two stay open.
+    expect(source).toContain("proximaTurma: 'janeiro de 2027'");
+  });
+});
+
+describe('/imersao/protocolo Ladeira audit follow-ups (24/09)', () => {
+  it('keeps the S14 bio to 2 paragraphs, up to 120 words, closing on the mechanism', () => {
+    const source = code(page());
+    const start = source.indexOf('id="autoridade"');
+    const section = source.slice(start, source.indexOf('</section>', start));
+    const bio = section.slice(section.indexOf('space-y-5'));
+    const paragraphs = [...bio.matchAll(/<p>([\s\S]*?)<\/p>/g)].map((m) => m[1].replace(/\s+/g, ' ').trim());
+    expect(paragraphs).toHaveLength(2);
+    const words = paragraphs.join(' ').split(' ').filter(Boolean).length;
+    expect(words).toBeLessThanOrEqual(120);
+    expect(paragraphs[1]).toMatch(/Hora Fixa\.$/);
+  });
+
+  it('cites the source of the 10-to-12-month claim in S6', () => {
+    expect(page()).toContain('The Momentum');
   });
 });
 

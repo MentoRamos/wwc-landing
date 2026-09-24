@@ -934,6 +934,8 @@ export default function ProtocoloPage() {
               {
                 t: 'Seguir a nota da manhã',
                 b: 'Um número composto decide o seu dia, e cada fabricante tem a sua receita. Ninguém provou que o score de prontidão mede o que promete, e quem usa o aparelho por 10 a 12 meses tende a achar que melhorou sem ter melhorado.',
+                fonte:
+                  'Sobre usuários do anel Oura com 10 a 12 meses de uso: The Momentum, “From Fitbit to Oura: what your wearable can and can’t tell you”.',
               },
               {
                 t: 'Consertar ontem',
@@ -954,6 +956,9 @@ export default function ProtocoloPage() {
                   <p className="card-title">{item.t}</p>
                 </div>
                 <p className={`mt-4 ${BODY_DARK}`}>{item.b}</p>
+                {'fonte' in item && item.fonte ? (
+                  <p className="mt-4 text-[0.8125rem] leading-[1.5] text-[rgba(244,242,238,0.55)]">Fonte: {item.fonte}</p>
+                ) : null}
               </ScrollReveal>
             ))}
           </div>
@@ -1168,25 +1173,14 @@ export default function ProtocoloPage() {
           <ScrollReveal delay={0.08} className={`max-w-[680px] space-y-5 ${BODY_LIGHT}`}>
             <p>
               Eu cuido da saúde, da performance e da longevidade de quem não tem tempo pra cuidar delas.
-              Comecei aos 14 anos, acima do peso, treinando com o meu pai, e a primeira coisa que aprendi
-              foi sobre repetir: o que mudou o meu corpo foi a regularidade.
+              Comecei aos 14 anos, acima do peso, treinando com o meu pai, e virei coach de CrossFit Level 1.
+              Desde 2020 acompanho empresários de 45, 50 anos ou mais: agenda cheia, viagem e um relógio caro
+              no pulso, com o dado e ninguém lendo. Já são centenas de clientes com esse perfil.
             </p>
             <p>
-              Aos 17 conheci o CrossFit e virei coach de CrossFit Level 1. Por volta de 2020 e 2021 passei
-              a acompanhar empresários de 45, 50 anos ou mais num hub internacional de wellness: agenda
-              cheia, viagem, jantar de negócios e um relógio caro no pulso. Quase todos tinham o dado e
-              ninguém lendo. Já são centenas de clientes com esse perfil.
-            </p>
-            <p>
-              Um deles, o Leonardo, empresário, tomava decisão pela nota de recuperação do aparelho, e a
-              nota não batia com o que ele sentia. Paramos de seguir o número pronto e fomos olhar a
-              rotina dele e a regularidade do sono. O resultado apareceu no treino e nos marcadores
-              metabólicos dos exames.
-            </p>
-            <p>
-              Hoje, na Wealth & Wellness, eu acompanho cada cliente pelo dado do próprio wearable, com uma
-              leitura semanal do que os números mostraram. Estudo nutrição. E trabalho com poucas pessoas
-              por vez, porque cada relatório passa por mim antes de chegar até você.
+              Um deles, o Leonardo, decidia o dia pela nota de recuperação. Paramos de seguir o número pronto,
+              olhamos a regularidade do sono, e o resultado apareceu no treino e nos marcadores metabólicos dos
+              exames. É por isso que o Protocol começa pela Hora Fixa.
             </p>
           </ScrollReveal>
         </div>
