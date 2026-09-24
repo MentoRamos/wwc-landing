@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { IMERSAO_GRUPO_WHATSAPP_URL } from '@/lib/imersao';
 import { MetaPixel } from '@/components/MetaPixel';
 import { PurchaseEvent } from '@/components/imersao/PurchaseEvent';
@@ -44,30 +45,45 @@ export default function ImersaoObrigadoPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)] pt-12 pb-24 md:pt-24">
       <div className="container-lp">
-        <div className="max-w-[680px]">
-          <p className={HERO_EYEBROW}>INGRESSO CONFIRMADO</p>
-          <h1 className="page-title mt-4 text-[2rem] leading-[1.08] md:text-[2.75rem]">
-            Você está dentro. Falta um passo: entrar no grupo da imersão.
-          </h1>
-          <p className={`mt-6 ${BODY_DARK}`}>
-            Todo o acesso da Imersão Performance e Longevidade passa pelo grupo no WhatsApp: o link da sala, os
-            lembretes antes de cada noite e a gravação.
-          </p>
-          <p className={`mt-6 ${CAPTION_DARK}`}>
-            28 e 29 de outubro, quarta e quinta · 19h30 às 21h30 (Brasília) · Ao vivo no Google Meet
-          </p>
-          <a
-            href={IMERSAO_GRUPO_WHATSAPP_URL}
-            data-cta="grupo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${CTA_CLASS} mt-8`}
-          >
-            ENTRAR NO GRUPO DA IMERSÃO
-          </a>
+        <div className="grid items-center gap-10 md:grid-cols-[1.15fr_0.85fr] md:gap-16">
+          <div className="max-w-[680px]">
+            <p className={HERO_EYEBROW}>INGRESSO CONFIRMADO</p>
+            <h1 className="page-title mt-4 text-[2rem] leading-[1.08] md:text-[2.75rem]">
+              Você está dentro. Falta um passo: entrar no grupo da imersão.
+            </h1>
+            <p className={`mt-6 ${BODY_DARK}`}>
+              Todo o acesso da Imersão Performance e Longevidade passa pelo grupo no WhatsApp: o link da sala, os
+              lembretes antes de cada noite e a gravação.
+            </p>
+            <p className={`mt-6 ${CAPTION_DARK}`}>
+              28 e 29 de outubro, quarta e quinta · 19h30 às 21h30 (Brasília) · Ao vivo no Google Meet
+            </p>
+            <a
+              href={IMERSAO_GRUPO_WHATSAPP_URL}
+              data-cta="grupo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${CTA_CLASS} mt-8`}
+            >
+              ENTRAR NO GRUPO DA IMERSÃO
+            </a>
+          </div>
+
+          <div className="relative aspect-[4/5] w-full overflow-hidden border border-[var(--border)] md:aspect-[3/4]">
+            <Image
+              src="/photos/kaua-portrait-smile.jpg"
+              alt="Kauã Ramos, health manager da Wealth & Wellness, sorrindo"
+              fill
+              sizes="(max-width: 768px) 100vw, 40vw"
+              quality={75}
+              className="object-cover object-top"
+              priority
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--bg)]/40 via-transparent to-transparent" />
+          </div>
         </div>
 
-        <ol className="mt-16 grid max-w-[1040px] gap-6 md:mt-20 md:grid-cols-3">
+        <ol className="mt-16 grid gap-6 md:mt-20 md:grid-cols-3">
           {PASSOS.map((passo, i) => (
             <li key={passo.titulo} className="border border-[var(--border)] bg-[var(--bg-elevated)] p-6 md:p-8">
               <p className="stat-num text-[var(--accent)]">{i + 1}</p>
