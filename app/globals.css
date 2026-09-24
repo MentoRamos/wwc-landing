@@ -1001,3 +1001,16 @@ html[data-theme='light'] .article-cover {
 .article-prose h2 {
   scroll-margin-top: 6rem;
 }
+
+/* 16. /imersao/protocolo: the Trilha stepper's panel change.
+   Applied only after the visitor picks a pillar (never on page load, so the
+   server HTML never carries a hidden panel), and switched off under
+   prefers-reduced-motion by `motion-reduce:animate-none` on the element and
+   by the guard below. */
+@keyframes trilha-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trilha [role='tabpanel'] { animation: none !important; }
+}
