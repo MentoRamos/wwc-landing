@@ -33,7 +33,9 @@ export type CapiEvent = {
   event_name: 'Purchase';
   event_time: number;
   event_id: string;
-  action_source: 'website';
+  /** 'website' needs client_user_agent (Meta rejects it otherwise), and
+   *  Kiwify rarely passes one; without it the sale goes out as 'other'. */
+  action_source: 'website' | 'other';
   event_source_url: string;
   user_data: CapiUserData;
   custom_data: {
@@ -109,7 +111,7 @@ export function buildPurchase(input: {
       event_name: 'Purchase',
       event_time: eventTime,
       event_id: event.id,
-      action_source: 'website',
+      action_source: userAgent ? 'website' : 'other',
       event_source_url: product.sourceUrl,
       user_data,
       custom_data: {

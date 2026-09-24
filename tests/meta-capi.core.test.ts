@@ -84,7 +84,9 @@ describe('buildPurchase', () => {
         event_name: 'Purchase',
         event_time: Math.floor(Date.parse('2026-09-24T13:30:00.000Z') / 1000),
         event_id: 'order-123',
-        action_source: 'website',
+        // No user agent in the payload: Meta rejects a 'website' event
+        // without client_user_agent, so the event goes out as 'other'.
+        action_source: 'other',
         event_source_url: 'https://kauaramos.com/imersao',
         user_data: {
           em: [sha('alguem@exemplo.com')],
@@ -167,6 +169,7 @@ describe('buildPurchase', () => {
     );
     expect(result).toMatchObject({
       body: {
+        action_source: 'website',
         user_data: {
           fbc: 'fb.1.1700000000000.XYZ',
           fbp: 'fb.1.1700000000000.123',
