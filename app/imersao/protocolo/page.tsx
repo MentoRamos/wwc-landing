@@ -36,7 +36,8 @@ import { ProtocoloStickyBuyBar } from '@/components/protocolo/StickyBuyBar';
  * - **S3 depoimentos exactly as scoped in the copy** (`g01`, `g03`, `g02`
  *   from "Depoimentos Grupos", `04` and `01` from "Depoimentos Instagram"):
  *   none of those five have a written authorization on file yet (copy doc,
- *   pendência 3). This page reuses the 8 prints already published and
+ *   pendência 3). This page reuses 7 of the 8 prints already published (the body
+ *   before/after one stays out, as the doc asks) and
  *   authorized on `/imersao` instead (`/photos/depoimentos/01…08`), which
  *   covers the same idea (real, anonymized student messages) without
  *   publishing anything new.
@@ -74,10 +75,10 @@ const HERO_EYEBROW =
   'font-[family-name:var(--font-label)] text-[0.8125rem] uppercase tracking-[0.15em] text-[var(--accent)] text-balance';
 
 /**
- * The same 8 prints `/imersao` already publishes with the student's OK
+ * 7 of the 8 prints `/imersao` already publishes with the student's OK
  * (23/09/2026). Duplicated here rather than imported so `/imersao` stays
  * untouched by this page's build: see the file-level note above for why
- * these 8 stand in for the copy doc's own (unauthorized) S3 picks.
+ * these 7 stand in for the copy doc's own (unauthorized) S3 picks.
  */
 const DEPOIMENTOS = [
   {
@@ -87,7 +88,7 @@ const DEPOIMENTOS = [
     alt: 'Print do Whoop de uma aluna: idade biológica 52,8, e a mensagem dela contando que estava em 62 quando começou',
     label: 'Aluna · Whoop',
     quote: 'Tava 62 qdo começamos.',
-    detail: 'Whoop Age hoje: 52,8',
+    detail: 'Whoop Age hoje: 52,8. O motivo que o próprio app escreveu: regularidade do sono.',
   },
   {
     src: '/photos/depoimentos/02-melhor-shape.jpg',
@@ -96,15 +97,6 @@ const DEPOIMENTOS = [
     alt: 'Mensagem de aluna: o melhor shape da vida depois dos 30, corpo leve e agradecimento pelo processo',
     label: 'Aluna',
     quote: 'O melhor “shape” da minha vida, pós “30\'s”!!',
-    detail: undefined,
-  },
-  {
-    src: '/photos/depoimentos/03-antes-depois.jpg',
-    w: 591,
-    h: 1112,
-    alt: 'Aluno envia fotos de quando entrou e de hoje: seco e desenhado como queria',
-    label: 'Aluno',
-    quote: 'Seco e desenhado como eu queria.',
     detail: undefined,
   },
   {
@@ -383,13 +375,13 @@ export default function ProtocoloPage() {
         </div>
         <div className="md:mx-auto md:max-w-[1440px] md:px-10 lg:px-16">
           <ul
-            className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:grid md:grid-cols-2 md:items-start md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden"
+            className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:flex-wrap md:items-start md:justify-center md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden"
             aria-label="Prints de mensagens de alunos"
           >
             {DEPOIMENTOS.map((d) => (
               <li
                 key={d.src}
-                className="w-[82vw] max-w-[340px] shrink-0 snap-center rounded-[14px] border border-[rgba(13,13,13,0.08)] bg-[#FCFBF8] p-5 shadow-[0_8px_24px_rgba(13,13,13,0.06)] md:w-auto md:max-w-none md:shrink"
+                className="w-[82vw] max-w-[340px] shrink-0 snap-center rounded-[14px] border border-[rgba(13,13,13,0.08)] bg-[#FCFBF8] p-5 shadow-[0_8px_24px_rgba(13,13,13,0.06)] md:w-[calc(50%-12px)] md:max-w-none lg:w-[calc(25%-18px)]"
               >
                 <p className="text-[0.8125rem] uppercase tracking-[0.08em] text-[#8C7440]">{d.label}</p>
                 <blockquote className="mt-3 font-display text-[1.125rem] leading-[1.35] text-[#0D0D0D] md:text-[1.375rem]">
@@ -785,7 +777,7 @@ export default function ProtocoloPage() {
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-8 text-center">
               <p className="stat-num">30% menos</p>
-              <p className={`mt-2 ${BODY_DARK}`}>mortalidade por todas as causas no quintil mais regular.</p>
+              <p className={`mt-2 ${BODY_DARK}`}>mortalidade por todas as causas no grupo com o sono mais regular (o quintil mais regular).</p>
             </div>
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-8 text-center">
               <p className="stat-num">38% menos</p>

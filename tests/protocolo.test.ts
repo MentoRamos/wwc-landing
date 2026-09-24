@@ -202,11 +202,19 @@ describe('/imersao/protocolo page', () => {
 });
 
 describe('/imersao/protocolo sticky buy bar', () => {
-  it('is a client component gated to mobile, with an accessible landmark', () => {
+  it('is a client component with an accessible landmark, on mobile and desktop (S20)', () => {
     const source = stickyBar();
     expect(source.trimStart().startsWith("'use client'")).toBe(true);
     expect(source).toContain('aria-label');
-    expect(source).toContain('md:hidden');
+    // S20 specifies a desktop text too: the bar must not be phone-only.
+    expect(source).toContain('stickyBarTextoDesktop()');
+    expect(source).toContain('stickyBarTextoMobile()');
+  });
+
+  it('carries the "Conversar antes" WhatsApp link from S20', () => {
+    const source = code(stickyBar());
+    expect(source).toContain('Conversar antes');
+    expect(source).toContain('whatsappHref(WHATSAPP_MESSAGE_CONVERSAR)');
   });
 
   it('drives visibility off the hero CTA and the closing section via IntersectionObserver', () => {
@@ -244,5 +252,19 @@ describe('lib/protocolo neutral copy while the condição dates are unresolved',
     expect(source).toContain('prazo: null');
     expect(source).toContain('semanaOnboarding: null');
     expect(source).toContain('proximaTurma: null');
+  });
+});
+
+describe('/imersao/protocolo S3 and S13 follow the copy doc', () => {
+  it('leaves out the body before/after print the doc excludes on purpose', () => {
+    expect(code(page())).not.toContain('03-antes-depois');
+  });
+
+  it('uses the doc caption for the Whoop print (the reason the app wrote)', () => {
+    expect(page()).toContain('O motivo que o próprio app escreveu: regularidade do sono');
+  });
+
+  it('keeps the S13 stat wording literal', () => {
+    expect(page()).toContain('no grupo com o sono mais regular (o quintil mais regular)');
   });
 });
