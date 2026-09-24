@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { LEGAL, PROCESSORS, isDraft, pending } from '@/lib/legal';
@@ -66,5 +66,25 @@ describe('com quem os dados são compartilhados', () => {
       expect(processor.name.length).toBeGreaterThan(0);
       expect(processor.gets.length).toBeGreaterThan(0);
     }
+  });
+});
+
+/**
+ * A compra passou a ir para a Meta pelo servidor (Conversions API), mesmo
+ * para quem recusou os cookies. A política tem que dizer isso, com a base
+ * legal e o caminho para se opor, e a lista de quem recebe o quê também.
+ */
+describe('a compra enviada à Meta', () => {
+  const page = () => readFileSync(join(process.cwd(), 'app/(site)/privacidade/page.tsx'), 'utf8');
+
+  it('é dita na política, com a base legal e como se opor', () => {
+    const source = page();
+    expect(source).toContain('enviada à Meta');
+    expect(source).toMatch(/legítimo\s+interesse[\s\S]{0,400}\{contact\(\)\}/);
+  });
+
+  it('aparece no que a Meta recebe', () => {
+    const meta = PROCESSORS.find((p) => p.id === 'meta');
+    expect(meta?.gets).toContain('compra');
   });
 });

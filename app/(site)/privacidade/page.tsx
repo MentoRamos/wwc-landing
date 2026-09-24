@@ -67,6 +67,15 @@ export default function PrivacidadePage() {
           à mão.
         </p>
         <p>
+          Quando você compra o ingresso de um evento ou o Protocol, a
+          confirmação da compra é enviada à Meta para medir os anúncios: o valor,
+          o produto e o seu e-mail, telefone e nome em forma cifrada, que a Meta
+          só consegue comparar com o que ela já tem, sem ler o texto. Isso vale
+          mesmo que você tenha recusado os cookies, e a base legal é o legítimo
+          interesse em saber quais anúncios trazem compras. Se não quiser, escreva
+          para {contact()} e a sua compra deixa de ser enviada.
+        </p>
+        <p>
           <strong className="text-[var(--text-1)]">Quando você usa a Biblioteca.</strong>{' '}
           O ponto em que você parou em cada gravação e quais materiais baixou,
           para a plataforma continuar de onde você deixou.

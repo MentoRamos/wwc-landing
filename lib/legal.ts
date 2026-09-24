@@ -20,7 +20,7 @@ export const LEGAL = {
 } as const;
 
 /** Última mudança relevante no texto das páginas legais. */
-export const LEGAL_UPDATED = '2026-09-14';
+export const LEGAL_UPDATED = '2026-09-24';
 
 export function isDraft(legal: { controller: string; contactEmail: string; taxId?: string }) {
   return !legal.controller || !legal.contactEmail;
@@ -86,8 +86,9 @@ export const PROCESSORS: readonly Processor[] = [
   {
     id: 'meta',
     name: 'Meta',
-    gets: 'quais páginas públicas você viu, e só se você aceitar os cookies',
-    why: 'medir o que funciona no site; recusar impede o carregamento',
+    gets:
+      'quais páginas públicas você viu, só se você aceitar os cookies; e, quando você compra um evento ou o Protocol, a confirmação da compra com valor, produto, e-mail, telefone e nome cifrados',
+    why: 'medir o que funciona no site e nos anúncios; recusar os cookies impede o pixel, e a compra deixa de ir se você pedir',
   },
   {
     id: 'vercel',
