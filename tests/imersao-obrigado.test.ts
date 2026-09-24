@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { IMERSAO_GRUPO_WHATSAPP_URL } from '@/lib/imersao';
@@ -11,14 +11,16 @@ function code(source: string): string {
 
 /**
  * `/imersao/obrigado` is where Kiwify sends the buyer after a paid ticket.
- * Kiwify's own thank-you step never fired our Purchase (the buyer left
- * straight for the WhatsApp group), so this page is the one place the sale
- * reaches our pixel. Source-scanning, like the rest of the suite.
+ * Source-scanning, like the rest of the suite.
+ *
+ * The Purchase no longer fires here. The Kiwify webhook sends it to Meta's
+ * Conversions API for every approved order, consent or not, and a browser
+ * Purchase on top would count the same sale twice: this URL does not carry
+ * the order id, so the two could never share the event_id Meta dedups on.
  */
 const PAGE_PATH = join(process.cwd(), 'app/imersao/obrigado/page.tsx');
 const PURCHASE_PATH = join(process.cwd(), 'components/imersao/PurchaseEvent.tsx');
 const page = () => readFileSync(PAGE_PATH, 'utf8');
-const purchase = () => readFileSync(PURCHASE_PATH, 'utf8');
 
 describe('/imersao/obrigado page', () => {
   it('points the main button at the event WhatsApp group from lib/imersao', () => {
@@ -32,10 +34,11 @@ describe('/imersao/obrigado page', () => {
     expect(page()).toMatch(/robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   });
 
-  it('mounts the consent-gated pixel and the Purchase event', () => {
-    const source = page();
+  it('mounts the consent-gated pixel for the PageView, and no browser Purchase', () => {
+    const source = code(page());
     expect(source).toContain('<MetaPixel');
-    expect(source).toContain('<PurchaseEvent');
+    expect(source).not.toContain('PurchaseEvent');
+    expect(source).not.toContain("'Purchase'");
   });
 
   it('states the event dates', () => {
@@ -51,15 +54,8 @@ describe('/imersao/obrigado page', () => {
   });
 });
 
-describe('PurchaseEvent', () => {
-  it('is a client component that sends Purchase through the consent queue', () => {
-    const source = purchase();
-    expect(source.trimStart().startsWith("'use client'")).toBe(true);
-    expect(source).toContain("queueOrSendEvent('Purchase'");
-    expect(source).toContain("currency: 'BRL'");
-  });
-
-  it('fires at most once per browser session, so a reload is not a second sale', () => {
-    expect(purchase()).toContain('sessionStorage');
+describe('the browser Purchase', () => {
+  it('is gone, because the server is the source of truth for sales', () => {
+    expect(existsSync(PURCHASE_PATH)).toBe(false);
   });
 });

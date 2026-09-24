@@ -2,13 +2,17 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { IMERSAO_GRUPO_WHATSAPP_URL } from '@/lib/imersao';
 import { MetaPixel } from '@/components/MetaPixel';
-import { PurchaseEvent } from '@/components/imersao/PurchaseEvent';
 
 /**
- * Where Kiwify sends a paid ticket buyer. Two jobs: get them into the event
- * WhatsApp group (the only channel until the first night) and fire the
- * Purchase event, which Kiwify's own thank-you step never delivered to our
- * pixel. Never indexed: it only makes sense right after a payment.
+ * Where Kiwify sends a paid ticket buyer. One job: get them into the event
+ * WhatsApp group (the only channel until the first night). Never indexed: it
+ * only makes sense right after a payment.
+ *
+ * The Purchase is not fired here. The Kiwify webhook sends it server-side
+ * (Meta Conversions API) for every approved order, including buyers who
+ * declined cookies. A browser Purchase on top would double count the sale,
+ * since this URL has no order id to share as event_id. The pixel stays for
+ * the PageView, behind the consent banner as everywhere else.
  */
 
 const CTA_CLASS =
@@ -98,7 +102,6 @@ export default function ImersaoObrigadoPage() {
         </p>
       </div>
       <MetaPixel />
-      <PurchaseEvent />
     </div>
   );
 }

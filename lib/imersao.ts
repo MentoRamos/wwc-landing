@@ -17,7 +17,7 @@ export function imersaoCtaHref(): string {
 
 /**
  * The event's WhatsApp group, where the buyer lands from `/imersao/obrigado`
- * (Kiwify's thank-you URL points at that page, not straight here, so the
- * Purchase event reaches our pixel first).
+ * (Kiwify's thank-you URL points at that page, not straight here). The
+ * Purchase itself is sent server-side from the Kiwify webhook.
  */
 export const IMERSAO_GRUPO_WHATSAPP_URL = 'https://chat.whatsapp.com/I838Hk7bi460qBLRTINvYX';
