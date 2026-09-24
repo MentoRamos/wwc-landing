@@ -26,7 +26,7 @@ const HERO_EYEBROW =
 const PASSOS = [
   {
     titulo: 'Entre no grupo agora',
-    texto: 'É por lá que vão o link da sala no Google Meet, os lembretes e a gravação. Fora do grupo você não recebe o acesso.',
+    texto: 'É por lá que vão o link da sala no Google Meet, os lembretes e o link do replay. Fora do grupo você não recebe o acesso.',
   },
   {
     titulo: 'Deixe o seu wearable sincronizado',
@@ -35,7 +35,7 @@ const PASSOS = [
   },
   {
     titulo: 'Reserve as duas noites na agenda',
-    texto: 'Quarta 28/10 e quinta 29/10, das 19h30 às 21h30 (Brasília). Se não puder ao vivo, a gravação fica disponível pra quem comprou.',
+    texto: 'Quarta 28/10 e quinta 29/10, das 19h30 às 21h30 (Brasília). Se não puder ao vivo, o replay fica no grupo até domingo, 01/11, às 23h59.',
   },
 ];
 
@@ -57,7 +57,7 @@ export default function ImersaoObrigadoPage() {
             </h1>
             <p className={`mt-6 ${BODY_DARK}`}>
               Todo o acesso da Imersão Performance e Longevidade passa pelo grupo no WhatsApp: o link da sala, os
-              lembretes antes de cada noite e a gravação.
+              lembretes antes de cada noite e o link do replay, disponível até domingo, 01/11, às 23h59.
             </p>
             <p className={`mt-6 ${CAPTION_DARK}`}>
               28 e 29 de outubro, quarta e quinta · 19h30 às 21h30 (Brasília) · Ao vivo no Google Meet

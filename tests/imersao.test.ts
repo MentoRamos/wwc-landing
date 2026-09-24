@@ -226,3 +226,25 @@ describe('/imersao event dates (moved to 28 e 29/10)', () => {
     expect(source).not.toMatch(/29 e 30|setembro|29\/09|30\/09/);
   });
 });
+
+/**
+ * Decisão do Kauã, 24/09: a gravação da imersão deixou de ser parte do
+ * ingresso. Quem compra o ingresso agora tem replay no grupo do evento até
+ * domingo, 01/11, às 23h59; a gravação em si virou produto à parte (fora
+ * desta página). Quem já tinha comprado antes da troca mantém a gravação,
+ * mas isso é tratado no pós-compra, nunca aqui.
+ */
+describe('/imersao replay policy (24/09): the recording is no longer part of the ticket', () => {
+  it('never promises the recording as something the ticket includes', () => {
+    const source = page();
+    expect(source).not.toMatch(/com gravação/i);
+    expect(source).not.toMatch(/a gravação fica com você/i);
+    expect(code(source)).not.toMatch(/\bgravação\b/i);
+  });
+
+  it('states the replay deadline, Sunday 01/11 at 23h59', () => {
+    const source = page();
+    expect(source).toContain('replay');
+    expect(source).toContain('até domingo, 01/11, às 23h59');
+  });
+});

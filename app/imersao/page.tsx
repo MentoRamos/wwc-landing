@@ -226,7 +226,7 @@ export default function ImersaoPage() {
             </p>
             <p className={`mt-6 md:mt-8 ${CAPTION_DARK}`}>
               28 e 29 de outubro, quarta e quinta · 19h30 às 21h30 (Brasília) · Ao vivo no Google
-              Meet, com gravação
+              Meet, com replay até domingo, 01/11, às 23h59
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-6 md:mt-8">
               <p className="stat-num">Ingresso R$ 97</p>
@@ -450,7 +450,8 @@ export default function ImersaoPage() {
               </li>
               <li className={`flex gap-3 ${BODY_LIGHT}`}>
                 <Check tone="goldLight" />
-                Sala fechada no Google Meet, sem plateia de transmissão. A gravação fica com você.
+                Sala fechada no Google Meet, sem plateia de transmissão. Replay no grupo do evento
+                até domingo, 01/11, às 23h59.
               </li>
             </ul>
           </div>
@@ -613,7 +614,8 @@ export default function ImersaoPage() {
 
             <h2 className={`${H2_DARK} mt-10`}>Imersão Performance e Longevidade</h2>
             <p className={`mt-4 ${CAPTION_DARK}`}>
-              28 e 29 de outubro · 19h30 às 21h30 · Ao vivo no Google Meet, com gravação
+              28 e 29 de outubro · 19h30 às 21h30 · Ao vivo no Google Meet, com replay até
+              domingo, 01/11, às 23h59
             </p>
             <p className="stat-num mt-8">Ingresso R$ 97</p>
             <a

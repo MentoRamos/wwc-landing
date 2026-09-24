@@ -54,6 +54,24 @@ describe('/imersao/obrigado page', () => {
   });
 });
 
+/**
+ * Decisão do Kauã, 24/09: mesma troca de `/imersao` — a gravação deixou de
+ * ser parte do ingresso. Quem chega aqui logo depois de comprar precisa ver
+ * o replay (até domingo, 01/11, às 23h59) como o benefício, não a gravação.
+ */
+describe('/imersao/obrigado replay policy (24/09): the recording is no longer part of the ticket', () => {
+  it('never promises the recording as something the ticket includes', () => {
+    const source = code(page());
+    expect(source).not.toMatch(/\bgravação\b/i);
+  });
+
+  it('states the replay deadline, Sunday 01/11 at 23h59', () => {
+    const source = page();
+    expect(source).toContain('replay');
+    expect(source).toContain('até domingo, 01/11, às 23h59');
+  });
+});
+
 describe('the browser Purchase', () => {
   it('is gone, because the server is the source of truth for sales', () => {
     expect(existsSync(PURCHASE_PATH)).toBe(false);
