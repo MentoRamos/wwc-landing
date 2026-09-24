@@ -319,3 +319,37 @@ export function resolveRecipient(input: {
   if (input.mode?.trim().toLowerCase() === 'live') return input.email;
   return input.allowlist.find((address) => address.trim())?.trim() ?? null;
 }
+
+// ------------------------------------------------------------------ webhook
+
+export type EventoAction =
+  | { op: 'register'; sandbox: boolean }
+  | { op: 'cancel'; status: 'refunded' | 'chargeback' }
+  | { op: 'mark'; kind: 'recording' | 'protocol_deposit' | 'protocol' }
+  | { op: 'ignore'; reason: string };
+
+/**
+ * O que o webhook deve fazer com um evento da Kiwify, do ponto de vista do
+ * evento. Só a compra aprovada do ingresso cria comprador, e só o reembolso
+ * ou o chargeback do ingresso cancela. A gravação, a reserva e o Protocol
+ * aprovados marcam o comprador e não liberam nada na plataforma. Reembolso
+ * desses três fica de fora no Marco 1 (o billing_events guarda o evento).
+ */
+export function eventoAction(
+  event: { type: string; productId: string; email: string },
+  testTicketIds: readonly string[] = [],
+): EventoAction {
+  const product = eventoProductKind(event.productId, testTicketIds);
+  if (!product) return { op: 'ignore', reason: 'produto-fora-do-evento' };
+  if (!event.email?.trim()) return { op: 'ignore', reason: 'sem-email' };
+
+  if (product.kind === 'ticket') {
+    if (event.type === 'order_approved') return { op: 'register', sandbox: product.sandbox };
+    if (event.type === 'order_refunded') return { op: 'cancel', status: 'refunded' };
+    if (event.type === 'chargeback') return { op: 'cancel', status: 'chargeback' };
+    return { op: 'ignore', reason: `evento:${event.type}` };
+  }
+
+  if (event.type === 'order_approved') return { op: 'mark', kind: product.kind };
+  return { op: 'ignore', reason: `evento:${event.type}` };
+}

@@ -6,6 +6,7 @@ import {
   RECORDING_PRODUCT_ID,
   TICKET_PRODUCT_ID,
   displayFirstName,
+  eventoAction,
   eventoProductKind,
   hasPlaceholder,
   includesRecording,
@@ -336,5 +337,38 @@ describe('o destinatário do e-mail', () => {
     expect(resolveRecipient({ mode: undefined, allowlist: [], email: 'a@x.com' })).toBeNull();
     expect(resolveRecipient({ mode: 'LIVE ', allowlist: [], email: 'a@x.com' })).toBe('a@x.com');
     expect(resolveRecipient({ mode: 'producao', allowlist: [], email: 'a@x.com' })).toBeNull();
+  });
+});
+
+describe('o que o webhook faz com cada evento', () => {
+  const ev = (type: string, productId: string, email = 'a@x.com') => ({ type, productId, email });
+
+  it('ingresso aprovado registra o comprador', () => {
+    expect(eventoAction(ev('order_approved', TICKET_PRODUCT_ID))).toEqual({ op: 'register', sandbox: false });
+    expect(eventoAction(ev('order_approved', 'teste-1'), ['teste-1'])).toEqual({ op: 'register', sandbox: true });
+  });
+
+  it('reembolso e chargeback do ingresso cancelam', () => {
+    expect(eventoAction(ev('order_refunded', TICKET_PRODUCT_ID))).toEqual({ op: 'cancel', status: 'refunded' });
+    expect(eventoAction(ev('chargeback', TICKET_PRODUCT_ID))).toEqual({ op: 'cancel', status: 'chargeback' });
+  });
+
+  it('gravação, reserva e Protocol aprovados marcam o comprador', () => {
+    expect(eventoAction(ev('order_approved', RECORDING_PRODUCT_ID))).toEqual({ op: 'mark', kind: 'recording' });
+    expect(eventoAction(ev('order_approved', PROTOCOL_DEPOSIT_PRODUCT_ID))).toEqual({
+      op: 'mark',
+      kind: 'protocol_deposit',
+    });
+    expect(eventoAction(ev('order_approved', 'a0361350-b793-11f1-a02f-752fbbcb4576'))).toEqual({
+      op: 'mark',
+      kind: 'protocol',
+    });
+  });
+
+  it('ignora o resto, dizendo por quê', () => {
+    expect(eventoAction(ev('pix_created', TICKET_PRODUCT_ID))).toMatchObject({ op: 'ignore' });
+    expect(eventoAction(ev('order_refunded', RECORDING_PRODUCT_ID))).toMatchObject({ op: 'ignore' });
+    expect(eventoAction(ev('order_approved', 'circle-qualquer'))).toMatchObject({ op: 'ignore' });
+    expect(eventoAction(ev('order_approved', TICKET_PRODUCT_ID, '  '))).toEqual({ op: 'ignore', reason: 'sem-email' });
   });
 });
