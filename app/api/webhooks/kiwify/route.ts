@@ -1,3 +1,4 @@
+import { after } from 'next/server';
 import { adminClient } from '@/lib/supabase/admin';
 import { alertAdmin } from '@/lib/alerts';
 import {
@@ -6,6 +7,7 @@ import {
   detectSignature,
   interpret,
   isActionable,
+  lockKey,
   readEvent,
 } from '@/lib/core/kiwify.core';
 import { productFor, signatureCandidates, webhookSecret } from '@/lib/kiwify/config';
@@ -14,6 +16,10 @@ import { getMetaPixelId } from '@/lib/analytics/meta-pixel';
 import { buildPurchase, capiResult } from '@/lib/core/meta-capi.core';
 import { capiAccessToken, sendCapiEvent } from '@/lib/meta/capi';
 import { conversionProductFor } from '@/lib/meta/conversion-products';
+import { eventoProductKind } from '@/lib/core/evento.core';
+import { eventoConfig } from '@/lib/evento/config';
+import { applyEventoEvent } from '@/lib/evento/purchase';
+import { sendT0Email } from '@/lib/evento/t0';
 
 /**
  * Where a purchase becomes access.
@@ -93,10 +99,13 @@ export async function POST(request: Request) {
 
   const admin = adminClient();
 
-  // The lock. A duplicate delivery loses the race here and stops.
+  // The lock. A duplicate delivery loses the race here and stops. The key is
+  // the order id, plus the type for a refund or chargeback, so undoing an
+  // order is never mistaken for a redelivery of its approval (`lockKey`).
+  const key = lockKey(event);
   const { error: claimError } = await admin.from('billing_events').insert({
     provider: 'kiwify',
-    external_event_id: event.id,
+    external_event_id: key,
     event_type: event.type,
     payload: parsed as Record<string, unknown>,
   });
@@ -108,37 +117,67 @@ export async function POST(request: Request) {
     return new Response('ok', { status: 200 });
   }
 
-  // O ingresso e o Protocol não liberam nada na plataforma: o que eles devem
-  // é uma Purchase no servidor da Meta, porque o pixel do navegador só dispara
-  // para quem aceitou cookies. Saem daqui antes de `interpret`, senão todo
-  // `order_approved` deles cairia em "produto fora da plataforma" e dispararia
-  // o aviso de pagamento que não virou acesso a cada venda.
+  // O ingresso, o Protocol, a gravação e a reserva do Protocol não liberam
+  // nada na plataforma. O ingresso e o Protocol devem uma Purchase no
+  // servidor da Meta, porque o pixel do navegador só dispara para quem
+  // aceitou cookies. Os quatro alimentam o pós-compra da imersão (comprador,
+  // fila, marcações). Saem daqui antes de `interpret`, senão todo
+  // `order_approved` deles cairia em "produto fora da plataforma" e
+  // dispararia o aviso de pagamento que não virou acesso a cada venda.
   const conversion = conversionProductFor(event.productId);
-  if (conversion) {
-    const purchase = buildPurchase({ event, payload: parsed, product: conversion, now: new Date() });
-    const sent =
-      purchase.kind === 'send'
-        ? await sendCapiEvent(purchase.body, { pixelId: getMetaPixelId(), token: capiAccessToken() })
-        : undefined;
-    const outcome = capiResult(purchase, sent);
-    // Só o id e o resultado: é o que responde "a venda chegou na Meta?" sem
-    // depender do painel dela, que leva até meia hora pra mostrar.
-    console.info('[kiwify] capi', { event: event.id, type: event.type, result: outcome });
+  const evento = eventoProductKind(event.productId, eventoConfig().testProductIds);
+  if (conversion || evento) {
+    const results: string[] = [];
 
-    if (sent && !sent.ok) {
-      console.error('[kiwify] purchase não chegou na meta', { event: event.id, result: outcome });
-      await alertAdmin('Uma venda não chegou na Meta', [
-        `Evento: ${event.id} (${event.type})`,
-        `Resultado: ${outcome}`,
-        'A venda em si está certa. Só a medição do anúncio ficou sem essa compra.',
-      ]);
+    if (conversion) {
+      const purchase = buildPurchase({ event, payload: parsed, product: conversion, now: new Date() });
+      const sent =
+        purchase.kind === 'send'
+          ? await sendCapiEvent(purchase.body, { pixelId: getMetaPixelId(), token: capiAccessToken() })
+          : undefined;
+      const outcome = capiResult(purchase, sent);
+      // Só o id e o resultado: é o que responde "a venda chegou na Meta?" sem
+      // depender do painel dela, que leva até meia hora pra mostrar.
+      console.info('[kiwify] capi', { event: event.id, type: event.type, result: outcome });
+      results.push(outcome);
+
+      if (sent && !sent.ok) {
+        console.error('[kiwify] purchase não chegou na meta', { event: event.id, result: outcome });
+        await alertAdmin('Uma venda não chegou na Meta', [
+          `Evento: ${event.id} (${event.type})`,
+          `Resultado: ${outcome}`,
+          'A venda em si está certa. Só a medição do anúncio ficou sem essa compra.',
+        ]);
+      }
+    }
+
+    if (evento) {
+      const handled = await applyEventoEvent(admin, { event, payload: parsed, now: new Date() });
+      console.info('[kiwify] evento', { event: event.id, type: event.type, result: handled.result });
+      results.push(handled.result);
+
+      if (handled.alert) await alertAdmin('O pós-compra da imersão precisa de olho', handled.alert);
+
+      // A confirmação por e-mail sai depois da resposta: a Kiwify recebe o
+      // 200 sem esperar o Resend. Se não sair agora, o job fica pendente e o
+      // tick de e-mail pega depois.
+      const t0JobId = handled.t0JobId;
+      if (t0JobId) {
+        after(async () => {
+          try {
+            await sendT0Email(adminClient(), t0JobId);
+          } catch {
+            console.error('[kiwify] t0 falhou no after', { job: t0JobId });
+          }
+        });
+      }
     }
 
     await admin
       .from('billing_events')
-      .update({ processed_at: new Date().toISOString(), result: outcome })
+      .update({ processed_at: new Date().toISOString(), result: results.join(' | ') })
       .eq('provider', 'kiwify')
-      .eq('external_event_id', event.id);
+      .eq('external_event_id', key);
 
     return new Response('ok', { status: 200 });
   }
@@ -217,7 +256,7 @@ export async function POST(request: Request) {
     .from('billing_events')
     .update({ processed_at: new Date().toISOString(), result })
     .eq('provider', 'kiwify')
-    .eq('external_event_id', event.id);
+    .eq('external_event_id', key);
 
   return new Response('ok', { status: 200 });
 }
