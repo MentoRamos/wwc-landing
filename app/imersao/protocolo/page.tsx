@@ -3,7 +3,8 @@ import Image from 'next/image';
 import {
   CONDICAO_RESOLVIDA,
   VISUAIS,
-  VISUAIS_PROTOCOLO,
+  VISUAIS_PLATAFORMA,
+  VISUAIS_REPORTS,
   WHATSAPP_MESSAGE_CADASTRO,
   WHATSAPP_MESSAGE_CONVERSAR,
   condicaoRodape,
@@ -50,11 +51,10 @@ import { VisualFrame } from '@/components/protocolo/VisualFrame';
  *   authorized on `/imersao` instead (`/photos/depoimentos/01…08`), which
  *   covers the same idea (real, anonymized student messages) without
  *   publishing anything new.
- * - **S2/S8 Weekly Report + platform screenshots**: real reports await
- *   authorization, and the demo-account screenshot doesn't exist yet (copy
- *   doc, pendências 4-5). The slots and their frames are already built, gated
- *   by `VISUAIS_PROTOCOLO` in `lib/protocolo.ts` (ships `false`, so both
- *   sections render as text only until the files exist).
+ * - **S2 platform screenshot**: the demo account doesn't exist yet (copy
+ *   doc, pendência 5), so its slot stays behind `VISUAIS_PLATAFORMA` (off).
+ *   The two Weekly Report pages (S2/S8) are on (`VISUAIS_REPORTS`): the
+ *   students authorized them on 24/09/2026.
  * - **S15** of the copy doc: out of this page by decision (it is a different
  *   product with its own pitch at the end of the event).
  *
@@ -559,13 +559,18 @@ export default function ProtocoloPage() {
             </p>
           </ScrollReveal>
         </div>
-        {VISUAIS_PROTOCOLO ? (
+        {VISUAIS_REPORTS ? (
           <div className="container-lp mt-14 grid items-start gap-8 md:grid-cols-[1.5fr_1fr] md:gap-10">
-            <ScrollReveal>
-              <VisualFrame visual={VISUAIS.plataforma} variant="browser" sizes="(max-width: 768px) 100vw, 60vw" />
-            </ScrollReveal>
-            <ScrollReveal delay={0.1} className="md:mt-12">
-              <VisualFrame visual={VISUAIS.weeklyReport1} variant="document" sizes="(max-width: 768px) 100vw, 40vw" />
+            {VISUAIS_PLATAFORMA ? (
+              <ScrollReveal>
+                <VisualFrame visual={VISUAIS.plataforma} variant="browser" sizes="(max-width: 768px) 100vw, 60vw" />
+              </ScrollReveal>
+            ) : null}
+            <ScrollReveal
+              delay={0.1}
+              className={VISUAIS_PLATAFORMA ? 'md:mt-12' : 'mx-auto w-full max-w-[460px] md:col-span-2'}
+            >
+              <VisualFrame visual={VISUAIS.weeklyReport1} variant="document" sizes="(max-width: 768px) 100vw, 460px" />
             </ScrollReveal>
           </div>
         ) : null}
@@ -998,9 +1003,9 @@ export default function ProtocoloPage() {
               </li>
             ))}
           </ol>
-          {VISUAIS_PROTOCOLO ? (
-            <ScrollReveal className="mt-12 max-w-[520px]">
-              <VisualFrame visual={VISUAIS.weeklyReport2} variant="document" tone="dark" sizes="(max-width: 768px) 100vw, 520px" />
+          {VISUAIS_REPORTS ? (
+            <ScrollReveal className="mt-12 max-w-[460px]">
+              <VisualFrame visual={VISUAIS.weeklyReport2} variant="document" tone="dark" sizes="(max-width: 768px) 100vw, 460px" />
             </ScrollReveal>
           ) : null}
         </div>

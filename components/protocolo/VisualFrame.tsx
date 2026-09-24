@@ -3,8 +3,9 @@ import type { VisualProtocolo } from '@/lib/protocolo';
 
 /**
  * The designed frame for the offer page's future visuals (`VISUAIS` in
- * `lib/protocolo.ts`). Only rendered when `VISUAIS_PROTOCOLO` is on, so while
- * the flag ships off no request for these files ever reaches the server.
+ * `lib/protocolo.ts`). Only rendered behind its slot's flag
+ * (`VISUAIS_REPORTS` / `VISUAIS_PLATAFORMA`), so a slot that is off never
+ * requests its file.
  *
  * - `browser`: a quiet browser chrome (three dots and the site's address)
  *   around the platform screenshot, so it reads as the real student area

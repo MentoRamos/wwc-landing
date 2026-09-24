@@ -415,33 +415,45 @@ describe('/imersao/protocolo scope (item 6)', () => {
   });
 });
 
-describe('/imersao/protocolo future visuals (item 8)', () => {
-  it('keeps the Weekly Report and platform image slots behind a flag that ships off', async () => {
+describe('/imersao/protocolo visuals (Weekly Reports on, platform pending)', () => {
+  it('ships the authorized Weekly Reports on and the platform print off', async () => {
     const lib = await import('@/lib/protocolo');
-    expect(lib.VISUAIS_PROTOCOLO).toBe(false);
+    expect(lib.VISUAIS_REPORTS).toBe(true);
+    expect(lib.VISUAIS_PLATAFORMA).toBe(false);
     expect(lib.VISUAIS.weeklyReport1.src).toBe('/photos/protocolo/weekly-report-1.jpg');
     expect(lib.VISUAIS.weeklyReport2.src).toBe('/photos/protocolo/weekly-report-2.jpg');
     expect(lib.VISUAIS.plataforma.src).toBe('/photos/protocolo/plataforma.jpg');
   });
 
-  it('the page renders each slot only inside a VISUAIS_PROTOCOLO guard, in a designed frame', () => {
-    const source = code(page());
-    const guarded = [...source.matchAll(/\{VISUAIS_PROTOCOLO \? \(([\s\S]*?)\) : null\}/g)].map((m) => m[1]);
-    const all = guarded.join('\n');
-    expect(all).toContain('VISUAIS.weeklyReport1');
-    expect(all).toContain('VISUAIS.weeklyReport2');
-    expect(all).toContain('VISUAIS.plataforma');
-    expect(all).toContain('<VisualFrame');
-    // Outside the guards, no slot is referenced.
-    const unguarded = guarded.reduce((acc, g) => acc.replace(g, ''), source);
-    expect(unguarded).not.toMatch(/VISUAIS\.\w+/);
+  it('frames each report at the page proportion, so nothing is cropped', async () => {
+    const lib = await import('@/lib/protocolo');
+    expect(lib.VISUAIS.weeklyReport1.aspect).toBe('919 / 1300');
+    expect(lib.VISUAIS.weeklyReport2.aspect).toBe('919 / 1300');
   });
 
-  it('when the flag is flipped on, every image file must exist', async () => {
+  it('renders each slot only behind its own flag, in a designed frame', () => {
+    const source = code(page());
+    // Each report slot sits within the block its flag opens (nested flags
+    // make a regex over the JSX brittle, so take the text after each opener).
+    const reports = source
+      .split('{VISUAIS_REPORTS ? (')
+      .slice(1)
+      .map((block) => block.slice(0, 1200))
+      .join('\n');
+    expect(reports).toContain('VISUAIS.weeklyReport1');
+    expect(reports).toContain('VISUAIS.weeklyReport2');
+    expect(reports).toContain('<VisualFrame');
+    expect(source).toMatch(/\{VISUAIS_PLATAFORMA \? \([\s\S]*?VISUAIS\.plataforma[\s\S]*?\) : null\}/);
+  });
+
+  it('every image behind a flag that is on exists on disk', async () => {
     const lib = await import('@/lib/protocolo');
-    if (!lib.VISUAIS_PROTOCOLO) return;
-    for (const v of Object.values(lib.VISUAIS)) {
-      expect(() => readFileSync(join(process.cwd(), 'public', v.src))).not.toThrow();
+    const on = [
+      ...(lib.VISUAIS_REPORTS ? [lib.VISUAIS.weeklyReport1, lib.VISUAIS.weeklyReport2] : []),
+      ...(lib.VISUAIS_PLATAFORMA ? [lib.VISUAIS.plataforma] : []),
+    ];
+    for (const v of on) {
+      expect(() => readFileSync(join(process.cwd(), 'public', v.src)), v.src).not.toThrow();
     }
   });
 });

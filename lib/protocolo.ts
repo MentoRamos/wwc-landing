@@ -115,19 +115,20 @@ export function stickyBarTextoMobile(): string {
 }
 
 /**
- * Liga os visuais que ainda não existem: dois recortes anonimizados de Weekly
- * Report real (S2 "Onde tudo acontece" e S8 "Por que funciona") e o print da
- * área do aluno numa conta de demonstração (S2). Os três dependem de material
- * que o Kauã ainda vai providenciar (autorização escrita dos alunos, conta de
- * demonstração), então a página sai com a flag desligada e nenhum desses
- * arquivos é pedido ao servidor.
+ * Os visuais da página, cada grupo com a sua chave.
  *
- * Pra ligar: salvar os três arquivos em `public/photos/protocolo/` com estes
- * nomes e trocar a flag pra `true`. A página já tem a moldura desenhada
- * (navegador pra plataforma, folha pra relatório) em `VisualFrame`, e
- * `tests/protocolo.test.ts` passa a exigir que os três arquivos existam.
+ * - `VISUAIS_REPORTS`: duas páginas reais de Weekly Report ("Sua semana em
+ *   detalhe"), anonimizadas (nome no rodapé e nome da equipe cobertos). Ligado
+ *   em 24/09/2026: os dois alunos autorizaram pessoalmente ao Kauã.
+ * - `VISUAIS_PLATAFORMA`: o print da área do aluno numa conta de demonstração.
+ *   Desligado até a conta de demonstração existir; enquanto isso nenhum
+ *   pedido por esse arquivo chega ao servidor.
+ *
+ * `tests/protocolo.test.ts` exige que todo arquivo atrás de uma chave ligada
+ * exista em `public/photos/protocolo/`.
  */
-export const VISUAIS_PROTOCOLO = false;
+export const VISUAIS_REPORTS = true;
+export const VISUAIS_PLATAFORMA = false;
 
 export type VisualProtocolo = {
   src: string;
@@ -140,15 +141,15 @@ export type VisualProtocolo = {
 export const VISUAIS = {
   weeklyReport1: {
     src: '/photos/protocolo/weekly-report-1.jpg',
-    alt: 'Recorte de um Weekly Report real, anonimizado: os números da semana contra a linha de base do aluno e a leitura escrita embaixo',
+    alt: 'Página de um Weekly Report real, anonimizado: os oito pilares da semana, com nutrição contra a meta, treinos, recuperação, sono, hidratação e consistência da rotina',
     caption: 'Weekly Report real, anonimizado, com autorização do aluno.',
-    aspect: '4 / 5',
+    aspect: '919 / 1300',
   },
   weeklyReport2: {
     src: '/photos/protocolo/weekly-report-2.jpg',
-    alt: 'Recorte de outro Weekly Report real, anonimizado: a leitura da semana com o que fazer na segunda de manhã',
+    alt: 'Página de outro Weekly Report real, anonimizado: os oito pilares da semana, com frequência cardíaca de repouso, sono e a leitura de cada indicador',
     caption: 'Weekly Report real, anonimizado, com autorização do aluno.',
-    aspect: '4 / 5',
+    aspect: '919 / 1300',
   },
   plataforma: {
     src: '/photos/protocolo/plataforma.jpg',
