@@ -29,11 +29,11 @@ export const EVENT_NIGHT_1 = new Date('2026-10-28T19:30:00-03:00');
  *
  * É o deploy de `f805e12` ("Replace included recording with replay deadline
  * on /imersao"), de 24/09/2026. O commit é de 14:12:35 -03:00 (limite
- * inferior) e o deploy saiu pouco antes de 17:31Z.
- *
- * TODO: confirmar com o horário do deploy na Vercel. Valor provisório.
+ * inferior). O deploy na Vercel (wwc-landing-ajqc1s5vi) foi criado às
+ * 14:29:21 -03:00; o corte fica em 14:35 pra dar folga ao build e ao cache,
+ * a favor de quem comprou.
  */
-export const RECORDING_CUTOFF_AT = new Date('2026-09-24T17:30:00Z');
+export const RECORDING_CUTOFF_AT = new Date('2026-09-24T17:35:00Z');
 
 export const TICKET_PRODUCT_ID = 'ac3fc1c0-b78c-11f1-8ef9-6f8516a1cddf';
 /** Gravação das duas noites, R$ 67, criada na Kiwify em 24/09. */
