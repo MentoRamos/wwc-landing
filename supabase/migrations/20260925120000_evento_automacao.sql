@@ -279,7 +279,9 @@ grant execute on function public.evento_register_buyer(text, text, text, text, t
 --      nenhum é tocado: `matched_by = 'ambiguous'`, e o webhook avisa);
 --   3. ninguém: uma lápide com o order_id e o status, para que uma aprovação
 --      que chegue DEPOIS do reembolso (entrega fora de ordem) não crie um
---      comprador pago nem enfileire mensagem de venda.
+--      comprador pago nem enfileire mensagem de venda. Se a aprovação do
+--      mesmo pedido entrar no meio (concorrência), a lápide cede
+--      (`on conflict do nothing`) e o reembolso segue pelo caso 1.
 -- Os jobs pendentes viram 'canceled'. Os que já estão 'claimed' seguem: o
 -- claim do WhatsApp reconfere `status = 'paid'`, e o envio de e-mail também.
 create or replace function public.evento_cancel_buyer(
@@ -330,9 +332,19 @@ begin
   if v_buyer is null then
     insert into public.event_buyers (edition_id, order_id, email_norm, purchased_at, status, source)
     values (v_edition, p_order_id, public.norm_email(p_email), now(), p_status, 'webhook')
+    on conflict (edition_id, order_id) do nothing
     returning id into v_buyer;
-    return query select v_buyer, 0, 'tombstone'::text;
-    return;
+    if v_buyer is not null then
+      return query select v_buyer, 0, 'tombstone'::text;
+      return;
+    end if;
+    -- A aprovação do mesmo pedido entrou entre o select acima e o insert
+    -- (entregas concorrentes). O comprador agora existe: segue pelo caminho
+    -- do order_id, marcando o status e cancelando o que ficou pendente.
+    select b.id into v_buyer
+      from public.event_buyers b
+     where b.edition_id = v_edition and b.order_id = p_order_id;
+    v_matched := 'order_id';
   end if;
 
   update public.event_buyers set status = p_status where id = v_buyer;

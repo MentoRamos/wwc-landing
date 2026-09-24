@@ -99,6 +99,21 @@ describe('a migration da automação do evento', () => {
     }
   });
 
+  /**
+   * Entre o `select` por order_id e o insert da lápide, a aprovação do mesmo
+   * pedido pode ter inserido o comprador. Sem `on conflict`, o reembolso
+   * morria em 23505 e o comprador seguia pago recebendo mensagem de venda.
+   */
+  it('a lápide não quebra quando a aprovação do mesmo pedido entrou no meio', () => {
+    const body = fnBody('evento_cancel_buyer');
+    const tombstone = /insert into public\.event_buyers[\s\S]*?;/.exec(body)![0];
+    expect(tombstone).toMatch(/on conflict \(edition_id, order_id\) do nothing/);
+    // Se não inseriu, segue pelo caminho do order_id (marca e cancela).
+    const after = body.slice(body.indexOf(tombstone) + tombstone.length);
+    expect(after).toMatch(/where b\.edition_id = v_edition and b\.order_id = p_order_id/);
+    expect(after).toMatch(/v_matched := 'order_id'/);
+  });
+
   it('guarda a idempotência no banco, não no código', () => {
     const source = sql();
     expect(source).toMatch(/unique \(edition_id, order_id\)/);
