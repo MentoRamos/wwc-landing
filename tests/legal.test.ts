@@ -46,6 +46,7 @@ describe('com quem os dados são compartilhados', () => {
     supabase: 'supabase',
     kiwify: 'kiwify',
     auth: 'google',
+    meta: 'meta',
   };
 
   it('nomeia todo serviço externo que o código integra', () => {

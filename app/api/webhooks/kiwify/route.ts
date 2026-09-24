@@ -10,6 +10,10 @@ import {
 } from '@/lib/core/kiwify.core';
 import { productFor, signatureCandidates, webhookSecret } from '@/lib/kiwify/config';
 import { recordProbe } from '@/lib/kiwify/probe';
+import { getMetaPixelId } from '@/lib/analytics/meta-pixel';
+import { buildPurchase, capiResult } from '@/lib/core/meta-capi.core';
+import { capiAccessToken, sendCapiEvent } from '@/lib/meta/capi';
+import { conversionProductFor } from '@/lib/meta/conversion-products';
 
 /**
  * Where a purchase becomes access.
@@ -101,6 +105,38 @@ export async function POST(request: Request) {
     // 23505 is the unique violation, i.e. we have seen this event already.
     if (claimError.code === '23505') return new Response('ok', { status: 200 });
     console.error('[kiwify] não consegui registrar o evento', { code: claimError.code });
+    return new Response('ok', { status: 200 });
+  }
+
+  // O ingresso e o Protocol não liberam nada na plataforma: o que eles devem
+  // é uma Purchase no servidor da Meta, porque o pixel do navegador só dispara
+  // para quem aceitou cookies. Saem daqui antes de `interpret`, senão todo
+  // `order_approved` deles cairia em "produto fora da plataforma" e dispararia
+  // o aviso de pagamento que não virou acesso a cada venda.
+  const conversion = conversionProductFor(event.productId);
+  if (conversion) {
+    const purchase = buildPurchase({ event, payload: parsed, product: conversion, now: new Date() });
+    const sent =
+      purchase.kind === 'send'
+        ? await sendCapiEvent(purchase.body, { pixelId: getMetaPixelId(), token: capiAccessToken() })
+        : undefined;
+    const outcome = capiResult(purchase, sent);
+
+    if (sent && !sent.ok) {
+      console.error('[kiwify] purchase não chegou na meta', { event: event.id, result: outcome });
+      await alertAdmin('Uma venda não chegou na Meta', [
+        `Evento: ${event.id} (${event.type})`,
+        `Resultado: ${outcome}`,
+        'A venda em si está certa. Só a medição do anúncio ficou sem essa compra.',
+      ]);
+    }
+
+    await admin
+      .from('billing_events')
+      .update({ processed_at: new Date().toISOString(), result: outcome })
+      .eq('provider', 'kiwify')
+      .eq('external_event_id', event.id);
+
     return new Response('ok', { status: 200 });
   }
 
