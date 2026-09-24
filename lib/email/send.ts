@@ -13,7 +13,18 @@ export function emailConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM?.trim());
 }
 
-export async function sendEmail(to: string, subject: string, html: string): Promise<SendResult> {
+/**
+ * `idempotencyKey` vai como cabeçalho `Idempotency-Key` do Resend: com o id
+ * do job da fila, uma nova tentativa do mesmo envio não vira dois e-mails.
+ */
+export type SendOptions = { idempotencyKey?: string; headers?: Record<string, string> };
+
+export async function sendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  options: SendOptions = {},
+): Promise<SendResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = process.env.RESEND_FROM?.trim();
 
@@ -22,7 +33,10 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   }
 
   try {
-    const { error } = await new Resend(apiKey).emails.send({ from, to, subject, html });
+    const { error } = await new Resend(apiKey).emails.send(
+      { from, to, subject, html, ...(options.headers ? { headers: options.headers } : {}) },
+      options.idempotencyKey ? { idempotencyKey: options.idempotencyKey } : undefined,
+    );
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   } catch (cause) {
