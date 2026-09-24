@@ -1004,7 +1004,7 @@ export default function ProtocoloPage() {
             ))}
           </ol>
           {VISUAIS_REPORTS ? (
-            <ScrollReveal className="mt-12 max-w-[460px]">
+            <ScrollReveal className="mx-auto mt-12 max-w-[460px]">
               <VisualFrame visual={VISUAIS.weeklyReport2} variant="document" tone="dark" sizes="(max-width: 768px) 100vw, 460px" />
             </ScrollReveal>
           ) : null}
