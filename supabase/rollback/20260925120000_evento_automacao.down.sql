@@ -19,7 +19,9 @@
 
 begin;
 
-drop function if exists public.claim_wa_jobs(int, timestamptz);
+drop function if exists public.claim_wa_jobs(int, timestamptz, text[], boolean, boolean, int, boolean);
+drop function if exists public.evento_wa_result(uuid, text, text, text, text, timestamptz);
+drop function if exists public.evento_wa_optout(text[]);
 drop function if exists public.evento_register_buyer(text, text, text, text, timestamptz, boolean, text, jsonb);
 drop function if exists public.evento_cancel_buyer(text, text, text);
 drop function if exists public.evento_mark_purchase(text, text, timestamptz);

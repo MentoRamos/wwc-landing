@@ -127,14 +127,20 @@ describe('o claim do WhatsApp', () => {
     const optedOut = await register(`ord-${Date.now()}-h`, uniqueEmail('claim-sair'), '+5511922220000');
     await admin.from('contact_optouts').insert({ channel: 'whatsapp', address: '+5511922220000', source: 'sair' });
 
-    const { data } = await admin.rpc('claim_wa_jobs', { p_limit: 500, p_now: new Date(Date.now() + 60_000).toISOString() });
+    const { data } = await admin.rpc('claim_wa_jobs', {
+      p_limit: 500,
+      p_now: new Date(Date.now() + 60_000).toISOString(),
+      p_steps: ['t0', 'gravacao_oferta'],
+      p_real_buyers: false,
+      p_antigos: false,
+      p_daily_cap: 1000,
+      p_dry_run: true,
+    });
     const buyers = new Set((data as Array<{ buyer_id: string }>).map((job) => job.buyer_id));
     expect(buyers.has(refunded.buyer_id)).toBe(false);
     expect(buyers.has(optedOut.buyer_id)).toBe(false);
 
     await admin.from('contact_optouts').delete().eq('address', '+5511922220000');
-    // Devolve o que este teste reservou de outros compradores do próprio arquivo.
-    await admin.from('message_jobs').update({ status: 'pending' }).in('buyer_id', created).eq('status', 'claimed');
   });
 });
 
@@ -180,7 +186,15 @@ describe('quem lê as tabelas do evento', () => {
     }
     const { error } = await client.from('contact_optouts').insert({ channel: 'email', address: 'a@b.c', source: 'admin' });
     expect(error).not.toBeNull();
-    const rpc = await client.rpc('claim_wa_jobs', { p_limit: 1, p_now: new Date().toISOString() });
+    const rpc = await client.rpc('claim_wa_jobs', {
+      p_limit: 1,
+      p_now: new Date().toISOString(),
+      p_steps: ['t0'],
+      p_real_buyers: false,
+      p_antigos: false,
+      p_daily_cap: 1,
+      p_dry_run: true,
+    });
     expect(rpc.error).not.toBeNull();
   });
 

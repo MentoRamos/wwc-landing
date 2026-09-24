@@ -17,7 +17,14 @@ const FILE = readdirSync(DIR).find((name) => name.endsWith('_evento_automacao.sq
 const sql = () => readFileSync(join(DIR, FILE ?? 'ausente'), 'utf8');
 
 const TABLES = ['event_buyers', 'message_jobs', 'contact_optouts', 'survey_responses', 'protocol_applications'];
-const FUNCTIONS = ['claim_wa_jobs', 'evento_register_buyer', 'evento_cancel_buyer', 'evento_mark_purchase'];
+const FUNCTIONS = [
+  'claim_wa_jobs',
+  'evento_register_buyer',
+  'evento_cancel_buyer',
+  'evento_mark_purchase',
+  'evento_wa_result',
+  'evento_wa_optout',
+];
 
 describe('a migration da automação do evento', () => {
   it('existe e vem depois da última migration que já está em produção', () => {
@@ -114,6 +121,26 @@ describe('a migration da automação do evento', () => {
     expect(after).toMatch(/v_matched := 'order_id'/);
   });
 
+  /**
+   * No WhatsApp não há chave de idempotência: um job cujo lease venceu pode
+   * ter saído. Ele vira `unknown` (decisão humana) e nunca volta a
+   * `pending`, senão a pessoa recebe a mesma mensagem duas vezes.
+   */
+  it('o claim do WhatsApp manda lease vencido para unknown, nunca de volta para pending', () => {
+    const body = fnBody('claim_wa_jobs');
+    expect(body).toMatch(/set status = 'unknown'[^;]*where[^;]*status = 'claimed'[^;]*lease_until < p_now/);
+    expect(body).not.toMatch(/set status = 'pending'/);
+  });
+
+  /** Em dry-run o worker não reporta: um lease criado ali viraria `unknown`. */
+  it('o claim em dry-run não reserva nem muda nada', () => {
+    const body = fnBody('claim_wa_jobs');
+    const dry = body.indexOf('if p_dry_run then');
+    expect(dry).toBeGreaterThan(-1);
+    const firstWrite = body.search(/\bupdate public\.message_jobs\b/);
+    expect(body.slice(0, firstWrite)).toMatch(/if not p_dry_run then/);
+  });
+
   it('guarda a idempotência no banco, não no código', () => {
     const source = sql();
     expect(source).toMatch(/unique \(edition_id, order_id\)/);
@@ -145,7 +172,7 @@ describe('o rollback da migration do evento', () => {
     expect(() => down()).not.toThrow();
   });
 
-  it('desfaz as cinco tabelas e as quatro funções, numa transação', () => {
+  it('desfaz as cinco tabelas e as seis funções, numa transação', () => {
     const source = down();
     for (const table of TABLES) expect(source).toMatch(new RegExp(`drop table if exists public\\.${table}\\b`));
     for (const fn of FUNCTIONS) expect(source).toMatch(new RegExp(`drop function if exists public\\.${fn}\\(`));
