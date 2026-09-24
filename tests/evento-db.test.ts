@@ -1,5 +1,9 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { anonClient, serviceClient, signedInAs, uniqueEmail, userIdFor } from './helpers/local-supabase';
+import { applyEventoEvent } from '@/lib/evento/purchase';
+import { sendT0Email } from '@/lib/evento/t0';
+import { TICKET_PRODUCT_ID } from '@/lib/core/evento.core';
+import type { KiwifyEvent } from '@/lib/core/kiwify.core';
 
 /**
  * A automação do evento contra o Postgres de verdade.
@@ -187,5 +191,52 @@ describe('quem lê as tabelas do evento', () => {
     await admin.from('admin_users').insert({ user_id: await userIdFor(email) });
     const { data } = await client.from('event_buyers').select('id').in('id', created);
     expect((data ?? []).length).toBeGreaterThan(0);
+  });
+});
+
+describe('o webhook do lado do evento', () => {
+  const ticket = (order: string, email: string, type: KiwifyEvent['type']): KiwifyEvent => ({
+    id: order,
+    type,
+    email,
+    productId: TICKET_PRODUCT_ID,
+    subscriptionId: order,
+  });
+  const payload = { Customer: { first_name: 'maria', mobile: '+55 (11) 98765-4321' }, approved_date: '2026-10-05 10:00' };
+
+  it('a compra aprovada registra, devolve a T0 e o reembolso do mesmo pedido cancela', async () => {
+    const order = `ord-${Date.now()}-w`;
+    const email = uniqueEmail('webhook');
+    const now = new Date('2026-10-05T13:05:00Z');
+
+    const approved = await applyEventoEvent(admin, { event: ticket(order, email, 'order_approved'), payload, now });
+    expect(approved.result).toBe('evento:registrado');
+    expect(approved.t0JobId).toBeTruthy();
+
+    const { data: buyer } = await admin.from('event_buyers').select('id, first_name, phone_e164').eq('order_id', order).single();
+    created.push(buyer!.id);
+    expect(buyer).toMatchObject({ first_name: 'Maria', phone_e164: '+5511987654321' });
+
+    const again = await applyEventoEvent(admin, { event: ticket(order, email, 'order_approved'), payload, now });
+    expect(again.result).toBe('evento:ja-registrado');
+
+    const refunded = await applyEventoEvent(admin, { event: ticket(order, email, 'order_refunded'), payload, now });
+    expect(refunded.result).toMatch(/^evento:refunded:order_id:\d+$/);
+  });
+
+  /** Sem EVENTO_MODE=live, comprador de verdade não recebe, e o job espera. */
+  it('a T0 fora de live volta para pendente com o motivo, sem enviar', async () => {
+    const order = `ord-${Date.now()}-x`;
+    const outcome = await applyEventoEvent(admin, {
+      event: ticket(order, uniqueEmail('t0-sandbox'), 'order_approved'),
+      payload,
+      now: new Date(),
+    });
+    const { data: buyer } = await admin.from('event_buyers').select('id').eq('order_id', order).single();
+    created.push(buyer!.id);
+
+    expect(await sendT0Email(admin, outcome.t0JobId!)).toBe('deferred');
+    const { data: job } = await admin.from('message_jobs').select('status, error, attempts').eq('id', outcome.t0JobId!).single();
+    expect(job).toMatchObject({ status: 'pending', error: 'modo-sandbox', attempts: 1 });
   });
 });
