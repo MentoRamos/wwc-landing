@@ -296,9 +296,12 @@ export function verifyLinkToken(token: string | null | undefined, secret: string
   const buyerId = token.slice(0, dot);
   const given = token.slice(dot + 1);
   if (!UUID.test(buyerId)) return null;
-  const expected = mac(buyerId, secret);
-  if (given.length !== expected.length) return null;
-  return timingSafeEqual(Buffer.from(given), Buffer.from(expected)) ? buyerId.toLowerCase() : null;
+  // Compara bytes, não caracteres: `timingSafeEqual` lança com buffers de
+  // tamanhos diferentes, e 32 caracteres multibyte têm mais de 32 bytes.
+  const givenBytes = Buffer.from(given, 'utf8');
+  const expectedBytes = Buffer.from(mac(buyerId, secret), 'utf8');
+  if (givenBytes.length !== expectedBytes.length) return null;
+  return timingSafeEqual(givenBytes, expectedBytes) ? buyerId.toLowerCase() : null;
 }
 
 // ------------------------------------------------------------------ sandbox

@@ -314,6 +314,18 @@ describe('o link pessoal da pesquisa', () => {
     expect(verifyLinkToken('nao-e-uuid.abc', secret)).toBeNull();
   });
 
+  /**
+   * `timingSafeEqual` lança quando os buffers têm tamanhos diferentes. Uma
+   * assinatura com 32 caracteres multibyte tem o mesmo `.length` da nossa e
+   * mais bytes: sem comparar por bytes, o POST da pesquisa virava erro 500.
+   */
+  it('assinatura multibyte do mesmo comprimento é recusada, sem lançar', () => {
+    const forged = `${buyerId}.${'é'.repeat(32)}`;
+    expect(() => verifyLinkToken(forged, secret)).not.toThrow();
+    expect(verifyLinkToken(forged, secret)).toBeNull();
+    expect(verifyLinkToken(`${buyerId}.${'😀'.repeat(16)}`, secret)).toBeNull();
+  });
+
   it('sem segredo configurado, nada é válido', () => {
     expect(verifyLinkToken(signLinkToken(buyerId, secret), '')).toBeNull();
     expect(() => signLinkToken(buyerId, '')).toThrow();
