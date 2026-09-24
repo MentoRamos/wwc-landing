@@ -121,15 +121,15 @@ export function stickyBarTextoMobile(): string {
  * - `VISUAIS_REPORTS`: duas páginas reais de Weekly Report ("Sua semana em
  *   detalhe"), anonimizadas (nome no rodapé e nome da equipe cobertos). Ligado
  *   em 24/09/2026: os dois alunos autorizaram pessoalmente ao Kauã.
- * - `VISUAIS_PLATAFORMA`: o print da área do aluno numa conta de demonstração.
- *   Desligado até a conta de demonstração existir; enquanto isso nenhum
- *   pedido por esse arquivo chega ao servidor.
+ * - `VISUAIS_PLATAFORMA`: o print da área do aluno (`/aluno`) com dados de
+ *   demonstração. Renderizado em 24/09/2026 com os componentes reais da
+ *   plataforma e dados fictícios, sem banco nem login.
  *
  * `tests/protocolo.test.ts` exige que todo arquivo atrás de uma chave ligada
  * exista em `public/photos/protocolo/`.
  */
 export const VISUAIS_REPORTS = true;
-export const VISUAIS_PLATAFORMA = false;
+export const VISUAIS_PLATAFORMA = true;
 
 export type VisualProtocolo = {
   src: string;

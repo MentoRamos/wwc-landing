@@ -455,11 +455,11 @@ describe('/imersao/protocolo scope (item 6)', () => {
   });
 });
 
-describe('/imersao/protocolo visuals (Weekly Reports on, platform pending)', () => {
-  it('ships the authorized Weekly Reports on and the platform print off', async () => {
+describe('/imersao/protocolo visuals (Weekly Reports and demo platform on)', () => {
+  it('ships the authorized Weekly Reports and the demo-account platform print on', async () => {
     const lib = await import('@/lib/protocolo');
     expect(lib.VISUAIS_REPORTS).toBe(true);
-    expect(lib.VISUAIS_PLATAFORMA).toBe(false);
+    expect(lib.VISUAIS_PLATAFORMA).toBe(true);
     expect(lib.VISUAIS.weeklyReport1.src).toBe('/photos/protocolo/weekly-report-1.jpg');
     expect(lib.VISUAIS.weeklyReport2.src).toBe('/photos/protocolo/weekly-report-2.jpg');
     expect(lib.VISUAIS.plataforma.src).toBe('/photos/protocolo/plataforma.jpg');
