@@ -163,11 +163,16 @@ create policy protocol_applications_admin_read on public.protocol_applications
 -- só garante a exclusão mútua e as condições que não podem ter corrida:
 -- comprador pago e sem SAIR NO MOMENTO do claim. Não é chamada no Marco 1
 -- (o worker é do Marco 2), mas nasce aqui para o schema sair inteiro.
+--
+-- Sem `security definer`, como as outras três: só o service role executa
+-- (grant abaixo), e ele já tem BYPASSRLS e grant nas tabelas. Definer não
+-- acrescentaria nada, e transformaria qualquer grant de execute errado no
+-- futuro em acesso à fila inteira. O `search_path` termina em `pg_temp` para
+-- que um objeto temporário nunca sombreie um de `public`.
 create or replace function public.claim_wa_jobs(p_limit int, p_now timestamptz)
 returns setof public.message_jobs
 language sql
-security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
   update public.message_jobs j
      set status = 'claimed', claimed_at = p_now,
@@ -215,7 +220,7 @@ create or replace function public.evento_register_buyer(
 )
 returns table (buyer_id uuid, created boolean, t0_email_job_id uuid)
 language plpgsql
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_edition uuid;
@@ -284,7 +289,7 @@ create or replace function public.evento_cancel_buyer(
 )
 returns table (buyer_id uuid, canceled_jobs int, matched_by text)
 language plpgsql
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_edition  uuid;
@@ -362,7 +367,7 @@ create or replace function public.evento_mark_purchase(
 )
 returns int
 language plpgsql
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_edition uuid;

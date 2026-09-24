@@ -78,6 +78,27 @@ describe('a migration da automação do evento', () => {
     }
   });
 
+  /** O corpo de uma função, do `create` até o `$$;` que a fecha. */
+  const fnBody = (name: string) => {
+    const match = new RegExp(`create or replace function public\\.${name}\\([\\s\\S]*?\\$\\$;`).exec(sql());
+    expect(match, name).not.toBeNull();
+    return match![0];
+  };
+
+  /**
+   * Só o service role chama estas funções, e ele já passa por cima do RLS e
+   * tem grant nas tabelas: `security definer` não daria nada, só alargaria o
+   * que um grant errado no futuro abriria. E o `search_path` fixo termina em
+   * `pg_temp`, para um objeto temporário nunca sombrear um de `public`.
+   */
+  it('nenhuma função é security definer, e todas fixam search_path com pg_temp no fim', () => {
+    for (const fn of FUNCTIONS) {
+      const body = fnBody(fn);
+      expect(body, fn).not.toMatch(/security definer/i);
+      expect(body, fn).toMatch(/set search_path = public, pg_temp\n/);
+    }
+  });
+
   it('guarda a idempotência no banco, não no código', () => {
     const source = sql();
     expect(source).toMatch(/unique \(edition_id, order_id\)/);
