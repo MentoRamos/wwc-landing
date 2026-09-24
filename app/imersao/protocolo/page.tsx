@@ -422,8 +422,16 @@ const FAQ = [
     a: 'A anamnese tem um bloco inteiro sobre a sua rotina real, com as viagens, e o plano é montado em cima da sua agenda. O Protocolo das Exceções que você recebeu na imersão (jantar que acaba tarde, voo cedo, sábado) continua valendo. As calls são online, e o seu aparelho sincroniza de onde você estiver, então a leitura diária continua. Se precisar remarcar uma call, avise com 24 horas de antecedência. Falta sem aviso consome a sessão.',
   },
   {
-    q: 'Como funciona a garantia?',
-    a: 'São duas. Os 7 dias de arrependimento, conforme a lei, mais a minha garantia de 30 dias com condições, escrita no contrato: nos primeiros 30 dias, se você vier às calls, configurar o app e seguir o protocolo, e ainda assim não tiver clareza e autonomia sobre os seus próprios dados, eu devolvo o valor do primeiro mês ou estendo o suporte, à sua escolha. Depois dos 30 dias, o cancelamento é proporcional ao que foi prestado, com aviso prévio de 7 dias.',
+    q: 'Já tentei outros planos e larguei. Por que agora seria diferente?',
+    a: 'Porque o método foi desenhado para quem larga. Nenhuma estratégia entra antes da anamnese, os 10 primeiros dias são só observação, e vale uma regra: nada que você não consiga repetir sozinho no mês seguinte. Jejum prolongado e corte de água ficaram de fora de propósito. E você não fica sozinho em nenhuma semana: relatório toda semana, call a cada quinze dias e chat em dia útil.',
+  },
+  {
+    q: 'Posso seguir sozinho com o que aprendi na imersão?',
+    a: 'Pode, e a Hora Fixa é sua. A imersão resolve a primeira semana. A trilha tem 12, com treino, nutrição e painel de exames com reteste. E sozinho o risco maior é achar que deu certo: a mesma queda de HRV pode ser o jantar, o voo ou o treino, e cada caso pede uma decisão oposta. A leitura com contexto precisa de alguém de fora do seu dado.',
+  },
+  {
+    q: 'E se eu não tiver resultado?',
+    a: 'São duas proteções. Os 7 dias de arrependimento, conforme a lei, mais a minha garantia de 30 dias com condições, escrita no contrato: nos primeiros 30 dias, se você vier às calls, configurar o app e seguir o protocolo, e ainda assim não tiver clareza e autonomia sobre os seus próprios dados, eu devolvo o valor do primeiro mês ou estendo o suporte, à sua escolha. Depois dos 30 dias, o cancelamento é proporcional ao que foi prestado, com aviso prévio de 7 dias. Não prometo um número no relógio. Prometo que você vai entender o seu.',
   },
   {
     q: 'Como eu pago?',

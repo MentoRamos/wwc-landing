@@ -167,8 +167,29 @@ describe('/imersao/protocolo page', () => {
   it('includes the FAQ with at least the core questions from the copy doc', () => {
     const source = code(page());
     expect(source).toMatch(/Quanto tempo dura o acompanhamento/);
-    expect(source).toMatch(/Como funciona a garantia/);
+    expect(source).toMatch(/E se eu não tiver resultado/);
     expect(source).toMatch(/90 ou 180 dias: qual escolher/);
+  });
+
+  it('adds the two new FAQ objections from the "Como usar" doc (already tried and gone solo)', () => {
+    const source = code(page());
+    expect(source).toMatch(/Já tentei outros planos e larguei\. Por que agora seria diferente/);
+    expect(source).toMatch(/anamnese/);
+    expect(source).toMatch(/Jejum prolongado e corte de água ficaram de fora de propósito/);
+    expect(source).toMatch(/Posso seguir sozinho com o que aprendi na imersão/);
+    expect(source).toMatch(/A leitura com contexto precisa de alguém de fora do seu dado/);
+  });
+
+  it('rewrites the guarantee FAQ as "E se eu não tiver resultado?" and closes without promising a number', () => {
+    const source = code(page());
+    expect(source).not.toMatch(/Como funciona a garantia\?/);
+    const faqStart = source.indexOf('const FAQ = [');
+    const faqEnd = source.indexOf('\n];', faqStart);
+    const faqSource = source.slice(faqStart, faqEnd);
+    expect(faqSource).toMatch(/E se eu não tiver resultado\?/);
+    expect(faqSource).toMatch(/7 dias de arrependimento/);
+    expect(faqSource).toMatch(/30 dias/);
+    expect(faqSource).toMatch(/Não prometo um número no relógio\. Prometo que você vai entender o seu\./);
   });
 
   it('never names a student anywhere on the page (testimonials are anonymized)', () => {
