@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * de Postgres de verdade (a reserva condicionada, o cancelamento) está em
  * `evento-db.test.ts`; aqui fica o que o código grava e o que ele manda.
  */
-const sendEmail = vi.fn(async (..._args: unknown[]) => ({ ok: true as const }));
+const sendEmail = vi.fn<(...args: unknown[]) => Promise<{ ok: true }>>(async () => ({ ok: true }));
 vi.mock('@/lib/email/send', () => ({
   emailConfigured: () => true,
   sendEmail: (...args: unknown[]) => sendEmail(...args),
