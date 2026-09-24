@@ -48,11 +48,27 @@ describe('a migration da automação do evento', () => {
     }
   });
 
-  it('não concede nada a anon e tira escrita de authenticated', () => {
+  /**
+   * No molde de `interest`: tira TUDO de anon e de authenticated (o default
+   * do Supabase dá truncate, references e trigger também, que um `revoke
+   * insert, update, delete` deixava para trás) e devolve só o select, que a
+   * política restringe ao admin.
+   */
+  it('tira tudo de anon e de authenticated e devolve só o select', () => {
     const source = sql();
     expect(source).not.toMatch(/grant[^;]*to\s+anon/i);
-    expect(source).toMatch(/revoke all on public\.event_buyers[\s\S]*?from anon;/);
-    expect(source).toMatch(/revoke insert, update, delete on public\.event_buyers[\s\S]*?from authenticated;/);
+    const revoke = /revoke all on ([^;]*?)\s+from anon, authenticated;/.exec(source);
+    expect(revoke).not.toBeNull();
+    for (const table of TABLES) expect(revoke![1]).toMatch(new RegExp(`public\\.${table}\\b`));
+    const grant = /grant select on ([^;]*?)\s+to authenticated;/.exec(source);
+    for (const table of TABLES) expect(grant![1]).toMatch(new RegExp(`public\\.${table}\\b`));
+    expect(source.indexOf(revoke![0])).toBeLessThan(source.indexOf(grant![0]));
+    expect(source).not.toMatch(/grant (?:all|insert|update|delete)[^;]*to authenticated/i);
+  });
+
+  it('mantém o service role com tudo nas cinco tabelas', () => {
+    const grant = /grant all on ([^;]*?)\s+to service_role;/.exec(sql());
+    for (const table of TABLES) expect(grant![1]).toMatch(new RegExp(`public\\.${table}\\b`));
   });
 
   it('deixa as funções só para o service role', () => {

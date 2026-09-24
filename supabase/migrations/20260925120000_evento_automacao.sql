@@ -132,13 +132,14 @@ alter table public.contact_optouts       enable row level security;
 alter table public.survey_responses      enable row level security;
 alter table public.protocol_applications enable row level security;
 
+-- Molde de `interest` (20260911210000): tira TUDO de anon e authenticated.
+-- O default do Supabase também dá truncate, references e trigger, que um
+-- `revoke insert, update, delete` deixaria para trás. Depois devolve só o
+-- select (a política abaixo restringe ao admin) e tudo ao service role.
 revoke all on public.event_buyers, public.message_jobs, public.contact_optouts,
-              public.survey_responses, public.protocol_applications from anon;
+              public.survey_responses, public.protocol_applications from anon, authenticated;
 grant select on public.event_buyers, public.message_jobs, public.contact_optouts,
                 public.survey_responses, public.protocol_applications to authenticated;
-revoke insert, update, delete on public.event_buyers, public.message_jobs,
-              public.contact_optouts, public.survey_responses,
-              public.protocol_applications from authenticated;
 grant all on public.event_buyers, public.message_jobs, public.contact_optouts,
              public.survey_responses, public.protocol_applications to service_role;
 
