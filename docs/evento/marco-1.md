@@ -35,6 +35,34 @@ para produção. Design completo: `Automação - Pós-compra e aquecimento
    `landing-kauaramos`, então `/imersao/pesquisa` e o POST da server action
    já chegam aqui sem mudança lá.
 
+## Limitações conhecidas (Marco 1)
+
+Aceitas conscientemente; nenhuma envia mensagem errada, mas algumas deixam
+coisa parada até o Marco 3.
+
+- **T0 que não saiu fica parada até o tick do Marco 3.** O `after()` tenta
+  uma vez. Se foi adiada (sandbox, sem `EVENTO_LINK_SECRET`, Resend fora,
+  cota), volta a `pending` com o motivo em `error`; se a função morreu no
+  meio, fica `claimed` com `lease_until` vencido (10 min). Quem devolve os
+  dois para envio é o tick de e-mail do Marco 3: `claimed` com lease vencido
+  vira `pending`, e o `Idempotency-Key = evento-<jobId>` impede e-mail
+  duplicado se o primeiro envio chegou a sair. Consequência prática: virar
+  `EVENTO_MODE=live` não manda, sozinho, as T0 de quem comprou antes; elas
+  saem no primeiro tick. (No WhatsApp é diferente: lease vencido vira
+  `unknown`, sem reenvio, porque lá não há chave de idempotência.)
+- **O link da pesquisa não expira e depende de um segredo só.** O token
+  `t=<buyer_id>.<hmac>` vale enquanto `EVENTO_LINK_SECRET` for o mesmo.
+  Trocar o segredo invalida todos os links já enviados na T0 (a pessoa cai
+  no modo "informe o e-mail", que ainda funciona, só não atualiza resposta
+  antiga). Trocar só se vazar, e de preferência antes das T0 em volume.
+- **Sandbox usa só o primeiro endereço da allowlist.** Os envios do produto
+  de teste vão para o primeiro e-mail válido de `EVENTO_SANDBOX_ALLOWLIST`;
+  os demais são ignorados.
+- **Gravação, reserva e Protocol marcam o comprador só pelo e-mail.** Quem
+  compra o upsell com outro e-mail não é marcado (a função devolve 0, que
+  fica em `billing_events.result`), e o reembolso desses três produtos não
+  desmarca nada: o `billing_events` guarda o evento para conferência manual.
+
 ## Rollback da migration
 
 `supabase/rollback/20260925120000_evento_automacao.down.sql`, fora de
