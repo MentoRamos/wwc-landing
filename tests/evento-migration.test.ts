@@ -130,3 +130,32 @@ describe('a migration da automação do evento', () => {
     expect(sql()).toContain("'imersao-2026-10'");
   });
 });
+
+/**
+ * O rollback mora fora de `supabase/migrations/` de propósito: o CLI aplica
+ * tudo que está lá, e um `.down.sql` ali seria executado no próximo
+ * `db push`, apagando as tabelas logo depois de criá-las.
+ */
+describe('o rollback da migration do evento', () => {
+  const ROLLBACK = join(process.cwd(), 'supabase/rollback/20260925120000_evento_automacao.down.sql');
+  const down = () => readFileSync(ROLLBACK, 'utf8');
+
+  it('existe fora da pasta de migrations', () => {
+    expect(readdirSync(DIR).some((name) => name.includes('.down.'))).toBe(false);
+    expect(() => down()).not.toThrow();
+  });
+
+  it('desfaz as cinco tabelas e as quatro funções, numa transação', () => {
+    const source = down();
+    for (const table of TABLES) expect(source).toMatch(new RegExp(`drop table if exists public\\.${table}\\b`));
+    for (const fn of FUNCTIONS) expect(source).toMatch(new RegExp(`drop function if exists public\\.${fn}\\(`));
+    expect(source).toMatch(/^begin;/m);
+    expect(source).toMatch(/^commit;/m);
+  });
+
+  it('só apaga o bucket e a edição quando nada depende deles', () => {
+    const source = down();
+    expect(source).toMatch(/delete from storage\.buckets[\s\S]*?not exists \(select 1 from storage\.objects/);
+    expect(source).toMatch(/delete from public\.event_editions[\s\S]*?not exists \(select 1 from public\.event_rsvps/);
+  });
+});

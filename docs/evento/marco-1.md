@@ -31,6 +31,17 @@ para produção. Design completo: `Automação - Pós-compra e aquecimento
    `landing-kauaramos`, então `/imersao/pesquisa` e o POST da server action
    já chegam aqui sem mudança lá.
 
+## Rollback da migration
+
+`supabase/rollback/20260925120000_evento_automacao.down.sql`, fora de
+`supabase/migrations/` para o CLI não aplicar. Só com OK do Kauã: apaga
+compradores, fila, opt-outs, pesquisa e aplicações (exportar antes);
+`billing_events` fica. Roda numa transação, tira a migration de
+`supabase_migrations.schema_migrations` e só apaga o bucket `evento` se ele
+estiver vazio (Storage não se apaga por SQL: esvaziar pelo painel antes).
+Testado em Postgres local: aplicar, reverter e reaplicar volta ao mesmo
+estado.
+
 ## Rate limit da pesquisa (passo manual, Firewall da Vercel)
 
 A server action da pesquisa é um POST público. Sem o token do e-mail T0, ela
