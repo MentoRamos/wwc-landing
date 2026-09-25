@@ -7,7 +7,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * de Postgres de verdade (a reserva condicionada, o cancelamento) está em
  * `evento-db.test.ts`; aqui fica o que o código grava e o que ele manda.
  */
-const sendEmail = vi.fn<(...args: unknown[]) => Promise<{ ok: true }>>(async () => ({ ok: true }));
+const sendEmail = vi.fn<(...args: unknown[]) => Promise<{ ok: true } | { ok: false; error: string }>>(async () => ({
+  ok: true,
+}));
 vi.mock('@/lib/email/send', () => ({
   emailConfigured: () => true,
   sendEmail: (...args: unknown[]) => sendEmail(...args),
@@ -18,9 +20,9 @@ const { sendT0Email } = await import('@/lib/evento/t0');
 
 type Update = { table: string; fields: Record<string, unknown>; filters: Record<string, unknown> };
 
-function fakeAdmin(buyer: Record<string, unknown>) {
+function fakeAdmin(buyer: Record<string, unknown>, attempts = 0) {
   const updates: Update[] = [];
-  const job = { id: 'job-1', buyer_id: buyer.id, attempts: 0 };
+  const job = { id: 'job-1', buyer_id: buyer.id, attempts };
 
   const from = (table: string) => {
     const state: { op?: 'update' | 'select'; fields?: Record<string, unknown>; filters: Record<string, unknown> } = {
@@ -161,5 +163,46 @@ describe('a T0 dos compradores do backfill', () => {
     const { admin } = fakeAdmin(buyer());
     await sendT0Email(admin, 'job-1');
     expect(sendEmail.mock.calls[0][2] as string).not.toContain('o=antigos');
+  });
+});
+
+/**
+ * Erro do Resend é tentativa gasta; esperar (sandbox, cota, OK dos antigos)
+ * não é. Depois de 5 tentativas de envio o job vira `failed`, em vez de
+ * voltar para a frente da fila a cada tick. Entre uma e outra, o `due_at`
+ * anda 30 min por tentativa.
+ */
+describe('as tentativas da T0', () => {
+  const NOW = new Date('2026-10-05T15:00:00Z');
+
+  it('esperar não conta tentativa', async () => {
+    vi.stubEnv('EVENTO_MODE', '');
+    const { admin, updates } = fakeAdmin(buyer(), 3);
+    expect(await sendT0Email(admin, 'job-1', NOW)).toBe('deferred');
+    expect(updates.at(-1)!.fields.attempts).toBe(3);
+  });
+
+  it('erro do Resend conta e empurra o due_at', async () => {
+    sendEmail.mockResolvedValueOnce({ ok: false, error: 'boom' });
+    const { admin, updates } = fakeAdmin(buyer(), 1);
+    expect(await sendT0Email(admin, 'job-1', NOW)).toBe('deferred');
+    expect(updates.at(-1)!.fields).toMatchObject({
+      status: 'pending',
+      attempts: 2,
+      due_at: new Date(NOW.getTime() + 60 * 60 * 1000).toISOString(),
+    });
+  });
+
+  it('na quinta tentativa com erro, vira failed', async () => {
+    sendEmail.mockResolvedValueOnce({ ok: false, error: 'boom' });
+    const { admin, updates } = fakeAdmin(buyer(), 4);
+    expect(await sendT0Email(admin, 'job-1', NOW)).toBe('failed');
+    expect(updates.at(-1)!.fields).toMatchObject({ status: 'failed', attempts: 5 });
+  });
+
+  it('envio que deu certo conta a tentativa', async () => {
+    const { admin, updates } = fakeAdmin(buyer(), 0);
+    expect(await sendT0Email(admin, 'job-1', NOW)).toBe('sent');
+    expect(updates.at(-1)!.fields.attempts).toBe(1);
   });
 });

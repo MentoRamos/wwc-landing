@@ -39,6 +39,7 @@ export type EmailTickResult = {
   canceled: number;
   blocked: number;
   skipped: number;
+  failed: number;
   /** Candidatos que ficaram para o próximo tick porque a cota acabou. */
   quota: number;
   skipped_reason?: string;
@@ -55,6 +56,7 @@ export async function runEmailTick(admin: SupabaseClient, now: Date = new Date()
     canceled: 0,
     blocked: 0,
     skipped: 0,
+    failed: 0,
     quota: 0,
   };
 
@@ -114,7 +116,14 @@ export async function runEmailTick(admin: SupabaseClient, now: Date = new Date()
     }
     const send = EMAIL_TEMPLATES[job.step_key];
     const result = await send(admin, job.id, now);
-    if (result === 'sent' || result === 'deferred' || result === 'canceled' || result === 'blocked' || result === 'skipped') {
+    if (
+      result === 'sent' ||
+      result === 'deferred' ||
+      result === 'canceled' ||
+      result === 'blocked' ||
+      result === 'skipped' ||
+      result === 'failed'
+    ) {
       out[result] += 1;
     }
   }

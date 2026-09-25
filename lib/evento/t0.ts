@@ -31,7 +31,11 @@ import { eventoConfig, surveyUrl, waConfig } from './config';
  * Nunca registra endereço, nome ou corpo: log e coluna `error` levam só o
  * id do job e o motivo.
  */
-export type T0Result = 'sent' | 'deferred' | 'canceled' | 'blocked' | 'skipped';
+export type T0Result = 'sent' | 'deferred' | 'canceled' | 'blocked' | 'skipped' | 'failed';
+
+/** Tentativas de envio (erro do Resend) até o job virar `failed`. */
+const MAX_ATTEMPTS = 5;
+const BACKOFF_MS = 30 * 60 * 1000;
 
 const LEASE_MS = 10 * 60 * 1000;
 
@@ -55,8 +59,11 @@ export async function sendT0Email(admin: SupabaseClient, jobId: string, now: Dat
     return 'skipped';
   }
 
-  const attempts = (job.attempts as number) + 1;
-  const finish = async (fields: Record<string, unknown>, result: T0Result, reason?: string) => {
+  // Só envio de verdade gasta tentativa. Esperar pelo modo, pela cota ou
+  // pelo OK dos antigos não é falha e pode durar dias.
+  const previous = job.attempts as number;
+  const finish = async (fields: Record<string, unknown>, result: T0Result, reason?: string, tried = false) => {
+    const attempts = tried ? previous + 1 : previous;
     await admin.from('message_jobs').update({ attempts, lease_until: null, ...fields }).eq('id', jobId);
     console.info('[evento/t0]', { job: jobId, result, ...(reason ? { reason } : {}) });
     return result;
@@ -103,8 +110,16 @@ export async function sendT0Email(admin: SupabaseClient, jobId: string, now: Dat
   const rendered = renderT0Email({ ...input, firstName: displayFirstName(buyer.first_name as string | null) });
 
   const sent = await sendEmail(recipient, rendered.subject, rendered.html, { idempotencyKey: `evento-${jobId}` });
-  if (sent.ok) return finish({ status: 'sent', sent_at: new Date().toISOString(), error: null }, 'sent');
-  return defer(`resend:${scrub(sent.error)}`);
+  if (sent.ok) return finish({ status: 'sent', sent_at: new Date().toISOString(), error: null }, 'sent', undefined, true);
+
+  // Erro do Resend: tenta de novo mais tarde (30 min por tentativa), e para
+  // de tentar na quinta, para um endereço recusado não ficar na frente da
+  // fila para sempre.
+  const reason = `resend:${scrub(sent.error)}`;
+  const attempts = previous + 1;
+  if (attempts >= MAX_ATTEMPTS) return finish({ status: 'failed', error: reason }, 'failed', reason, true);
+  const due = new Date(now.getTime() + attempts * BACKOFF_MS).toISOString();
+  return finish({ status: 'pending', error: reason, due_at: due }, 'deferred', reason, true);
 }
 
 /** A mensagem de erro do provedor pode citar o endereço. Não fica. */
