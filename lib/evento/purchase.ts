@@ -5,6 +5,7 @@ import {
   eventoAction,
   includesRecording,
   normalizeBrPhone,
+  planBackfillJobs,
   planJobs,
 } from '@/lib/core/evento.core';
 import { eventoConfig } from './config';
@@ -30,9 +31,18 @@ export type EventoOutcome = {
 
 export async function applyEventoEvent(
   admin: SupabaseClient,
-  input: { event: KiwifyEvent; payload: unknown; now: Date },
+  input: {
+    event: KiwifyEvent;
+    payload: unknown;
+    now: Date;
+    /**
+     * Compra lida de `billing_events` pelo `scripts/evento-backfill.ts`, de
+     * antes da automação: agenda de comprador antigo e nenhuma T0 imediata.
+     */
+    backfill?: boolean;
+  },
 ): Promise<EventoOutcome> {
-  const { event, payload, now } = input;
+  const { event, payload, now, backfill = false } = input;
   const action = eventoAction(event, eventoConfig().testProductIds);
   const purchased = readPurchasedAt(payload, now);
   // Sem `approved_date`, a data foi inferida; o resultado diz de onde veio.
@@ -44,7 +54,10 @@ export async function applyEventoEvent(
     const contact = readContact(payload);
     const purchasedAt = purchased.at;
     const recording = includesRecording(purchasedAt);
-    const jobs = planJobs({ purchasedAt, includesRecording: recording }).map((job) => ({
+    const plan = backfill
+      ? planBackfillJobs({ purchasedAt, includesRecording: recording, now })
+      : planJobs({ purchasedAt, includesRecording: recording });
+    const jobs = plan.map((job) => ({
       channel: job.channel,
       step_key: job.stepKey,
       due_at: job.dueAt.toISOString(),
@@ -57,7 +70,7 @@ export async function applyEventoEvent(
       p_phone: normalizeBrPhone(contact.phone),
       p_purchased_at: purchasedAt.toISOString(),
       p_includes_recording: recording,
-      p_source: action.sandbox ? 'sandbox' : 'webhook',
+      p_source: action.sandbox ? 'sandbox' : backfill ? 'backfill' : 'webhook',
       p_jobs: jobs,
     });
     if (error) return failed('registro', error.code, event);
@@ -66,7 +79,7 @@ export async function applyEventoEvent(
     if (!row) return failed('registro', 'sem-linha', event);
     return {
       result: dated(row.created ? 'evento:registrado' : 'evento:ja-registrado'),
-      ...(row.t0_email_job_id ? { t0JobId: row.t0_email_job_id } : {}),
+      ...(row.t0_email_job_id && !backfill ? { t0JobId: row.t0_email_job_id } : {}),
     };
   }
 

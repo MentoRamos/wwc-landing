@@ -147,6 +147,26 @@ export function planJobs(input: { purchasedAt: Date; includesRecording: boolean 
   return jobs;
 }
 
+/**
+ * A agenda de quem comprou antes da automação existir (backfill). Uma
+ * mensagem única agora (`t0` por e-mail, `t0_antigos` no WhatsApp) e, do
+ * resto da agenda normal, só o que ainda não venceu: a oferta da gravação, o
+ * convite e os vídeos atrasados não saem todos de uma vez, e a contagem que
+ * já passou não sai fora de hora.
+ */
+export function planBackfillJobs(input: { purchasedAt: Date; includesRecording: boolean; now: Date }): PlannedJob[] {
+  const now = input.now.getTime();
+  const jobs: PlannedJob[] = [
+    { channel: 'email', stepKey: 't0', dueAt: input.now },
+    { channel: 'whatsapp', stepKey: 't0_antigos', dueAt: input.now },
+  ];
+  for (const job of planJobs(input)) {
+    if (job.stepKey === 't0') continue;
+    if (job.dueAt.getTime() > now) jobs.push(job);
+  }
+  return jobs;
+}
+
 /** Minutos desde a meia-noite, no relógio de Brasília. */
 function localMinutes(date: Date): number {
   const parts = new Intl.DateTimeFormat('en-GB', {

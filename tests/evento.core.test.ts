@@ -13,6 +13,7 @@ import {
   isOptOutReply,
   isQuietHour,
   normalizeBrPhone,
+  planBackfillJobs,
   planJobs,
   quietHoursAdjust,
   resolveRecipient,
@@ -430,5 +431,47 @@ describe('o que o webhook faz com cada evento', () => {
     expect(eventoAction(ev('order_refunded', RECORDING_PRODUCT_ID))).toMatchObject({ op: 'ignore' });
     expect(eventoAction(ev('order_approved', 'circle-qualquer'))).toMatchObject({ op: 'ignore' });
     expect(eventoAction(ev('order_approved', TICKET_PRODUCT_ID, '  '))).toEqual({ op: 'ignore', reason: 'sem-email' });
+  });
+});
+
+/**
+ * Quem comprou antes da automação existir entra pelo backfill. Não recebe a
+ * sequência inteira atrasada (oferta da gravação, convite, vídeos, tudo de
+ * uma vez): recebe uma mensagem única, a `t0_antigos` no WhatsApp e a T0 por
+ * e-mail, e daí em diante só o que ainda não venceu.
+ */
+describe('a agenda de um comprador do backfill', () => {
+  it('compra de 3 dias atrás: T0 por e-mail e t0_antigos agora, sem a sequência vencida', () => {
+    const now = at('2026-10-05T15:00:00');
+    const jobs = byKey(
+      planBackfillJobs({ purchasedAt: at('2026-10-02T10:00:00'), includesRecording: false, now }),
+    );
+    expect(jobs['email:t0']).toBe(now.toISOString());
+    expect(jobs['whatsapp:t0_antigos']).toBe(now.toISOString());
+    expect(jobs['whatsapp:t0']).toBeUndefined();
+    expect(jobs['whatsapp:gravacao_oferta']).toBeUndefined();
+    expect(jobs['whatsapp:grupo_convite']).toBeUndefined();
+    expect(jobs['whatsapp:videos']).toBeUndefined();
+    expect(jobs['email:faltam7']).toBe(iso('2026-10-21T08:00:00'));
+  });
+
+  it('o passo que ainda não venceu continua na agenda', () => {
+    const now = at('2026-10-05T10:20:00');
+    const jobs = byKey(
+      planBackfillJobs({ purchasedAt: at('2026-10-05T10:00:00'), includesRecording: false, now }),
+    );
+    expect(jobs['whatsapp:gravacao_oferta']).toBeUndefined();
+    expect(jobs['whatsapp:grupo_convite']).toBe(iso('2026-10-05T13:00:00'));
+    expect(jobs['whatsapp:videos']).toBe(iso('2026-10-05T16:00:00'));
+  });
+
+  it('contagem por e-mail que já passou não sai atrasada', () => {
+    const now = at('2026-10-24T12:00:00');
+    const jobs = byKey(
+      planBackfillJobs({ purchasedAt: at('2026-10-20T10:00:00'), includesRecording: false, now }),
+    );
+    expect(jobs['email:faltam7']).toBeUndefined();
+    expect(jobs['email:faltam5']).toBeUndefined();
+    expect(jobs['email:faltam3']).toBe(iso('2026-10-25T09:00:00'));
   });
 });

@@ -75,3 +75,39 @@ describe('a data da compra que vai para o banco', () => {
     expect(out.result).toBe('evento:recording:1:data=created_at');
   });
 });
+
+describe('o backfill', () => {
+  it('registra com source backfill e a agenda de comprador antigo', async () => {
+    const { admin, calls } = fakeAdmin(registered);
+    await applyEventoEvent(admin, {
+      event: event(TICKET_PRODUCT_ID),
+      payload: { approved_date: '2026-09-30 10:00' },
+      now,
+      backfill: true,
+    });
+    expect(calls[0].args.p_source).toBe('backfill');
+    const steps = (calls[0].args.p_jobs as Array<{ channel: string; step_key: string; due_at: string }>).map(
+      (job) => `${job.channel}:${job.step_key}`,
+    );
+    expect(steps).toContain('whatsapp:t0_antigos');
+    expect(steps).not.toContain('whatsapp:t0');
+    expect(steps).not.toContain('whatsapp:grupo_convite');
+  });
+
+  it('não devolve a T0 para envio imediato: quem manda é o tick, depois do OK', async () => {
+    const { admin } = fakeAdmin(registered);
+    const out = await applyEventoEvent(admin, {
+      event: event(TICKET_PRODUCT_ID),
+      payload: { approved_date: '2026-09-30 10:00' },
+      now,
+      backfill: true,
+    });
+    expect(out.t0JobId).toBeUndefined();
+  });
+
+  it('sem a opção, continua webhook', async () => {
+    const { admin, calls } = fakeAdmin(registered);
+    await applyEventoEvent(admin, { event: event(TICKET_PRODUCT_ID), payload: {}, now });
+    expect(calls[0].args.p_source).toBe('webhook');
+  });
+});
