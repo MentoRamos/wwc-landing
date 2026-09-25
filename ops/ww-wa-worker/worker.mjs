@@ -132,6 +132,19 @@ export function parseInbound(payload) {
   return { phone, text };
 }
 
+/**
+ * What kind of direct chat it was and whether a real number came with it, as
+ * booleans only: tells a `@lid` chat that a SAIR could not be traced back to.
+ */
+export function chatShape(payload) {
+  const key = payload?.data?.key ?? {};
+  const pn = (v) => typeof v === 'string' && v.endsWith(PN_SUFFIX);
+  return {
+    chat: String(key.remoteJid ?? '').endsWith('@lid') ? 'lid' : 'pn',
+    number: [key.remoteJid, key.remoteJidAlt, key.senderPn, payload?.data?.senderPn].some(pn),
+  };
+}
+
 /** HTTP status for a request to the inbound listener (secret in the path). */
 export function inboundRoute({ method, url, secret }) {
   if (!secret) return 404;
@@ -369,7 +382,7 @@ export function createWorker({ config, fetch, now = Date.now, random = Math.rand
     if (!parsed.phone) {
       // A direct message that was not a SAIR: only the reason, so the webhook
       // can be seen working. Group, status and own messages stay silent.
-      if (DIRECT_SKIPS.has(parsed.skip)) emit('inbound', { skip: parsed.skip });
+      if (DIRECT_SKIPS.has(parsed.skip)) emit('inbound', { skip: parsed.skip, ...chatShape(payload) });
       return parsed.skip;
     }
     try {

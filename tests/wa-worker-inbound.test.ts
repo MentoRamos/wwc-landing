@@ -151,7 +151,18 @@ describe('worker.inbound', () => {
     await worker.inbound(upsert({ remoteJid: '120363000000000000@g.us', text: 'bom dia' }));
     await worker.inbound(upsert({ fromMe: true }));
     expect(logs).toHaveLength(1);
-    expect(JSON.parse(logs[0])).toMatchObject({ evt: 'inbound', skip: 'not_sair' });
+    expect(JSON.parse(logs[0])).toMatchObject({ evt: 'inbound', skip: 'not_sair', chat: 'pn', number: true });
+  });
+
+  it('an @lid chat without the real number is visible in the log', async () => {
+    const { worker, logs } = setup();
+    await worker.inbound(upsert({ remoteJid: '123456789012345@lid', text: 'bom dia' }));
+    await worker.inbound(upsert({ remoteJid: '123456789012345@lid', remoteJidAlt: PN, text: 'bom dia' }));
+    expect(logs.map((l) => JSON.parse(l))).toMatchObject([
+      { chat: 'lid', number: false },
+      { chat: 'lid', number: true },
+    ]);
+    expect(logs.join('\n')).not.toMatch(/123456789012345|91731015/);
   });
 
   it('logs never carry number, name or text', async () => {
