@@ -111,3 +111,18 @@ describe('o backfill', () => {
     expect(calls[0].args.p_source).toBe('webhook');
   });
 });
+
+describe('a data de chegada como reserva', () => {
+  it('sem approved_date nem created_at, a compra é da hora em que o evento chegou', async () => {
+    const { admin, calls } = fakeAdmin(registered);
+    await applyEventoEvent(admin, {
+      event: event(TICKET_PRODUCT_ID),
+      payload: {},
+      now,
+      backfill: true,
+      receivedAt: new Date('2026-09-24T12:00:00Z'),
+    });
+    expect(calls[0].args.p_purchased_at).toBe('2026-09-24T12:00:00.000Z');
+    expect(calls[0].args.p_includes_recording).toBe(true);
+  });
+});

@@ -49,6 +49,8 @@ describe('o backfill', () => {
     expect(ops).toContainEqual(['eq', 'provider', 'kiwify']);
     expect(ops).toContainEqual(['gte', 'received_at', SINCE.toISOString()]);
     expect(ops).toContainEqual(['order', 'received_at', { ascending: true }]);
+    // Desempate: sem ele, o `range` pula ou repete evento com o mesmo instante.
+    expect(ops).toContainEqual(['order', 'id', { ascending: true }]);
   });
 
   it('em dry-run só conta, não grava nada', async () => {
@@ -87,5 +89,13 @@ describe('o backfill', () => {
     const { admin } = fakeAdmin([order('ordem-secreta', 'maria@x.com')]);
     const out = await runBackfill(admin, { since: SINCE, now: NOW, dryRun: false, excludeEmails: [] });
     expect(JSON.stringify(out)).not.toMatch(/maria|ordem-secreta/);
+  });
+});
+
+describe('a data da compra no backfill', () => {
+  it('sem data no payload, vale a hora em que o evento chegou, não a de agora', async () => {
+    const { admin } = fakeAdmin([order('o1', 'a@x.com')]);
+    await runBackfill(admin, { since: SINCE, now: NOW, dryRun: false, excludeEmails: [] });
+    expect(applyEventoEvent.mock.calls[0][1]).toMatchObject({ receivedAt: new Date('2026-09-30T13:00:00Z') });
   });
 });

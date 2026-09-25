@@ -59,14 +59,15 @@ export async function runBackfill(admin: SupabaseClient, options: BackfillOption
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await admin
       .from('billing_events')
-      .select('event_type, payload, received_at')
+      .select('id, event_type, payload, received_at')
       .eq('provider', 'kiwify')
       .gte('received_at', options.since.toISOString())
       .order('received_at', { ascending: true })
+      .order('id', { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) throw new Error(`leitura de billing_events falhou (${error.code})`);
 
-    const rows = (data ?? []) as Array<{ payload: unknown }>;
+    const rows = (data ?? []) as Array<{ payload: unknown; received_at: string }>;
     for (const row of rows) {
       out.read += 1;
       const event = readEvent(row.payload);
@@ -96,6 +97,7 @@ export async function runBackfill(admin: SupabaseClient, options: BackfillOption
         payload: row.payload,
         now: options.now,
         backfill: true,
+        receivedAt: new Date(row.received_at),
       });
       out.results[outcome.result] = (out.results[outcome.result] ?? 0) + 1;
     }

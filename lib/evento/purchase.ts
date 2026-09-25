@@ -40,11 +40,18 @@ export async function applyEventoEvent(
      * antes da automação: agenda de comprador antigo e nenhuma T0 imediata.
      */
     backfill?: boolean;
+    /**
+     * Quando o evento chegou (`billing_events.received_at`), no backfill: é a
+     * data da compra se o payload não trouxer nenhuma, em vez da hora em que
+     * o backfill rodou (que tiraria a gravação de quem comprou antes do corte).
+     */
+    receivedAt?: Date;
   },
 ): Promise<EventoOutcome> {
-  const { event, payload, now, backfill = false } = input;
+  const { event, payload, now, backfill = false, receivedAt } = input;
   const action = eventoAction(event, eventoConfig().testProductIds);
-  const purchased = readPurchasedAt(payload, now);
+  const read = readPurchasedAt(payload, receivedAt ?? now);
+  const purchased = receivedAt && read.source === 'now' ? { ...read, source: 'received_at' as const } : read;
   // Sem `approved_date`, a data foi inferida; o resultado diz de onde veio.
   const dated = (result: string) => (purchased.source === 'approved_date' ? result : `${result}:data=${purchased.source}`);
 
