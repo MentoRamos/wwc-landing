@@ -83,6 +83,8 @@ function setup(env: Record<string, string>, net: ReturnType<typeof fakeNet>, now
     WA_API_BASE: SITE,
     EVOLUTION_URL: EVO,
     EVOLUTION_API_KEY: 'evo-key',
+    // live refuses to start without the SAIR listener (wa-worker-inbound.test.ts)
+    WA_INBOUND_SECRET: 'inbound-secret',
     ...env,
   });
   let now = new Date(nowIso).getTime();

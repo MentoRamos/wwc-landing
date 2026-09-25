@@ -60,14 +60,35 @@ Resposta `200`:
 `reason` em `failed` é `lookup_http_<n>`, `send_http_<n>` ou `invalid_job`; em
 `skipped` é `not_allowlisted`.
 
-`POST /api/wa/optout`: reservado pro tratamento de "SAIR" via webhook da
-Evolution (fase seguinte, com revisão). Este worker ainda não escuta webhook.
+`POST /api/wa/optout`
+```json
+{ "phone": "5562999990001", "text": "SAIR" }
+```
+Chamado pelo próprio worker quando chega um SAIR (ver abaixo). O site confere
+o texto de novo (`isOptOutReply`) e cancela o que falta mandar pra esse número.
+
+## SAIR (mensagens de entrada)
+
+```
+Evolution (instância ww) ──webhook MESSAGES_UPSERT, rede docker──▶ worker :8090/evolution/<WA_INBOUND_SECRET>
+worker ──só um SAIR em conversa direta, HTTPS saída──────────────▶ site /api/wa/optout
+```
+
+- Nenhuma porta publicada: o listener só é alcançável dentro da rede
+  `ww-evolution_default`. O segredo vai no caminho da URL; caminho errado = 404.
+- Mensagem de grupo, status, newsletter e o que o próprio +1 mandou são
+  descartados em memória, **sem log**. Conversa direta que não é SAIR loga só
+  `{"evt":"inbound","skip":"not_sair"}` (sem número, nome ou texto), pra dar
+  pra ver o webhook funcionando.
+- Chat `@lid` (Evolution 2.3): o número real vem de `remoteJidAlt` ou
+  `senderPn`; sem ele, `skip: no_number` e nada vai pro site.
+- **`WA_MODE=live` recusa subir sem `WA_INBOUND_SECRET`.**
 
 ## Instalação no droplet (`/opt/ww-wa-worker`)
 
 ```bash
 # no Mac
-scp ops/ww-wa-worker/{worker.mjs,Dockerfile,docker-compose.yml,start.sh,env.example,README.md} \
+scp ops/ww-wa-worker/{worker.mjs,Dockerfile,docker-compose.yml,start.sh,set-webhook.sh,env.example,README.md} \
   root@198.199.83.78:/opt/ww-wa-worker/
 
 # no droplet: .env gerado ali, token sem passar pela tela
@@ -77,6 +98,10 @@ umask 077
 chmod 600 .env
 ./start.sh
 docker logs --tail 20 ww-wa-worker
+
+# SAIR: segredo gerado ali, webhook da instância ww apontado pro worker
+sed -i "s/^WA_INBOUND_SECRET=.*/WA_INBOUND_SECRET=$(openssl rand -hex 24)/" .env
+./start.sh && ./set-webhook.sh        # ./set-webhook.sh --off desliga
 ```
 
 `start.sh` lê a chave da Evolution de dentro do container `ww-evolution` e
@@ -88,6 +113,6 @@ Parar: `docker stop ww-wa-worker`.
 
 ## Testes
 
-`npx vitest run tests/wa-worker.test.ts` (Evolution e site falsos: dry-run não
+`npx vitest run tests/wa-worker.test.ts tests/wa-worker-inbound.test.ts` (Evolution e site falsos: dry-run não
 chama `sendText`, allowlist recusa número fora, `exists:false` vira
 `no_whatsapp`, 401/404/rede não derrubam o loop, log sem PII).

@@ -54,6 +54,10 @@ export function loadConfig(env) {
   if (mode === 'allowlist' && allowlist.length === 0) {
     throw new Error('WA_MODE=allowlist needs at least one number in WA_ALLOWLIST');
   }
+  // Messaging strangers with no way to process their SAIR is not allowed.
+  if (mode === 'live' && !String(env.WA_INBOUND_SECRET ?? '').trim()) {
+    throw new Error('WA_MODE=live needs WA_INBOUND_SECRET (the SAIR listener)');
+  }
 
   return {
     mode,
@@ -75,7 +79,65 @@ export function loadConfig(env) {
     quietEnd: hhmm(env.WA_QUIET_END, 8 * 60),
     typingDelayMs: int(env.WA_TYPING_DELAY_MS, 1_200),
     httpTimeoutMs: int(env.WA_HTTP_TIMEOUT_MS, 20_000),
+    // Empty = no inbound listener (and so no SAIR): WA_MODE=live needs it.
+    inboundSecret: String(env.WA_INBOUND_SECRET ?? '').trim(),
+    inboundPort: int(env.WA_INBOUND_PORT, 8090),
   };
+}
+
+// ------------------------------------------------------------------ SAIR
+//
+// Evolution posts every incoming message here (instance webhook, docker
+// network only). Only a direct "SAIR" leaves the droplet; group chats,
+// status, what the +1 sent itself and any other text are dropped in memory
+// and never logged. The site checks the text again (isOptOutReply).
+
+/** Same rule as the site's isOptOutReply: up to 3 words, the first is "sair". */
+function looksLikeSair(text) {
+  const words = String(text ?? '')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  return words.length > 0 && words.length <= 3 && words[0] === 'sair';
+}
+
+const PN_SUFFIX = '@s.whatsapp.net';
+const DIRECT_SKIPS = new Set(['not_sair', 'no_text', 'no_number']);
+
+export function parseInbound(payload) {
+  const event = String(payload?.event ?? '').toLowerCase().replace(/_/g, '.');
+  const data = payload?.data;
+  if (event !== 'messages.upsert' || !data?.key) return { skip: 'not_message' };
+  const key = data.key;
+  if (key.fromMe === true) return { skip: 'from_me' };
+
+  const chat = String(key.remoteJid ?? '');
+  // Direct chats only: a phone JID, or Evolution 2.3's @lid for the same person.
+  if (!chat.endsWith(PN_SUFFIX) && !chat.endsWith('@lid')) return { skip: 'not_direct' };
+
+  const msg = data.message ?? {};
+  const text = msg.conversation ?? msg.extendedTextMessage?.text;
+  if (typeof text !== 'string' || !text.trim()) return { skip: 'no_text' };
+  if (!looksLikeSair(text)) return { skip: 'not_sair' };
+
+  // The @lid is not a number: the real one comes in remoteJidAlt or senderPn.
+  const pn = [chat, key.remoteJidAlt, key.senderPn, data.senderPn].find(
+    (v) => typeof v === 'string' && v.endsWith(PN_SUFFIX),
+  );
+  const phone = digits(pn?.slice(0, -PN_SUFFIX.length));
+  if (!phone) return { skip: 'no_number' };
+  return { phone, text };
+}
+
+/** HTTP status for a request to the inbound listener (secret in the path). */
+export function inboundRoute({ method, url, secret }) {
+  if (!secret) return 404;
+  const [, root, given] = String(url ?? '').split('?')[0].split('/');
+  if (root !== 'evolution' || given !== secret) return 404;
+  return method === 'POST' ? 202 : 405;
 }
 
 /** Minutes since midnight and civil date, both in São Paulo. */
@@ -302,14 +364,76 @@ export function createWorker({ config, fetch, now = Date.now, random = Math.rand
     return { sleepMs: lastSent ? gap() : config.pollMs, reason: lastSent ? 'sent' : 'handled' };
   }
 
-  return { tick };
+  async function inbound(payload) {
+    const parsed = parseInbound(payload);
+    if (!parsed.phone) {
+      // A direct message that was not a SAIR: only the reason, so the webhook
+      // can be seen working. Group, status and own messages stay silent.
+      if (DIRECT_SKIPS.has(parsed.skip)) emit('inbound', { skip: parsed.skip });
+      return parsed.skip;
+    }
+    try {
+      const r = await site('/api/wa/optout', parsed);
+      emit('optout', { http: r.status, optout: r.data?.optout === true, canceled: r.data?.canceled ?? null });
+      return r.ok ? 'forwarded' : 'site_error';
+    } catch (e) {
+      emit('optout_error', { err: e?.name ?? 'error' });
+      return 'site_error';
+    }
+  }
+
+  return { tick, inbound };
+}
+
+const INBOUND_MAX_BYTES = 256 * 1024;
+
+async function startInbound(config, worker, log) {
+  const { createServer } = await import('node:http');
+  const server = createServer((req, res) => {
+    const status = inboundRoute({ method: req.method, url: req.url, secret: config.inboundSecret });
+    if (status !== 202) {
+      res.writeHead(status).end();
+      req.resume();
+      return;
+    }
+    let size = 0;
+    const chunks = [];
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > INBOUND_MAX_BYTES) req.destroy();
+      else chunks.push(c);
+    });
+    req.on('end', () => {
+      // Answer first: Evolution must never wait on the site.
+      res.writeHead(202).end();
+      let payload = null;
+      try {
+        payload = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      } catch {
+        return;
+      }
+      worker.inbound(payload).catch(() => {});
+    });
+  });
+  server.listen(config.inboundPort, () =>
+    log(JSON.stringify({ t: new Date().toISOString(), evt: 'inbound_listening', port: config.inboundPort })),
+  );
 }
 
 export async function main(env = process.env) {
   const config = loadConfig(env);
   const log = (line) => process.stdout.write(`${line}\n`);
   const worker = createWorker({ config, fetch: globalThis.fetch, log });
-  log(JSON.stringify({ t: new Date().toISOString(), evt: 'start', mode: config.mode, enabled: config.enabled }));
+  log(
+    JSON.stringify({
+      t: new Date().toISOString(),
+      evt: 'start',
+      mode: config.mode,
+      enabled: config.enabled,
+      inbound: Boolean(config.inboundSecret),
+    }),
+  );
+  if (config.inboundSecret) await startInbound(config, worker, log);
 
   let stopping = false;
   for (const sig of ['SIGTERM', 'SIGINT']) {
