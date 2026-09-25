@@ -4,7 +4,7 @@ import { renderT0Email } from '@/lib/core/evento-emails.core';
 import { IMERSAO_GRUPO_WHATSAPP_URL } from '@/lib/imersao';
 import { emailConfigured, sendEmail } from '@/lib/email/send';
 import { eventoEmailAllowed } from '@/lib/email/budget';
-import { eventoConfig, surveyUrl } from './config';
+import { eventoConfig, surveyUrl, waConfig } from './config';
 
 /**
  * A confirmação por e-mail, enviada no `after()` do webhook.
@@ -71,6 +71,11 @@ export async function sendT0Email(admin: SupabaseClient, jobId: string, now: Dat
   if (buyerError || !buyer) return defer('comprador-ilegivel');
   if (buyer.status !== 'paid') return finish({ status: 'canceled', error: buyer.status }, 'canceled', buyer.status);
 
+  // Comprador do backfill só recebe com o OK do Kauã: é mensagem para quem
+  // comprou antes de existir a automação, e ninguém avisou que ela viria.
+  const backfill = buyer.source === 'backfill';
+  if (backfill && !waConfig().antigosReleased) return defer('antigos-nao-liberado');
+
   const config = eventoConfig();
   const recipient = resolveRecipient({
     mode: config.mode,
@@ -84,7 +89,7 @@ export async function sendT0Email(admin: SupabaseClient, jobId: string, now: Dat
   if (!(await eventoEmailAllowed(admin, now))) return defer('cota-resend');
 
   const input = {
-    surveyUrl: surveyUrl(buyer.id as string, config.linkSecret),
+    surveyUrl: surveyUrl(buyer.id as string, config.linkSecret, backfill ? 'antigos' : undefined),
     groupUrl: IMERSAO_GRUPO_WHATSAPP_URL,
     variant: t0Variant(new Date(buyer.purchased_at as string)),
   };

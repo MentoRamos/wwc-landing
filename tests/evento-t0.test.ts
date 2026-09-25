@@ -134,3 +134,32 @@ describe('a T0 de quem comprou depois que a sala abriu', () => {
     expect(html).not.toContain('Nos vemos no dia 28');
   });
 });
+
+/**
+ * Quem comprou antes da automação entrar no ar (backfill) recebe a mesma T0,
+ * com o link da pesquisa marcado `o=antigos`, e só depois do OK do Kauã
+ * (`EVENTO_ANTIGOS_LIBERADO=true`). O tick já não escolhe esses jobs sem o
+ * OK; a trava aqui é a segunda camada, para um envio que chegue por outro
+ * caminho.
+ */
+describe('a T0 dos compradores do backfill', () => {
+  it('sem o OK, volta para pendente sem enviar', async () => {
+    const { admin, updates } = fakeAdmin(buyer({ source: 'backfill' }));
+    expect(await sendT0Email(admin, 'job-1')).toBe('deferred');
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(updates.at(-1)!.fields).toMatchObject({ status: 'pending', error: 'antigos-nao-liberado' });
+  });
+
+  it('com o OK, manda com o link marcado como antigos', async () => {
+    vi.stubEnv('EVENTO_ANTIGOS_LIBERADO', 'true');
+    const { admin } = fakeAdmin(buyer({ source: 'backfill' }));
+    expect(await sendT0Email(admin, 'job-1')).toBe('sent');
+    expect(sendEmail.mock.calls[0][2] as string).toContain('&amp;o=antigos');
+  });
+
+  it('comprador do webhook não leva a marca', async () => {
+    const { admin } = fakeAdmin(buyer());
+    await sendT0Email(admin, 'job-1');
+    expect(sendEmail.mock.calls[0][2] as string).not.toContain('o=antigos');
+  });
+});
