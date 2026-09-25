@@ -69,6 +69,27 @@ describe('o registro do comprador', () => {
     expect(await jobsOf(first.buyer_id)).toHaveLength(3);
   });
 
+  // Revisão de 25/09: o backfill relê pedidos que o webhook já registrou, e
+  // a `t0_antigos` (passo fora da chave única) chegaria a quem já tem a `t0`.
+  it('o backfill sobre um comprador que já existe não enfileira nada', async () => {
+    const order = `ord-${Date.now()}-bf`;
+    const email = uniqueEmail('backfill');
+    const first = await register(order, email);
+    const { data, error } = await admin.rpc('evento_register_buyer', {
+      p_order_id: order,
+      p_email: email,
+      p_first_name: 'Teste',
+      p_phone: null,
+      p_purchased_at: new Date().toISOString(),
+      p_includes_recording: false,
+      p_source: 'backfill',
+      p_jobs: [{ channel: 'whatsapp', step_key: 't0_antigos', due_at: new Date().toISOString() }],
+    });
+    expect(error).toBeNull();
+    expect((data as Array<{ created: boolean }>)[0].created).toBe(false);
+    expect(await jobsOf(first.buyer_id)).toHaveLength(3);
+  });
+
   it('recusa telefone fora de E.164', async () => {
     await expect(register(`ord-${Date.now()}-c`, uniqueEmail('fone'), '11987654321')).rejects.toBeTruthy();
   });

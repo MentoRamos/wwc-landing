@@ -438,6 +438,7 @@ declare
   v_edition uuid;
   v_buyer   uuid;
   v_status  text;
+  v_source  text;
   v_created boolean := false;
 begin
   select id into v_edition from public.event_editions where slug = 'imersao-2026-10';
@@ -452,17 +453,20 @@ begin
     (v_edition, p_order_id, public.norm_email(p_email), nullif(btrim(p_first_name), ''),
      p_phone, p_purchased_at, p_includes_recording, p_source)
   on conflict (edition_id, order_id) do nothing
-  returning id, status into v_buyer, v_status;
+  returning id, status, source into v_buyer, v_status, v_source;
 
   if v_buyer is null then
-    select b.id, b.status into v_buyer, v_status
+    select b.id, b.status, b.source into v_buyer, v_status, v_source
       from public.event_buyers b
      where b.edition_id = v_edition and b.order_id = p_order_id;
   else
     v_created := true;
   end if;
 
-  if v_status = 'paid' then
+  -- Jobs só da mesma origem que criou o comprador. O backfill relê pedidos
+  -- que o webhook já registrou; sem esta trava ele somaria a `t0_antigos`
+  -- (passo novo, fora da chave única) a quem já recebeu a `t0`.
+  if v_status = 'paid' and (v_created or v_source = p_source) then
     insert into public.message_jobs (buyer_id, channel, step_key, due_at)
     select v_buyer, j.channel, j.step_key, j.due_at
       from jsonb_to_recordset(coalesce(p_jobs, '[]'::jsonb))
