@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * Idempotency-Key) é o `sendT0Email`, com teste próprio; aqui é o tick:
  * o que ele devolve para a fila, o que ele escolhe e quando ele para.
  */
-const sendT0Email = vi.fn(async (..._args: unknown[]) => 'sent' as string);
+const sendT0Email = vi.fn<(...args: unknown[]) => Promise<string>>(async () => 'sent');
 const allowed = vi.fn(async () => true);
 let configured = true;
 

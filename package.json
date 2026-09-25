@@ -17,7 +17,8 @@
     "seed:library": "node scripts/seed-library.mjs",
     "check:kiwify": "node scripts/check-kiwify.mjs",
     "check:aluno": "node scripts/check-aluno.mjs",
-    "check:artigos": "node scripts/check-artigos.mjs"
+    "check:artigos": "node scripts/check-artigos.mjs",
+    "evento:backfill": "vite-node --config vitest.config.ts scripts/evento-backfill.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
