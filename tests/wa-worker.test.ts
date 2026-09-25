@@ -183,6 +183,27 @@ describe('allowlist', () => {
     });
   });
 
+  it('matches a BR number with or without the ninth digit, both ways', async () => {
+    // 25/09: allowlist 556291731015, checkout 5562991731015 → skipped by mistake.
+    for (const [listed, phone] of [
+      ['556291731015', '5562991731015'],
+      ['5562991731015', '556291731015'],
+    ]) {
+      const net = fakeNet({ jobs: [job({ phone })] });
+      const { worker } = setup({ WA_MODE: 'allowlist', WA_ALLOWLIST: listed }, net);
+      await worker.tick();
+      expect(net.to('/message/sendText/ww')).toHaveLength(1);
+    }
+  });
+
+  it('the ninth-digit rule does not open the list to another number', async () => {
+    const net = fakeNet({ jobs: [job({ phone: '5562991731016' })] });
+    const { worker } = setup({ WA_MODE: 'allowlist', WA_ALLOWLIST: '556291731015' }, net);
+    await worker.tick();
+    expect(net.to('/message/sendText/ww')).toHaveLength(0);
+    expect(net.to('/api/wa/result')[0].body).toMatchObject({ status: 'skipped', reason: 'not_allowlisted' });
+  });
+
   it('sends to a number on the list, to the jid Evolution resolved', async () => {
     const net = fakeNet({ jobs: [job()] });
     const { worker } = setup({ WA_MODE: 'allowlist', WA_ALLOWLIST: PHONE }, net);

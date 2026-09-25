@@ -29,6 +29,17 @@ function digits(s) {
   return String(s ?? '').replace(/\D/g, '');
 }
 
+/**
+ * A BR mobile with and without the ninth digit, like the site's
+ * waAddressVariants: the checkout may carry either form.
+ */
+function brVariants(d) {
+  const out = [d];
+  if (d.startsWith('55') && d.length === 12) out.push(`${d.slice(0, 4)}9${d.slice(4)}`);
+  if (d.startsWith('55') && d.length === 13 && d[4] === '9') out.push(`${d.slice(0, 4)}${d.slice(5)}`);
+  return out;
+}
+
 function int(v, fallback) {
   const n = Number.parseInt(String(v ?? ''), 10);
   return Number.isFinite(n) && n >= 0 ? n : fallback;
@@ -267,7 +278,7 @@ export function createWorker({ config, fetch, now = Date.now, random = Math.rand
       emit('quiet_hold', { job: id, step });
       return 'none';
     }
-    if (config.mode === 'allowlist' && !config.allowlist.includes(phone)) {
+    if (config.mode === 'allowlist' && !brVariants(phone).some((p) => config.allowlist.includes(p))) {
       await report({ id, status: 'skipped', reason: 'not_allowlisted' });
       return 'none';
     }
