@@ -41,3 +41,26 @@ traz para a fila quem comprou antes da automação existir.
 
 Em 24/09 a conciliação da Kiwify mostrou só compras de teste do próprio Kauã
 desde 10/09; o backfill existe para o que for vendido entre agora e o deploy.
+
+## Revisão adversarial (25/09) e o que ficou de fora do código
+
+Corrigido: o backfill sobre comprador que o webhook já registrou enfileirava
+`t0_antigos` (agora `evento_register_buyer` só insere jobs da mesma origem que
+criou o comprador); data da compra no backfill cai em `received_at`, não na
+hora da execução; paginação com desempate por `id`; erro do Resend conta
+tentativa, anda 30 min por tentativa e vira `failed` na quinta.
+
+**Trava antes de `WA_MODE=live` no worker:** ninguém processa o SAIR ainda.
+O `/api/wa/optout` existe, mas o worker não escuta mensagem de entrada
+(`ops/ww-wa-worker/README.md`). Ligar o webhook de entrada da Evolution
+antes do live, mandando o número real (`remoteJidAlt` / `senderPn`), não o
+`@lid` da Evolution 2.3.x, que o `waAddressVariants` recusa.
+
+Aceito por decisão: no WhatsApp o site não confere allowlist para comprador
+`sandbox`; a trava de número é o `WA_ALLOWLIST` do worker. Se
+`EVENTO_VIDEOS_URL` entrar depois do `grupo_convite` de alguém, `videos` sai
+depois dele (a ordem só olha os passos liberados).
+
+SQL provado em Postgres 18 local com shim do Supabase: 44 checagens
+(registro, reembolso, claim, `evento_wa_result`, lease vencido → `unknown`,
+teto por comprador, backfill sobre comprador existente).
