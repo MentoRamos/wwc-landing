@@ -10,10 +10,12 @@ import { ReadingThemeToggle } from '@/components/articles/ReadingTheme';
 import { TableOfContents } from '@/components/articles/TableOfContents';
 import { getArticle } from '@/lib/articles/queries';
 import { articlePath, readingMinutes } from '@/lib/core/articles.core';
+import { audioPublicUrl } from '@/lib/core/audio.core';
 import { topicLabel } from '@/lib/core/covers.core';
 import { formatLongDate } from '@/lib/core/format.core';
 import { resolveSiteUrl } from '@/lib/core/site.core';
 import { articleHeadings, speechChunks } from '@/lib/core/speech.core';
+import { publicSupabaseEnv } from '@/lib/supabase/env';
 
 /**
  * Um artigo. Público, indexável, e publicado por um cron sem revisão humana
@@ -107,6 +109,16 @@ export default async function ArticlePage({ params }: Props) {
   const chunks = speechChunks(article.title, article.dek, article.body_md);
   const minutes = readingMinutes(article.body_md);
 
+  // A URL do episódio é montada no servidor, para que o endereço do Supabase
+  // não precise existir no bundle do navegador. Sem `audio_path`, o botão
+  // continua falando pela voz do aparelho.
+  const audio = article.audio_path
+    ? {
+        url: audioPublicUrl(publicSupabaseEnv().url, article.audio_path),
+        seconds: article.audio_seconds,
+      }
+    : null;
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -157,7 +169,7 @@ export default async function ArticlePage({ params }: Props) {
 
       {/* Ações no celular, tablet e notebook. No desktop largo elas moram na coluna direita. */}
       <div className="container-lp mt-8 flex flex-wrap items-center gap-3 border-y border-[var(--border)] py-4 xl:hidden">
-        <ListenButton chunks={chunks} />
+        <ListenButton chunks={chunks} audio={audio} />
         <ReadingThemeToggle />
       </div>
 
@@ -209,7 +221,7 @@ export default async function ArticlePage({ params }: Props) {
         <div className="hidden xl:block">
           <div className="sticky top-24 flex flex-col gap-6">
             <div className="flex flex-col gap-3">
-              <ListenButton chunks={chunks} />
+              <ListenButton chunks={chunks} audio={audio} />
               <ReadingThemeToggle />
             </div>
             <div className="border-t border-[var(--border)] pt-6">
