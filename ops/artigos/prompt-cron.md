@@ -28,6 +28,11 @@ FLUXO
    - saída 2: o artigo foi recusado; o campo "error" diz o motivo. Corrija o artigo.json e rode de novo (até 3 vezes).
    - saída 3 ou 4: problema de caminho (endpoint ou página). Rode mais uma vez; se repetir, reporte.
    Não publique por nenhum outro caminho e não mexa no token.
+6. Áudio do artigo (o "ouvir o artigo" como bate-papo de dois apresentadores). Só depois da saída 0 do passo 5:
+   - escreva o roteiro de diálogo na pasta do dia como roteiro.txt (duas falas rotuladas, cerca de 10 minutos de conversa);
+   - gere: python3 /srv/nexgen/workspaces/niva-brain/ops/artigos/podcast-artigo.py <pasta do dia>/roteiro.txt <pasta do dia>/podcast.ogg
+   - suba: python3 /srv/nexgen/workspaces/niva-brain/ops/artigos/publicar-podcast.py <slug> <pasta do dia>/podcast.ogg
+   Saída 0: o player do site já toca o episódio. Saída 2, 3 ou 4: o artigo continua no ar e o botão cai na voz do aparelho; não republique o texto por causa do áudio, só diga na mensagem final que o áudio não saiu.
 
 MENSAGEM FINAL (é entregue no WhatsApp do Kauã; ele lê no celular)
 A resposta final é SÓ a mensagem abaixo. Não narre o que fez, não escreva em inglês, não relate método.

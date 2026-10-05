@@ -20,6 +20,10 @@ export type Article = ArticleSummary & {
   body_md: string;
   sources: ArticleSource[];
   updated_at: string;
+  // O episódio do artigo no bucket público, e a duração só para a tela. Nulo
+  // nos artigos de antes de 05/10: aí a página cai na voz do aparelho.
+  audio_path: string | null;
+  audio_seconds: number | null;
 };
 
 const SUMMARY = 'slug, title, dek, topic, cover_key, published_at';
@@ -46,7 +50,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
 
   const { data, error } = await publicClient()
     .from('articles')
-    .select(`${SUMMARY}, body_md, sources, updated_at`)
+    .select(`${SUMMARY}, body_md, sources, updated_at, audio_path, audio_seconds`)
     .eq('slug', slug)
     .maybeSingle();
 

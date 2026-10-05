@@ -1,12 +1,48 @@
 'use client';
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { ArticleAudio } from './ArticleAudio';
+
+/**
+ * O botão "Ouvir o artigo", nos dois caminhos que ele tem.
+ *
+ * Com áudio sintetizado no banco, toca o arquivo: dois apresentadores
+ * conversando sobre o texto. Sem áudio, fala pela voz do próprio aparelho,
+ * como era desde 15/09.
+ *
+ * A escolha é feita aqui, sem hook nenhum, para que cada caminho seja um
+ * componente com o seu próprio estado. Os artigos publicados antes de 05/10
+ * não têm arquivo e seguem na voz do aparelho.
+ */
+export function ListenButton({
+  chunks,
+  audio,
+  className = '',
+}: {
+  chunks: string[];
+  audio?: { url: string; seconds: number | null } | null;
+  className?: string;
+}) {
+  if (audio) {
+    return (
+      <ArticleAudio
+        url={audio.url}
+        seconds={audio.seconds}
+        className={className}
+        fallback={<SpeechButton chunks={chunks} className={className} />}
+      />
+    );
+  }
+  return <SpeechButton chunks={chunks} className={className} />;
+}
 
 /**
  * Ouvir o artigo com a voz do próprio aparelho (Web Speech API).
  *
- * Grátis, sem arquivo e sem chave: decisão do Kauã em 15/09. O custo é que a
- * voz muda de aparelho para aparelho. Três cuidados que o navegador não toma:
+ * Grátis, sem arquivo e sem chave: decisão do Kauã em 15/09, e o que sobrou
+ * como rede de segurança quando o arquivo não carrega. O custo é que a voz
+ * muda de aparelho para aparelho, e no iPhone sai robótica — foi o que
+ * motivou o áudio de verdade. Três cuidados que o navegador não toma:
  *
  * - O texto chega em pedaços (`speechChunks`), um por vez. O Chrome corta
  *   fala longa perto dos 15 segundos, sem erro nenhum.
@@ -28,7 +64,7 @@ function pickVoice(): SpeechSynthesisVoice | undefined {
 
 const noop = () => () => {};
 
-export function ListenButton({ chunks, className = '' }: { chunks: string[]; className?: string }) {
+function SpeechButton({ chunks, className = '' }: { chunks: string[]; className?: string }) {
   // Suporte é propriedade do navegador, não estado da página: lido direto, e
   // falso no servidor, então o botão só aparece depois de hidratar.
   const supported = useSyncExternalStore(noop, () => 'speechSynthesis' in window, () => false);
