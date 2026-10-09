@@ -173,3 +173,28 @@ describe('podcastSpotifyUrl', () => {
     expect(podcastSpotifyUrl({ PODCAST_SPOTIFY_SHOW_URL: '  ' })).toBeNull();
   });
 });
+
+// O `length` do enclosure é o tamanho do arquivo, e a estimativa por bitrate
+// errava por alguns KB em todo episódio: o Apple pede o tamanho real e um
+// player que confia no número mostra progresso errado.
+describe('bytesBySlug', () => {
+  it('usa o tamanho real do objeto quando ele é conhecido', () => {
+    const eps = podcastEpisodes(
+      [{ slug: 'a', title: 'A', dek: 'dek', published_at: '2026-10-01', audio_path: 'a-ff.mp3', audio_seconds: 600 }],
+      'https://x.supabase.co',
+      'https://kauaramos.com',
+    );
+    const xml = rssFeed(podcastShow(BASE), eps, { bytesBySlug: { a: 4964639 } });
+    expect(xml).toContain('length="4964639"');
+    expect(xml).not.toContain('length="4800000"');
+  });
+
+  it('sem o tamanho real, estima e nunca publica zero', () => {
+    const eps = podcastEpisodes(
+      [{ slug: 'a', title: 'A', dek: 'dek', published_at: '2026-10-01', audio_path: 'a-ff.mp3', audio_seconds: null }],
+      'https://x.supabase.co',
+      'https://kauaramos.com',
+    );
+    expect(rssFeed(podcastShow(BASE), eps)).toMatch(/length="[1-9]\d*"/);
+  });
+});

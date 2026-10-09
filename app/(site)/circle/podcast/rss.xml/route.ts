@@ -1,4 +1,4 @@
-import { listPodcastRows } from '@/lib/articles/queries';
+import { listPodcastRows, podcastObjectSizes } from '@/lib/articles/queries';
 import { podcastEpisodes, podcastShow, rssFeed } from '@/lib/core/podcast.core';
 import { resolveSiteUrl } from '@/lib/core/site.core';
 import { publicSupabaseEnv } from '@/lib/supabase/env';
@@ -25,8 +25,10 @@ export async function GET() {
   });
 
   const show = podcastShow(base, { PODCAST_OWNER_EMAIL: process.env.PODCAST_OWNER_EMAIL });
-  const episodes = podcastEpisodes(await listPodcastRows(), publicSupabaseEnv().url, base);
-  const body = rssFeed(show, episodes);
+  const rows = await listPodcastRows();
+  const episodes = podcastEpisodes(rows, publicSupabaseEnv().url, base);
+  // o tamanho real do arquivo, não a estimativa por bitrate: ver podcastObjectSizes
+  const body = rssFeed(show, episodes, { bytesBySlug: await podcastObjectSizes(rows) });
 
   return new Response(body, {
     status: 200,

@@ -1,5 +1,7 @@
+import { adminClient } from '@/lib/supabase/admin';
 import { publicClient } from '@/lib/supabase/public';
 import type { ArticleSource } from '@/lib/core/articles.core';
+import { AUDIO_BUCKET } from '@/lib/core/audio.core';
 import type { PodcastRow } from '@/lib/core/podcast.core';
 
 /**
@@ -100,4 +102,32 @@ export async function listPodcastRows(limit = 300): Promise<PodcastRow[]> {
     return [];
   }
   return (data ?? []) as PodcastRow[];
+}
+
+/**
+ * O tamanho REAL de cada episódio, por slug, para o `length` do enclosure.
+ *
+ * O feed estimava por bitrate (64 kbps × duração) e errava por alguns KB em
+ * todo episódio. O Apple pede o tamanho do arquivo e um player que confia no
+ * número mostra progresso errado, então estimativa é defeito, não detalhe.
+ *
+ * Uma chamada só: `list` do bucket devolve o tamanho de todos os objetos de
+ * uma vez. Falhar aqui não é fatal — o feed volta para a estimativa, que é
+ * pior que o número certo e muito melhor que um feed fora do ar.
+ */
+export async function podcastObjectSizes(rows: PodcastRow[]): Promise<Record<string, number>> {
+  const paths = new Map(rows.filter((r) => r.audio_path).map((r) => [r.audio_path as string, r.slug]));
+  if (!paths.size) return {};
+  const { data, error } = await adminClient().storage.from(AUDIO_BUCKET).list('', { limit: 1000 });
+  if (error || !data) {
+    console.error('[podcast] tamanho dos objetos indisponível', { message: error?.message });
+    return {};
+  }
+  const out: Record<string, number> = {};
+  for (const obj of data) {
+    const slug = paths.get(obj.name);
+    const size = (obj.metadata as { size?: number } | null)?.size;
+    if (slug && typeof size === 'number' && size > 0) out[slug] = size;
+  }
+  return out;
 }
