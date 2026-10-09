@@ -96,10 +96,11 @@ export async function listPodcastRows(limit = 300): Promise<PodcastRow[]> {
     .limit(limit);
 
   if (error) {
-    // Feed vazio é melhor que 500: o Spotify repete a busca, e 500 repetido é
-    // o que faz ele marcar o feed como quebrado.
+    // NÃO devolve lista vazia: um feed válido com zero episódio diz ao Spotify
+    // que todos foram apagados. A rota transforma isto em 503, que o
+    // agregador trata como "tente de novo", com os episódios que já tem.
     console.error('[podcast] listagem falhou', { code: error.code });
-    return [];
+    throw new Error('podcast: listagem falhou');
   }
   return (data ?? []) as PodcastRow[];
 }
@@ -118,7 +119,16 @@ export async function listPodcastRows(limit = 300): Promise<PodcastRow[]> {
 export async function podcastObjectSizes(rows: PodcastRow[]): Promise<Record<string, number>> {
   const paths = new Map(rows.filter((r) => r.audio_path).map((r) => [r.audio_path as string, r.slug]));
   if (!paths.size) return {};
-  const { data, error } = await adminClient().storage.from(AUDIO_BUCKET).list('', { limit: 1000 });
+  let listed;
+  try {
+    // adminClient() lança quando falta a chave de serviço: sem o try, o que é
+    // "não fatal" derrubava o feed inteiro com 500.
+    listed = await adminClient().storage.from(AUDIO_BUCKET).list('', { limit: 1000 });
+  } catch {
+    console.error('[podcast] tamanho dos objetos indisponível', { message: 'cliente admin indisponível' });
+    return {};
+  }
+  const { data, error } = listed;
   if (error || !data) {
     console.error('[podcast] tamanho dos objetos indisponível', { message: error?.message });
     return {};

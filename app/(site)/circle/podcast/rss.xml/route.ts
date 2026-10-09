@@ -1,5 +1,5 @@
 import { listPodcastRows, podcastObjectSizes } from '@/lib/articles/queries';
-import { podcastEpisodes, podcastShow, rssFeed } from '@/lib/core/podcast.core';
+import { feedIsServable, podcastEpisodes, podcastShow, rssFeed } from '@/lib/core/podcast.core';
 import { resolveSiteUrl } from '@/lib/core/site.core';
 import { publicSupabaseEnv } from '@/lib/supabase/env';
 
@@ -18,6 +18,18 @@ import { publicSupabaseEnv } from '@/lib/supabase/env';
  */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Fora do ar por agora, sem cache: 503 com `Retry-After` é o que faz o
+ * Spotify voltar mais tarde mantendo os episódios. Um 200 vazio, cacheado na
+ * borda por até uma hora, faria ele apagar o show.
+ */
+function unavailable(): Response {
+  return new Response('feed temporariamente indisponível', {
+    status: 503,
+    headers: { 'retry-after': '600', 'cache-control': 'no-store' },
+  });
+}
+
 export async function GET() {
   const base = resolveSiteUrl({
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
@@ -25,8 +37,16 @@ export async function GET() {
   });
 
   const show = podcastShow(base, { PODCAST_OWNER_EMAIL: process.env.PODCAST_OWNER_EMAIL });
-  const rows = await listPodcastRows();
+  let rows;
+  try {
+    rows = await listPodcastRows();
+  } catch {
+    return unavailable();
+  }
   const episodes = podcastEpisodes(rows, publicSupabaseEnv().url, base);
+  // Banco respondeu, mas sem nenhum episódio tocável: também é falha, nunca o
+  // estado real do show. Ver feedIsServable.
+  if (!feedIsServable(episodes)) return unavailable();
   // o tamanho real do arquivo, não a estimativa por bitrate: ver podcastObjectSizes
   const body = rssFeed(show, episodes, { bytesBySlug: await podcastObjectSizes(rows) });
 

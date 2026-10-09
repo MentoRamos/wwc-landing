@@ -56,24 +56,48 @@ export function podcastSpotifyUrl(env: { PODCAST_SPOTIFY_SHOW_URL?: string } = {
   return url.startsWith('https://open.spotify.com/') ? url : null;
 }
 
-const SHOW_TITLE = 'Wealth & Wellness';
+/**
+ * O título leva palavra-chave em português porque a busca do Spotify pesa o
+ * título acima de tudo, e "Wealth & Wellness" sozinho não é o que alguém
+ * digita procurando saúde. Aprovado pelo Kauã em 09/10/2026.
+ */
+const SHOW_TITLE = 'Wealth & Wellness: saúde e longevidade com ciência';
 const SHOW_AUTHOR = 'Kauã Ramos';
 
 /**
- * A descrição do show. Diz que as vozes são sintéticas de propósito: a regra
- * nova do Spotify proíbe clonar voz de pessoa real, e Rafa e Dani são
- * personagens. Declarar isso é mais barato que explicar depois.
+ * A descrição do show, aprovada pelo Kauã em 09/10/2026.
+ *
+ * Diz com todas as letras que vozes E roteiro são de IA: o roteiro sai do
+ * cron sem revisão humana antes de ir ao ar, então "os textos são do Kauã"
+ * seria falso. O que é dele é a curadoria. E é conteúdo de saúde, então o
+ * aviso de que não substitui consulta vai no show e em todo episódio.
  */
 const SHOW_DESCRIPTION = [
-  'O comentário em áudio dos artigos do Wealth & Wellness Circle: um estudo por episódio,',
-  'o número que ele mostra e o que dá pra fazer com isso na semana.',
-  'Saúde, longevidade e treino sem promessa milagrosa.',
-  'Apresentado por Rafa e Dani, dois narradores sintéticos; a curadoria e os textos são de Kauã Ramos.',
-  'O artigo completo de cada episódio está no link da descrição.',
+  'Saúde, longevidade, treino, sono e nutrição explicados a partir de estudos científicos, um por episódio:',
+  'o número que o estudo mostrou e o que dá pra fazer com isso na sua semana, sem promessa milagrosa.',
+  'Rafa e Dani são apresentadores com vozes geradas por inteligência artificial;',
+  'os roteiros são produzidos com IA a partir dos artigos do Wealth & Wellness Circle, com curadoria de Kauã Ramos.',
+  'Conteúdo informativo: não substitui consulta com médico ou nutricionista.',
+  'Artigo completo, com as fontes, no link de cada episódio.',
 ].join(' ');
+
+/** O rodapé de todo episódio: o mesmo aviso do show, curto. */
+const EPISODE_DISCLAIMER =
+  'Rafa e Dani são vozes geradas por inteligência artificial; roteiro produzido com IA a partir do artigo, com curadoria de Kauã Ramos. ' +
+  'Conteúdo informativo: não substitui consulta com médico ou nutricionista.';
+
+/**
+ * O identificador do show no Podcasting 2.0: UUIDv5 do endereço do feed sem
+ * protocolo, no namespace oficial `ead4c236-bf58-58c6-a2c6-a0b28c128cb6`.
+ * Calculado uma vez e fixado — derivar de novo a cada pedido arriscaria
+ * trocar o id do show se a base mudasse.
+ */
+export const PODCAST_GUID = '6eb447bc-17fa-5c32-8ee4-4781ab862702';
 
 export type PodcastShow = {
   title: string;
+  /** A página de venda do Circle, para o convite no fim de cada episódio. */
+  circleUrl: string;
   description: string;
   author: string;
   ownerEmail: string;
@@ -112,6 +136,7 @@ export function podcastShow(
   const origin = base.replace(/\/+$/, '');
   return {
     title: SHOW_TITLE,
+    circleUrl: `${origin}/circle`,
     description: SHOW_DESCRIPTION,
     author: SHOW_AUTHOR,
     ownerEmail: (env.PODCAST_OWNER_EMAIL ?? '').trim() || PODCAST_OWNER_EMAIL_FALLBACK,
@@ -165,9 +190,16 @@ export function podcastEpisodes(
     }));
 }
 
-/** Escape de XML. `&` primeiro, senão ele escapa o próprio escape. */
+/**
+ * Escape de XML. `&` primeiro, senão ele escapa o próprio escape.
+ *
+ * Também tira os caracteres de controle que XML 1.0 proíbe: título e resumo
+ * vêm do LLM, e um único desses derruba o feed INTEIRO no leitor, não só o
+ * episódio. Tab, quebra de linha e retorno ficam.
+ */
 export function escapeXml(value: string): string {
   return value
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -180,17 +212,52 @@ export function rfc2822(date: Date): string {
   return date.toUTCString().replace('GMT', '+0000');
 }
 
+/** Liga o link à origem: sem isto, visita vinda do Spotify parece orgânica. */
+function fromSpotify(url: string, campaign: string): string {
+  const u = new URL(url);
+  u.searchParams.set('utm_source', 'spotify');
+  u.searchParams.set('utm_medium', 'podcast');
+  u.searchParams.set('utm_campaign', campaign);
+  return u.toString();
+}
+
 /**
- * O corpo da descrição do episódio.
+ * A descrição do episódio, em HTML.
  *
- * É aqui que mora a ponte Spotify → site: quem ouve no carro vê o link do
- * artigo nas notas do episódio. Essa direção é de graça e automática; a
- * inversa (botão do site apontando para o episódio no Spotify) depende da API
- * do Spotify e de uma ingestão que ainda não aconteceu na hora em que a página
- * é publicada.
+ * É aqui que mora a ponte Spotify → site. O link do artigo vem PRIMEIRO
+ * porque o app mostra só as primeiras linhas antes do "mais", e resumo de 250
+ * caracteres empurrava o link para baixo da dobra. Depois o resumo, o convite
+ * pro Circle e o aviso de IA e saúde.
+ *
+ * HTML com `<a href>` e não URL solta: o Apple só torna clicável o que é
+ * âncora, e não há garantia de que o Spotify converta texto em link.
  */
-export function episodeDescription(episode: PodcastEpisode): string {
-  return `${episode.summary}\n\nLeia o artigo completo: ${episode.articleUrl}`;
+export function episodeDescription(episode: PodcastEpisode, show: PodcastShow): string {
+  const article = fromSpotify(episode.articleUrl, episode.slug);
+  const circle = fromSpotify(show.circleUrl, episode.slug);
+  return [
+    `<p>Artigo completo, com as fontes: <a href="${escapeXml(article)}">${escapeXml(episode.articleUrl)}</a></p>`,
+    `<p>${escapeXml(episode.summary)}</p>`,
+    `<p>Quer aplicar isso no seu caso? Conheça o Wealth &amp; Wellness Circle: <a href="${escapeXml(circle)}">${escapeXml(show.circleUrl)}</a></p>`,
+    `<p>${escapeXml(EPISODE_DISCLAIMER)}</p>`,
+  ].join('');
+}
+
+/** A mesma descrição em texto puro, para o `itunes:summary`, que não aceita HTML. */
+export function episodeSummaryText(episode: PodcastEpisode): string {
+  return `Artigo completo: ${episode.articleUrl}\n\n${episode.summary}\n\n${EPISODE_DISCLAIMER}`;
+}
+
+/**
+ * Se o feed pode ir ao ar.
+ *
+ * Feed válido com zero episódio diz ao Spotify que todos foram apagados, e
+ * ele tira do app. Lista vazia aqui é sempre falha (banco fora, consulta
+ * quebrada), nunca o estado real do show — então a rota responde 503 e o
+ * agregador tenta de novo mais tarde, com os episódios que já tem.
+ */
+export function feedIsServable(episodes: PodcastEpisode[]): boolean {
+  return episodes.length > 0;
 }
 
 /**
@@ -233,8 +300,9 @@ export function rssFeed(
       <link>${escapeXml(episode.articleUrl)}</link>
       <guid isPermaLink="false">${escapeXml(episodeGuid(episode.slug))}</guid>
       <pubDate>${rfc2822(new Date(episode.publishedAt))}</pubDate>
-      <description>${escapeXml(episodeDescription(episode))}</description>
-      <itunes:summary>${escapeXml(episodeDescription(episode))}</itunes:summary>
+      <description>${escapeXml(episodeDescription(episode, show))}</description>
+      <content:encoded>${escapeXml(episodeDescription(episode, show))}</content:encoded>
+      <itunes:summary>${escapeXml(episodeSummaryText(episode))}</itunes:summary>
       <itunes:author>${escapeXml(show.author)}</itunes:author>
       <itunes:explicit>false</itunes:explicit>
       <itunes:episodeType>full</itunes:episodeType>${duration}
@@ -246,7 +314,7 @@ export function rssFeed(
   const latest = episodes[0]?.publishedAt ? new Date(episodes[0].publishedAt) : now;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:podcast="https://podcastindex.org/namespace/1.0">
   <channel>
     <title>${escapeXml(show.title)}</title>
     <link>${escapeXml(show.siteUrl)}</link>
@@ -264,9 +332,13 @@ export function rssFeed(
       <link>${escapeXml(show.siteUrl)}</link>
     </image>
     <itunes:category text="Health &amp; Fitness">
+      <itunes:category text="Fitness" />
       <itunes:category text="Nutrition" />
     </itunes:category>
     <itunes:category text="Science" />${owner}
+    <copyright>© ${now.getUTCFullYear()} ${escapeXml(show.author)}</copyright>
+    <podcast:guid>${PODCAST_GUID}</podcast:guid>${show.ownerEmail ? `
+    <podcast:locked owner="${escapeXml(show.ownerEmail)}">yes</podcast:locked>` : ''}
     <lastBuildDate>${rfc2822(latest)}</lastBuildDate>
 ${items}
   </channel>

@@ -6,6 +6,7 @@ import {
   podcastEpisodes,
   podcastShow,
   podcastSpotifyUrl,
+  feedIsServable,
   rfc2822,
   rssFeed,
   type PodcastRow,
@@ -196,5 +197,84 @@ describe('bytesBySlug', () => {
       'https://kauaramos.com',
     );
     expect(rssFeed(podcastShow(BASE), eps)).toMatch(/length="[1-9]\d*"/);
+  });
+});
+
+// Lapidação pós-lançamento (09/10/2026): o que o ouvinte vê no Spotify.
+describe('o show no Spotify', () => {
+  const show = podcastShow(BASE);
+  const feed = rssFeed(show, podcastEpisodes([row()], SUPABASE, BASE));
+
+  it('tem palavra-chave em português no título, que é o que a busca pesa', () => {
+    expect(show.title).toBe('Wealth & Wellness: saúde e longevidade com ciência');
+  });
+
+  it('declara que as vozes e o roteiro são de IA, com curadoria do Kauã', () => {
+    expect(show.description).toContain('vozes geradas por inteligência artificial');
+    expect(show.description).toContain('curadoria de Kauã Ramos');
+    expect(show.description).not.toContain('os textos são de Kauã');
+  });
+
+  it('avisa que não substitui consulta', () => {
+    expect(show.description).toContain('não substitui consulta com médico ou nutricionista');
+  });
+
+  it('trava o feed contra importação por outro host e declara a autoria', () => {
+    expect(feed).toContain('xmlns:podcast="https://podcastindex.org/namespace/1.0"');
+    expect(feed).toContain('<podcast:locked owner="podcast@kauaramos.com">yes</podcast:locked>');
+    expect(feed).toMatch(/<podcast:guid>[0-9a-f-]{36}<\/podcast:guid>/);
+    expect(feed).toContain('<copyright>');
+  });
+
+  it('declara as categorias que o conteúdo cobre', () => {
+    expect(feed).toContain('<itunes:category text="Fitness" />');
+    expect(feed).toContain('<itunes:category text="Nutrition" />');
+    expect(feed).toContain('<itunes:category text="Science" />');
+  });
+});
+
+describe('a descrição do episódio', () => {
+  const [episode] = podcastEpisodes([row()], SUPABASE, BASE);
+  const feed = rssFeed(podcastShow(BASE), [episode]);
+  const utm = 'utm_source=spotify&amp;utm_medium=podcast&amp;utm_campaign=condicionamento-pesa-mais-que-o-imc';
+
+  it('abre com o link do artigo, medido, antes da dobra do app', () => {
+    const description = feed.match(/<description>([^<]*)<\/description>\s*<content:encoded>/)?.[1] ?? '';
+    expect(description.indexOf('circle/artigos/condicionamento')).toBeGreaterThan(-1);
+    expect(description.indexOf('circle/artigos/condicionamento')).toBeLessThan(description.indexOf('Em 20 estudos'));
+    // HTML dentro de XML: o leitor desfaz o XML e chega no href com & simples
+    expect(feed).toContain(utm.replace(/&amp;/g, '&amp;amp;'));
+  });
+
+  it('leva HTML clicável também no content:encoded', () => {
+    expect(feed).toContain('<content:encoded>');
+    expect(feed).toContain('&lt;a href=');
+  });
+
+  it('convida pro Circle', () => {
+    expect(feed).toContain(`${BASE}/circle?utm_source=spotify`);
+  });
+
+  it('traz o aviso de IA e de saúde em todo episódio', () => {
+    expect(feed).toContain('Rafa e Dani são vozes geradas por inteligência artificial');
+    expect(feed).toContain('não substitui consulta');
+  });
+
+  it('mantém o link do item limpo, sem UTM', () => {
+    expect(feed).toContain(`<link>${BASE}/circle/artigos/condicionamento-pesa-mais-que-o-imc</link>`);
+  });
+});
+
+describe('escapeXml e caractere de controle', () => {
+  it('tira o que XML não aceita, senão um título do LLM derruba o feed inteiro', () => {
+    expect(escapeXml('Sono\u0007 e\u0000 risco\u001F')).toBe('Sono e risco');
+    expect(escapeXml('linha\nnova\ttab')).toBe('linha\nnova\ttab');
+  });
+});
+
+describe('feedIsServable', () => {
+  it('feed sem episódio não sai: pro Spotify, lista vazia é episódio apagado', () => {
+    expect(feedIsServable([])).toBe(false);
+    expect(feedIsServable(podcastEpisodes([row()], SUPABASE, BASE))).toBe(true);
   });
 });
