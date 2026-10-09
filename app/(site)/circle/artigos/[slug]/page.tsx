@@ -11,6 +11,7 @@ import { TableOfContents } from '@/components/articles/TableOfContents';
 import { getArticle } from '@/lib/articles/queries';
 import { articlePath, readingMinutes } from '@/lib/core/articles.core';
 import { audioPublicUrl } from '@/lib/core/audio.core';
+import { podcastSpotifyUrl } from '@/lib/core/podcast.core';
 import { topicLabel } from '@/lib/core/covers.core';
 import { formatLongDate } from '@/lib/core/format.core';
 import { resolveSiteUrl } from '@/lib/core/site.core';
@@ -112,6 +113,12 @@ export default async function ArticlePage({ params }: Props) {
   // A URL do episódio é montada no servidor, para que o endereço do Supabase
   // não precise existir no bundle do navegador. Sem `audio_path`, o botão
   // continua falando pela voz do aparelho.
+  // O canal de podcast, quando já reivindicado. Vem do core, e não do bundle,
+  // pelo mesmo motivo da URL do Supabase.
+  const spotify = podcastSpotifyUrl({
+    PODCAST_SPOTIFY_SHOW_URL: process.env.PODCAST_SPOTIFY_SHOW_URL,
+  });
+
   const audio = article.audio_path
     ? {
         url: audioPublicUrl(publicSupabaseEnv().url, article.audio_path),
@@ -169,7 +176,7 @@ export default async function ArticlePage({ params }: Props) {
 
       {/* Ações no celular, tablet e notebook. No desktop largo elas moram na coluna direita. */}
       <div className="container-lp mt-8 flex flex-wrap items-center gap-3 border-y border-[var(--border)] py-4 xl:hidden">
-        <ListenButton chunks={chunks} audio={audio} />
+        <ListenButton chunks={chunks} audio={audio} spotifyUrl={spotify} />
         <ReadingThemeToggle />
       </div>
 
@@ -221,7 +228,7 @@ export default async function ArticlePage({ params }: Props) {
         <div className="hidden xl:block">
           <div className="sticky top-24 flex flex-col gap-6">
             <div className="flex flex-col gap-3">
-              <ListenButton chunks={chunks} audio={audio} />
+              <ListenButton chunks={chunks} audio={audio} spotifyUrl={spotify} />
               <ReadingThemeToggle />
             </div>
             <div className="border-t border-[var(--border)] pt-6">

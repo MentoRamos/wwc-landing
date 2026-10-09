@@ -1,5 +1,8 @@
+import { adminClient } from '@/lib/supabase/admin';
 import { publicClient } from '@/lib/supabase/public';
 import type { ArticleSource } from '@/lib/core/articles.core';
+import { AUDIO_BUCKET } from '@/lib/core/audio.core';
+import type { PodcastRow } from '@/lib/core/podcast.core';
 
 /**
  * As leituras públicas dos artigos. A política `articles_public_read` decide
@@ -70,4 +73,71 @@ export async function getArticle(slug: string): Promise<Article | null> {
       item.url.startsWith('https://'),
   );
   return { ...(data as Omit<Article, 'sources'>), sources };
+}
+
+/**
+ * As linhas que viram episódio no feed de podcast.
+ *
+ * Pede `audio_path` não nulo no banco em vez de filtrar depois: sem isso, uma
+ * sequência de artigos sem áudio gastaria o limite da consulta com linhas que
+ * o feed ia descartar. Quem decide o que é tocável é o `podcastEpisodes`, que
+ * corta o que não é MP3.
+ *
+ * O teto de 300 existe porque feed de podcast não pagina: um dia isso vira
+ * janela deslizante, e aí o episódio mais velho sai do ar nos agregadores. A
+ * um artigo por dia, dá dez meses para resolver.
+ */
+export async function listPodcastRows(limit = 300): Promise<PodcastRow[]> {
+  const { data, error } = await publicClient()
+    .from('articles')
+    .select('slug, title, dek, published_at, audio_path, audio_seconds, podcast_refs')
+    .not('audio_path', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    // NÃO devolve lista vazia: um feed válido com zero episódio diz ao Spotify
+    // que todos foram apagados. A rota transforma isto em 503, que o
+    // agregador trata como "tente de novo", com os episódios que já tem.
+    console.error('[podcast] listagem falhou', { code: error.code });
+    throw new Error('podcast: listagem falhou');
+  }
+  return (data ?? []) as PodcastRow[];
+}
+
+/**
+ * O tamanho REAL de cada episódio, por slug, para o `length` do enclosure.
+ *
+ * O feed estimava por bitrate (64 kbps × duração) e errava por alguns KB em
+ * todo episódio. O Apple pede o tamanho do arquivo e um player que confia no
+ * número mostra progresso errado, então estimativa é defeito, não detalhe.
+ *
+ * Uma chamada só: `list` do bucket devolve o tamanho de todos os objetos de
+ * uma vez. Falhar aqui não é fatal — o feed volta para a estimativa, que é
+ * pior que o número certo e muito melhor que um feed fora do ar.
+ */
+export async function podcastObjectSizes(rows: PodcastRow[]): Promise<Record<string, number>> {
+  const paths = new Map(rows.filter((r) => r.audio_path).map((r) => [r.audio_path as string, r.slug]));
+  if (!paths.size) return {};
+  let listed;
+  try {
+    // adminClient() lança quando falta a chave de serviço: sem o try, o que é
+    // "não fatal" derrubava o feed inteiro com 500.
+    listed = await adminClient().storage.from(AUDIO_BUCKET).list('', { limit: 1000 });
+  } catch {
+    console.error('[podcast] tamanho dos objetos indisponível', { message: 'cliente admin indisponível' });
+    return {};
+  }
+  const { data, error } = listed;
+  if (error || !data) {
+    console.error('[podcast] tamanho dos objetos indisponível', { message: error?.message });
+    return {};
+  }
+  const out: Record<string, number> = {};
+  for (const obj of data) {
+    const slug = paths.get(obj.name);
+    const size = (obj.metadata as { size?: number } | null)?.size;
+    if (slug && typeof size === 'number' && size > 0) out[slug] = size;
+  }
+  return out;
 }
