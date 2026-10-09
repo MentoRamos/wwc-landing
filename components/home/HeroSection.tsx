@@ -10,22 +10,9 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const springConfig = { stiffness: 60, damping: 20, mass: 1 };
 
-/* Clip-path reveal variant — text slides up from masked bottom */
-const revealVariants = {
-  hidden: { clipPath: 'inset(100% 0% 0% 0%)', y: '30%' },
-  visible: (delay: number) => ({
-    clipPath: 'inset(0% 0% 0% 0%)',
-    y: '0%',
-    transition: { duration: 1.25, delay, ease },
-  }),
-};
-
-/* Fade-up variant for supporting elements */
-const fadeUp = (delay: number) => ({
-  initial: { opacity: 0, y: 28 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 1, delay, ease },
-});
+/* O titulo e a entrada do hero saem em CSS (`.hero-mask-up`, `.hero-fade-up`).
+   O Framer aqui serializava `clip-path: inset(100% 0 0 0)` no HTML do
+   servidor, entao o maior texto da pagina tinha altura zero ate hidratar. */
 
 export function HeroSection() {
   const ref = useRef<HTMLElement>(null);
@@ -111,7 +98,7 @@ export function HeroSection() {
         ) : (
           <Image
             src="/photos/kaua-portrait-seated.jpg"
-            alt="Kauã Ramos — Wealth & Wellness Connect"
+            alt="Kauã Ramos no Wealth & Wellness Connect"
             fill
             sizes="100vw"
             className="object-cover object-[center_30%]"
@@ -125,7 +112,7 @@ export function HeroSection() {
         {hasVideo && !videoReady && (
           <Image
             src="/photos/kaua-portrait-seated.jpg"
-            alt="Kauã Ramos — Wealth & Wellness Connect"
+            alt="Kauã Ramos no Wealth & Wellness Connect"
             fill
             sizes="100vw"
             className="object-cover object-[center_30%]"
@@ -180,55 +167,47 @@ export function HeroSection() {
         className="relative z-10 container-lp pb-16 md:pb-36 lg:pb-44 pt-40 md:pt-32"
       >
         {/* Eyebrow */}
-        <motion.p
-          {...fadeUp(0.5)}
-          className="text-[10px] md:text-[11px] tracking-[0.35em] uppercase text-[var(--accent)] mb-6 md:mb-10 flex items-center gap-4"
+        <p
+          className="hero-fade-up text-[10px] md:text-[11px] tracking-[0.35em] uppercase text-[var(--accent)] mb-6 md:mb-10 flex items-center gap-4"
+          style={{ '--d': '0.5s' } as React.CSSProperties}
         >
           <span className="inline-block w-12 md:w-16 h-px bg-[var(--accent)]" />
           {EVENT.name}
-        </motion.p>
+        </p>
 
         {/* H1 line 1 — clip-path reveal */}
         <div className="overflow-hidden mb-1 md:mb-2">
-          <motion.h1
-            custom={0.65}
-            initial="hidden"
-            animate="visible"
-            variants={revealVariants}
-            className="font-display font-light text-[14vw] sm:text-[12vw] md:text-[9vw] lg:text-[7vw] xl:text-[6.25rem] leading-[0.92] tracking-[-0.04em] text-[var(--text-1)]"
-            style={{ willChange: 'transform' }}
+          <h1
+            className="hero-mask-up font-display font-light text-[14vw] sm:text-[12vw] md:text-[9vw] lg:text-[7vw] xl:text-[6.25rem] leading-[0.92] tracking-[-0.04em] text-[var(--text-1)]"
+            style={{ willChange: 'transform', '--d': '0.65s' } as React.CSSProperties}
           >
             A Era do
-          </motion.h1>
+          </h1>
         </div>
 
         {/* H1 line 2 — clip-path reveal handles masking, no overflow-hidden needed */}
         <div className="mb-8 md:mb-14">
-          <motion.h1
-            custom={0.88}
-            initial="hidden"
-            animate="visible"
-            variants={revealVariants}
-            className="font-display italic font-light text-[14vw] sm:text-[12vw] md:text-[9vw] lg:text-[7vw] xl:text-[6.25rem] leading-[0.92] tracking-[-0.04em] text-[var(--accent)]"
-            style={{ willChange: 'transform' }}
+          <h1
+            className="hero-mask-up font-display italic font-light text-[14vw] sm:text-[12vw] md:text-[9vw] lg:text-[7vw] xl:text-[6.25rem] leading-[0.92] tracking-[-0.04em] text-[var(--accent)]"
+            style={{ willChange: 'transform', '--d': '0.88s' } as React.CSSProperties}
           >
             CEO Quantificado.
-          </motion.h1>
+          </h1>
         </div>
 
         {/* Body copy */}
-        <motion.p
-          {...fadeUp(1.15)}
-          className="text-[var(--text-2)] text-sm md:text-lg font-light max-w-xl mb-10 md:mb-16 leading-[1.75]"
+        <p
+          className="hero-fade-up text-[var(--text-2)] text-sm md:text-lg font-light max-w-xl mb-10 md:mb-16 leading-[1.75]"
+          style={{ '--d': '1.15s' } as React.CSSProperties}
         >
           O evento que conecta alta performance, saúde baseada em dados
           e networking de elite para CEOs e executivos.
-        </motion.p>
+        </p>
 
         {/* CTA row */}
-        <motion.div
-          {...fadeUp(1.35)}
-          className="flex flex-col sm:flex-row gap-4 md:gap-5 items-stretch sm:items-center"
+        <div
+          className="hero-fade-up flex flex-col sm:flex-row gap-4 md:gap-5 items-stretch sm:items-center"
+          style={{ '--d': '1.35s' } as React.CSSProperties}
         >
           {/* Primary CTA — framer-motion micro-interaction */}
           <motion.a
@@ -255,7 +234,7 @@ export function HeroSection() {
             Ver 1ª edição
             <span className="inline-block transition-transform duration-500 group-hover:translate-y-1">↓</span>
           </a>
-        </motion.div>
+        </div>
       </motion.div>
 
       {/* ── Bottom-right meta strip ── */}

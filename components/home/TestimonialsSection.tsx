@@ -86,7 +86,7 @@ function Dot({
         onClick={onClick}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        aria-label={`Depoimento ${index + 1} — ${testimonial.name}`}
+        aria-label={`Depoimento ${index + 1} de ${testimonial.name}`}
         className="relative h-4 flex items-center"
       >
         <motion.span

@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 
 const SLIDES = [
-  { src: '/photos/evento-plateia-legado.jpg', alt: 'Plateia — Legado' },
+  { src: '/photos/evento-plateia-legado.jpg', alt: 'Plateia no Espaço Legado' },
   { src: '/photos/evento-painel.jpg', alt: 'Painel de discussão' },
   { src: '/photos/evento-aplausos.jpg', alt: 'Aplausos da plateia' },
   { src: '/photos/evento-grupo.jpg', alt: 'Networking VIP' },

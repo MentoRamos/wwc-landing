@@ -125,7 +125,7 @@ export function EditionTeaser() {
 
         <ScrollReveal delay={0.1}>
           <p className="text-[10px] tracking-[0.4em] uppercase text-[var(--accent)] mb-8">
-            2ª Edição — Em breve
+            2ª Edição · Em breve
           </p>
         </ScrollReveal>
 

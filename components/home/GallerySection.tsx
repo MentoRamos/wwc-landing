@@ -6,10 +6,10 @@ import { useRef, useState } from 'react';
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 
 const PHOTOS = [
-  { src: '/photos/hero-keynote.jpg', alt: 'Keynote — Wealth & Wellness Connect', span: 'col-span-1 row-span-1 sm:col-span-2 sm:row-span-2' },
-  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos — Host & Curador', span: 'col-span-1 row-span-1 sm:col-span-1 sm:row-span-2' },
+  { src: '/photos/hero-keynote.jpg', alt: 'Keynote do Wealth & Wellness Connect', span: 'col-span-1 row-span-1 sm:col-span-2 sm:row-span-2' },
+  { src: '/photos/kaua-portrait-seated.jpg', alt: 'Kauã Ramos, Host e Curador', span: 'col-span-1 row-span-1 sm:col-span-1 sm:row-span-2' },
   { src: '/photos/audience-view.jpg', alt: 'Plateia do evento', span: 'col-span-1 row-span-1' },
-  { src: '/photos/kaua-portrait-close.jpg', alt: 'Kauã Ramos — Portrait', span: 'col-span-1 row-span-1' },
+  { src: '/photos/kaua-portrait-close.jpg', alt: 'Kauã Ramos, retrato', span: 'col-span-1 row-span-1' },
   { src: '/photos/networking.jpg', alt: 'Networking entre convidados', span: 'col-span-1 row-span-1' },
   { src: '/photos/kaua-laughing.jpg', alt: 'Momentos do evento', span: 'col-span-1 row-span-1' },
   { src: '/photos/conversation.jpg', alt: 'Conversas pós-evento', span: 'col-span-1 row-span-1 sm:col-span-2 sm:row-span-1' },
@@ -154,7 +154,7 @@ export function GallerySection() {
             <ScrollReveal>
               <p className="text-[11px] md:text-xs tracking-[0.3em] uppercase text-[var(--accent)] mb-5 flex items-center gap-3">
                 <span className="inline-block w-10 h-px bg-[var(--accent)]" />
-                1ª Edição — Goiânia
+                1ª Edição · Goiânia
               </p>
             </ScrollReveal>
 
@@ -171,7 +171,7 @@ export function GallerySection() {
                 {' '}<strong className="text-[var(--text-1)] font-medium">quem mede, performa melhor.</strong>
               </p>
               <p className="text-[var(--text-3)] text-base md:text-lg leading-[1.85]">
-                13 de março de 2026 — Legado, Ricardo Paranhos.
+                13 de março de 2026 · Legado, Ricardo Paranhos.
                 3h15 de conteúdo prático, dados reais e conexões que transcenderam o evento.
               </p>
             </ScrollReveal>
@@ -196,11 +196,11 @@ export function GallerySection() {
 
             <ScrollReveal delay={0.3}>
               <blockquote className="text-[var(--text-2)] text-lg md:text-xl leading-[1.75] italic border-l-2 border-[var(--accent)]/40 pl-6">
-                &ldquo;Não foi palestra motivacional — foi dado real, protocolo aplicável
+                &ldquo;Não foi palestra motivacional. Foi dado real, protocolo aplicável
                 e gente que realmente faz acontecer na mesma sala.&rdquo;
               </blockquote>
               <p className="text-[var(--text-4)] text-xs tracking-[0.2em] uppercase mt-4 pl-6">
-                — Participante, CEO setor imobiliário
+                Participante, CEO do setor imobiliário
               </p>
             </ScrollReveal>
           </div>
@@ -221,9 +221,9 @@ export function GallerySection() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 {[
                   { time: '15:45', title: 'Welcome', desc: 'Recepção com coquetel premium e networking inicial' },
-                  { time: '16:15', title: 'Keynote', desc: 'Saúde Mensurável — por que dados importam mais que intuição' },
-                  { time: '17:00', title: 'Trackers', desc: 'Oura, Whoop, Garmin — análise honesta do que funciona' },
-                  { time: '17:45', title: 'Biohacking', desc: 'Ice bath, breathwork, sauna — protocolos baseados em evidência' },
+                  { time: '16:15', title: 'Keynote', desc: 'Saúde Mensurável: por que dados importam mais que intuição' },
+                  { time: '17:00', title: 'Trackers', desc: 'Oura, Whoop, Garmin: análise honesta do que funciona' },
+                  { time: '17:45', title: 'Biohacking', desc: 'Ice bath, breathwork, sauna: protocolos baseados em evidência' },
                   { time: '18:30', title: 'Painel', desc: 'Empresários que medem: dados reais, rotinas reais, resultados reais' },
                   { time: '19:00', title: 'Encerramento', desc: 'Plano de ação personalizado e próximos passos' },
                 ].map((item, i) => (

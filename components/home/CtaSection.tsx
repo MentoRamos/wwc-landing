@@ -122,10 +122,15 @@ export function CtaSection() {
     setStatus('loading');
 
     try {
-      const res = await fetch('/api/lead', {
+      // Was `/api/lead`, which on kauaramos.com is the static site's handler
+      // for the lead magnets: it requires a `material` from a whitelist and
+      // answers 400 without one, so every hand raised on this page was being
+      // dropped on the floor. `/api/interesse` is the platform's own, and
+      // stores the person against the event.
+      const res = await fetch('/api/interesse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, product: 'connect', source: 'connect-interesse' }),
       });
 
       if (!res.ok) throw new Error('Erro ao salvar');

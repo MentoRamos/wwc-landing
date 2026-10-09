@@ -187,7 +187,9 @@ export function SpeakerSection() {
               </p>
               <div className="flex gap-4 items-center">
                 <span className="w-10 h-px bg-[var(--accent)]/30" />
-                <span className="text-[var(--text-3)] text-xs italic tracking-wide">UWell Health Club</span>
+                <span className="text-[var(--text-3)] text-xs italic tracking-wide">
+                  {'affiliation' in featured ? featured.affiliation : ''}
+                </span>
               </div>
             </div>
           </div>
