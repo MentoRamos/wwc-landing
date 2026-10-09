@@ -30,8 +30,13 @@ export const PODCAST_FEED_PATH = '/circle/podcast/rss.xml';
  * Mora no código, e não só em variável de ambiente, porque trocar isto não
  * pode depender de acesso ao painel da Vercel. O ambiente ainda ganha, para o
  * caso de precisar trocar sem deploy.
+ *
+ * É um ALIAS, e não a caixa pessoal, porque o endereço sai público dentro do
+ * feed: todo leitor de RSS e todo robô que varre feed consegue colher. O alias
+ * precisa entregar numa caixa que o Kauã leia ANTES de reivindicar o show,
+ * senão o código de 8 dígitos cai no vazio.
  */
-export const PODCAST_OWNER_EMAIL_FALLBACK = 'kaua@kauaramos.com';
+export const PODCAST_OWNER_EMAIL_FALLBACK = 'podcast@kauaramos.com';
 
 /**
  * O endereço do canal no Spotify, para o link ao lado do player.

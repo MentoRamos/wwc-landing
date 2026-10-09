@@ -154,8 +154,9 @@ describe('o dono do feed', () => {
   it('é o endereço que recebe o código de 8 dígitos do Spotify', () => {
     // Trocar isto depois de o show ser reivindicado não muda o dono no
     // Spotify, só no feed. Por isso o valor está no teste: mudança aqui é
-    // decisão, não detalhe.
-    expect(podcastShow(BASE).ownerEmail).toBe('kaua@kauaramos.com');
+    // decisão, não detalhe. E é um alias, não a caixa pessoal, porque o feed
+    // é público.
+    expect(podcastShow(BASE).ownerEmail).toBe('podcast@kauaramos.com');
   });
 });
 
