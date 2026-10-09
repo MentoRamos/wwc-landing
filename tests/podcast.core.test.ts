@@ -105,7 +105,10 @@ describe('rssFeed', () => {
   });
 
   it('omite o bloco do dono quando não há e-mail, em vez de mandar vazio', () => {
-    const sem = rssFeed(podcastShow(BASE), podcastEpisodes([row()], SUPABASE, BASE));
+    const sem = rssFeed(
+      { ...podcastShow(BASE), ownerEmail: '' },
+      podcastEpisodes([row()], SUPABASE, BASE),
+    );
     expect(sem).not.toContain('<itunes:owner>');
     expect(sem).toContain('<item>');
   });
@@ -144,6 +147,15 @@ describe('rssFeed', () => {
     const vazio = rssFeed(show, []);
     expect(vazio).toContain('<channel>');
     expect(vazio).not.toContain('<item>');
+  });
+});
+
+describe('o dono do feed', () => {
+  it('é o endereço que recebe o código de 8 dígitos do Spotify', () => {
+    // Trocar isto depois de o show ser reivindicado não muda o dono no
+    // Spotify, só no feed. Por isso o valor está no teste: mudança aqui é
+    // decisão, não detalhe.
+    expect(podcastShow(BASE).ownerEmail).toBe('kaua@kauaramos.com');
   });
 });
 

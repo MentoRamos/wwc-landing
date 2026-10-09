@@ -31,7 +31,7 @@ export const PODCAST_FEED_PATH = '/circle/podcast/rss.xml';
  * pode depender de acesso ao painel da Vercel. O ambiente ainda ganha, para o
  * caso de precisar trocar sem deploy.
  */
-export const PODCAST_OWNER_EMAIL_FALLBACK = '';
+export const PODCAST_OWNER_EMAIL_FALLBACK = 'kaua@kauaramos.com';
 
 /**
  * O endereço do canal no Spotify, para o link ao lado do player.
