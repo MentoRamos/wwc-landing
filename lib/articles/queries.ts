@@ -1,5 +1,6 @@
 import { publicClient } from '@/lib/supabase/public';
 import type { ArticleSource } from '@/lib/core/articles.core';
+import type { PodcastRow } from '@/lib/core/podcast.core';
 
 /**
  * As leituras públicas dos artigos. A política `articles_public_read` decide
@@ -70,4 +71,33 @@ export async function getArticle(slug: string): Promise<Article | null> {
       item.url.startsWith('https://'),
   );
   return { ...(data as Omit<Article, 'sources'>), sources };
+}
+
+/**
+ * As linhas que viram episódio no feed de podcast.
+ *
+ * Pede `audio_path` não nulo no banco em vez de filtrar depois: sem isso, uma
+ * sequência de artigos sem áudio gastaria o limite da consulta com linhas que
+ * o feed ia descartar. Quem decide o que é tocável é o `podcastEpisodes`, que
+ * corta o que não é MP3.
+ *
+ * O teto de 300 existe porque feed de podcast não pagina: um dia isso vira
+ * janela deslizante, e aí o episódio mais velho sai do ar nos agregadores. A
+ * um artigo por dia, dá dez meses para resolver.
+ */
+export async function listPodcastRows(limit = 300): Promise<PodcastRow[]> {
+  const { data, error } = await publicClient()
+    .from('articles')
+    .select('slug, title, dek, published_at, audio_path, audio_seconds')
+    .not('audio_path', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    // Feed vazio é melhor que 500: o Spotify repete a busca, e 500 repetido é
+    // o que faz ele marcar o feed como quebrado.
+    console.error('[podcast] listagem falhou', { code: error.code });
+    return [];
+  }
+  return (data ?? []) as PodcastRow[];
 }

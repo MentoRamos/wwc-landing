@@ -30,11 +30,14 @@ export function ArticleAudio({
   url,
   seconds,
   fallback,
+  spotifyUrl,
   className = '',
 }: {
   url: string;
   seconds: number | null;
   fallback?: ReactNode;
+  /** O canal no Spotify, quando existe. Ausente, o link não aparece. */
+  spotifyUrl?: string | null;
   className?: string;
 }) {
   const ref = useRef<HTMLAudioElement>(null);
@@ -113,6 +116,19 @@ export function ArticleAudio({
           ) : null}
         </button>
 
+        {/*
+          O mesmo episódio mora no nosso canal de podcast. Quem ouve no carro
+          prefere a fila do app a uma aba do navegador, e o link fica ao lado
+          do player em vez de substituí-lo: trocar mandaria embora quem só
+          queria apertar play na página.
+        */}
+        {spotifyUrl && state === 'idle' && (
+          <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className={quiet}>
+            <SpotifyIcon />
+            No Spotify
+          </a>
+        )}
+
         {state !== 'idle' && (
           <>
             <button type="button" onClick={back15} className={quiet} aria-label="Voltar 15 segundos">
@@ -160,6 +176,14 @@ export function ArticleAudio({
         </a>
       )}
     </div>
+  );
+}
+
+function SpotifyIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.78.78 0 0 1-1.07.26c-2.93-1.79-6.62-2.2-10.97-1.2a.78.78 0 1 1-.35-1.52c4.76-1.09 8.84-.62 12.13 1.39.37.23.49.71.26 1.07zm1.23-2.74a.97.97 0 0 1-1.34.32c-3.35-2.06-8.46-2.66-12.42-1.45a.97.97 0 1 1-.57-1.86c4.52-1.37 10.15-.7 14 1.66a.97.97 0 0 1 .33 1.33zm.11-2.86C14.1 8.46 7.6 8.25 3.76 9.42a1.17 1.17 0 1 1-.68-2.24c4.41-1.34 11.6-1.08 16.17 1.63a1.17 1.17 0 0 1-1.2 2.01z" />
+    </svg>
   );
 }
 

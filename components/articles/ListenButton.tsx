@@ -17,10 +17,17 @@ import { ArticleAudio } from './ArticleAudio';
 export function ListenButton({
   chunks,
   audio,
+  spotifyUrl,
   className = '',
 }: {
   chunks: string[];
   audio?: { url: string; seconds: number | null } | null;
+  /**
+   * O canal de podcast, quando já existe. Só acompanha o caminho do arquivo:
+   * artigo sem áudio também não tem episódio, então oferecer o Spotify ali
+   * seria mandar o leitor procurar o que não foi publicado.
+   */
+  spotifyUrl?: string | null;
   className?: string;
 }) {
   if (audio) {
@@ -28,6 +35,7 @@ export function ListenButton({
       <ArticleAudio
         url={audio.url}
         seconds={audio.seconds}
+        spotifyUrl={spotifyUrl}
         className={className}
         fallback={<SpeechButton chunks={chunks} className={className} />}
       />
