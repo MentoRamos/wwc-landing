@@ -7,8 +7,10 @@ import {
   podcastShow,
   podcastSpotifyUrl,
   feedIsServable,
+  podcastRefs,
   rfc2822,
   rssFeed,
+  episodeDescription,
   type PodcastRow,
 } from '@/lib/core/podcast.core';
 
@@ -276,5 +278,69 @@ describe('feedIsServable', () => {
   it('feed sem episódio não sai: pro Spotify, lista vazia é episódio apagado', () => {
     expect(feedIsServable([])).toBe(false);
     expect(feedIsServable(podcastEpisodes([row()], SUPABASE, BASE))).toBe(true);
+  });
+});
+
+// 09/10/2026, pedido do Kauã: número do episódio na abertura e indicação de
+// outros episódios ao longo do conteúdo, com o link nas notas.
+describe('o número do episódio', () => {
+  const rows = [
+    row({ slug: 'c', title: 'C', published_at: '2026-10-09T13:00:00.000Z', audio_path: 'c-1.mp3' }),
+    row({ slug: 'sem-mp3', published_at: '2026-10-08T13:00:00.000Z', audio_path: 'x-1.ogg' }),
+    row({ slug: 'b', title: 'B', published_at: '2026-10-07T13:00:00.000Z', audio_path: 'b-1.mp3' }),
+    row({ slug: 'a', title: 'A', published_at: '2026-09-04T13:00:00.000Z', audio_path: 'a-1.mp3' }),
+  ];
+  const eps = podcastEpisodes(rows, SUPABASE, BASE);
+
+  it('é a ordem de publicação entre os que estão no feed, a partir de 1', () => {
+    expect(eps.map((e) => [e.slug, e.number])).toEqual([['c', 3], ['b', 2], ['a', 1]]);
+  });
+
+  it('vai no feed como itunes:episode', () => {
+    const feed = rssFeed(podcastShow(BASE), eps);
+    expect(feed).toContain('<itunes:episode>3</itunes:episode>');
+    expect(feed).toContain('<itunes:episode>1</itunes:episode>');
+  });
+});
+
+describe('os episódios citados', () => {
+  const rows = [
+    row({ slug: 'magnesio', title: 'Magnésio e sono', published_at: '2026-10-09T13:00:00.000Z', audio_path: 'magnesio-1.mp3', podcast_refs: ['vitamina-d', 'nao-existe'] }),
+    row({ slug: 'vitamina-d', title: 'Vitamina D: o alvo caiu', published_at: '2026-10-03T13:00:00.000Z', audio_path: 'vitamina-d-1.mp3' }),
+  ];
+  const [magnesio] = podcastEpisodes(rows, SUPABASE, BASE);
+  const html = episodeDescription(magnesio, podcastShow(BASE));
+
+  it('resolve número, título e link, e larga o que não está no feed', () => {
+    expect(magnesio.refs).toEqual([
+      { number: 1, title: 'Vitamina D: o alvo caiu', articleUrl: `${BASE}/circle/artigos/vitamina-d` },
+    ]);
+  });
+
+  it('entra nas notas com o número, antes do convite pro Circle', () => {
+    expect(html).toContain('Episódio 1: Vitamina D: o alvo caiu');
+    expect(html).toContain(`${BASE}/circle/artigos/vitamina-d?utm_source=spotify`);
+    expect(html.indexOf('Episódio 1')).toBeLessThan(html.indexOf('Wealth &amp; Wellness Circle'));
+  });
+
+  it('sem citação, a seção não aparece', () => {
+    const [semRef] = podcastEpisodes([row()], SUPABASE, BASE);
+    expect(episodeDescription(semRef, podcastShow(BASE))).not.toContain('Citados');
+  });
+});
+
+describe('podcastRefs', () => {
+  it('aceita até 3 slugs válidos, sem repetir e sem citar a si mesmo', () => {
+    expect(podcastRefs(['a', 'b', 'a', 'eu'], 'eu')).toEqual(['a', 'b']);
+  });
+
+  it('ausente não mexe no que já está gravado', () => {
+    expect(podcastRefs(undefined, 'eu')).toBeUndefined();
+  });
+
+  it('recusa formato errado', () => {
+    expect(podcastRefs('a', 'eu')).toBeNull();
+    expect(podcastRefs(['A B'], 'eu')).toBeNull();
+    expect(podcastRefs(['a', 'b', 'c', 'd'], 'eu')).toBeNull();
   });
 });

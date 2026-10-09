@@ -117,7 +117,12 @@ export type PodcastRow = {
   published_at: string;
   audio_path: string | null;
   audio_seconds: number | null;
+  /** Slugs dos episódios que este cita no áudio ("o link está na descrição"). */
+  podcast_refs?: string[] | null;
 };
+
+/** Um episódio citado, já resolvido contra o feed. */
+export type PodcastRef = { number: number; title: string; articleUrl: string };
 
 export type PodcastEpisode = {
   slug: string;
@@ -127,6 +132,13 @@ export type PodcastEpisode = {
   audioUrl: string;
   seconds: number | null;
   articleUrl: string;
+  /**
+   * A posição na ordem de publicação, a partir de 1. É o mesmo número que a
+   * abertura do áudio fala ("episódio 28"), calculado do mesmo jeito do lado
+   * do servidor: 1 + quantos episódios do feed saíram antes deste.
+   */
+  number: number;
+  refs: PodcastRef[];
 };
 
 export function podcastShow(
@@ -177,17 +189,50 @@ export function podcastEpisodes(
   const origin = base.replace(/\/+$/, '');
   const storage = `${supabaseUrl.replace(/\/+$/, '')}/storage/v1/object/public/${AUDIO_BUCKET}`;
 
-  return rows
-    .filter((row) => !!row.audio_path && row.audio_path.toLowerCase().endsWith('.mp3'))
-    .map((row) => ({
-      slug: row.slug,
-      title: row.title,
-      summary: row.dek,
-      publishedAt: row.published_at,
-      audioUrl: `${storage}/${row.audio_path}`,
-      seconds: row.audio_seconds,
-      articleUrl: `${origin}/circle/artigos/${row.slug}`,
-    }));
+  const playable = rows.filter((row) => !!row.audio_path && row.audio_path.toLowerCase().endsWith('.mp3'));
+  const chronological = [...playable].sort((a, b) => a.published_at.localeCompare(b.published_at));
+  const numberOf = new Map(chronological.map((row, index) => [row.slug, index + 1]));
+  const bySlug = new Map(playable.map((row) => [row.slug, row]));
+  const articleUrl = (slug: string) => `${origin}/circle/artigos/${slug}`;
+
+  return playable.map((row) => ({
+    slug: row.slug,
+    title: row.title,
+    summary: row.dek,
+    publishedAt: row.published_at,
+    audioUrl: `${storage}/${row.audio_path}`,
+    seconds: row.audio_seconds,
+    articleUrl: articleUrl(row.slug),
+    number: numberOf.get(row.slug) as number,
+    // Citação de episódio que não está no feed (sem MP3, escondido) cai fora:
+    // "o link está na descrição" apontando pra nada é pior que não citar.
+    refs: (row.podcast_refs ?? [])
+      .filter((slug) => bySlug.has(slug) && slug !== row.slug)
+      .map((slug) => ({
+        number: numberOf.get(slug) as number,
+        title: (bySlug.get(slug) as PodcastRow).title,
+        articleUrl: articleUrl(slug),
+      })),
+  }));
+}
+
+const REF_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const MAX_REFS = 3;
+
+/**
+ * Os episódios citados que o publicador manda junto com o áudio.
+ *
+ * `undefined` quando o campo não veio (não mexe no que está gravado), `null`
+ * quando veio errado (a rota recusa), e a lista limpa quando está certa: sem
+ * repetir, sem citar a si mesmo, no máximo três — indicação demais vira lista
+ * de leitura, e o pedido do Kauã é uma ou duas no ponto natural da conversa.
+ */
+export function podcastRefs(value: unknown, self: string): string[] | null | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 10) return null;
+  if (!value.every((slug) => typeof slug === 'string' && REF_SLUG.test(slug) && slug.length <= 90)) return null;
+  const refs = [...new Set(value as string[])].filter((slug) => slug !== self);
+  return refs.length > MAX_REFS ? null : refs;
 }
 
 /**
@@ -238,6 +283,16 @@ export function episodeDescription(episode: PodcastEpisode, show: PodcastShow): 
   return [
     `<p>Artigo completo, com as fontes: <a href="${escapeXml(article)}">${escapeXml(episode.articleUrl)}</a></p>`,
     `<p>${escapeXml(episode.summary)}</p>`,
+    ...(episode.refs.length
+      ? [
+          `<p>Citados neste episódio:<br>${episode.refs
+            .map((ref) => {
+              const link = fromSpotify(ref.articleUrl, episode.slug);
+              return `<a href="${escapeXml(link)}">Episódio ${ref.number}: ${escapeXml(ref.title)}</a>`;
+            })
+            .join('<br>')}</p>`,
+        ]
+      : []),
     `<p>Quer aplicar isso no seu caso? Conheça o Wealth &amp; Wellness Circle: <a href="${escapeXml(circle)}">${escapeXml(show.circleUrl)}</a></p>`,
     `<p>${escapeXml(EPISODE_DISCLAIMER)}</p>`,
   ].join('');
@@ -305,7 +360,8 @@ export function rssFeed(
       <itunes:summary>${escapeXml(episodeSummaryText(episode))}</itunes:summary>
       <itunes:author>${escapeXml(show.author)}</itunes:author>
       <itunes:explicit>false</itunes:explicit>
-      <itunes:episodeType>full</itunes:episodeType>${duration}
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:episode>${episode.number}</itunes:episode>${duration}
       <enclosure url="${escapeXml(episode.audioUrl)}" length="${length}" type="audio/mpeg" />
     </item>`;
     })

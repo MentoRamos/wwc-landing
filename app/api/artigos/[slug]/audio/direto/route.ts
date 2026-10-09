@@ -1,6 +1,7 @@
 import { adminClient } from '@/lib/supabase/admin';
 import { publicSupabaseEnv } from '@/lib/supabase/env';
 import { cronAuthorized } from '@/lib/cron-auth';
+import { podcastRefs } from '@/lib/core/podcast.core';
 import {
   AUDIO_BUCKET,
   AUDIO_MAX_BYTES,
@@ -149,6 +150,15 @@ export async function PUT(request: Request, { params }: Params) {
   const payload = await body(request);
   const objectPath = String(payload.path ?? '');
   const seconds = audioSeconds(String(payload.seconds ?? ''));
+  // Os episódios que o áudio cita ("o link está na descrição"). Ausente não
+  // mexe no que está gravado; formato errado recusa antes de tocar no artigo.
+  const refs = podcastRefs(payload.refs, slug);
+  if (refs === null) {
+    return Response.json(
+      { ok: false, error: 'refs precisa ser lista de até 3 slugs de outros episódios' },
+      { status: 400 },
+    );
+  }
 
   // O caminho tem que ser o que ESTE slug geraria. Sem isso, um token válido
   // para um artigo publicaria áudio em outro.
@@ -201,7 +211,11 @@ export async function PUT(request: Request, { params }: Params) {
 
   const { error: write } = await admin
     .from('articles')
-    .update({ audio_path: objectPath, audio_seconds: seconds })
+    .update({
+      audio_path: objectPath,
+      audio_seconds: seconds,
+      ...(refs !== undefined ? { podcast_refs: refs } : {}),
+    })
     .eq('slug', slug);
 
   if (write) {

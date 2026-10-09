@@ -90,7 +90,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
 export async function listPodcastRows(limit = 300): Promise<PodcastRow[]> {
   const { data, error } = await publicClient()
     .from('articles')
-    .select('slug, title, dek, published_at, audio_path, audio_seconds')
+    .select('slug, title, dek, published_at, audio_path, audio_seconds, podcast_refs')
     .not('audio_path', 'is', null)
     .order('published_at', { ascending: false })
     .limit(limit);
