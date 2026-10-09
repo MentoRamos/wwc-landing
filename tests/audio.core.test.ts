@@ -8,6 +8,7 @@ import {
   audioPublicUrl,
   audioSeconds,
   clock,
+  publishableAudio,
 } from '@/lib/core/audio.core';
 
 describe('audioExtension', () => {
@@ -112,5 +113,14 @@ describe('audioMimeType', () => {
   it('devolve os dois tipos declarados no bucket', () => {
     expect(audioMimeType('ogg')).toBe('audio/ogg');
     expect(audioMimeType('mp3')).toBe('audio/mpeg');
+  });
+});
+
+describe('publishableAudio', () => {
+  it('só MP3 vira áudio do artigo: ogg tira o episódio do feed do Spotify', () => {
+    expect(publishableAudio('mp3')).toBe(true);
+    expect(publishableAudio('ogg')).toBe(false);
+    expect(publishableAudio('wav')).toBe(false);
+    expect(publishableAudio('')).toBe(false);
   });
 });

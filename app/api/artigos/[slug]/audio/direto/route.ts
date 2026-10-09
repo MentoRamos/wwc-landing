@@ -9,6 +9,7 @@ import {
   audioObjectPath,
   audioPublicUrl,
   audioSeconds,
+  publishableAudio,
 } from '@/lib/core/audio.core';
 
 /**
@@ -79,6 +80,10 @@ export async function POST(request: Request, { params }: Params) {
   if (!EXTENSIONS.has(extension)) {
     return Response.json({ ok: false, error: 'extension precisa ser ogg ou mp3' }, { status: 400 });
   }
+  if (!publishableAudio(extension)) {
+    // Ogg toca no site, mas tira o episódio do Spotify. Ver publishableAudio.
+    return Response.json({ ok: false, error: 'só mp3: ogg tira o episódio do feed do Spotify' }, { status: 415 });
+  }
   if (!FINGERPRINT.test(fingerprint)) {
     return Response.json({ ok: false, error: 'fingerprint precisa ser sha256 em hex' }, { status: 400 });
   }
@@ -147,7 +152,7 @@ export async function PUT(request: Request, { params }: Params) {
 
   // O caminho tem que ser o que ESTE slug geraria. Sem isso, um token válido
   // para um artigo publicaria áudio em outro.
-  if (!objectPath.startsWith(`${slug}-`) || !/\.(ogg|mp3)$/.test(objectPath)) {
+  if (!objectPath.startsWith(`${slug}-`) || !/\.mp3$/.test(objectPath)) {
     return Response.json({ ok: false, error: 'path não é deste artigo' }, { status: 400 });
   }
 

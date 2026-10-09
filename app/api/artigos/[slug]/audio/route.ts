@@ -11,6 +11,7 @@ import {
   audioObjectPath,
   audioPublicUrl,
   audioSeconds,
+  publishableAudio,
 } from '@/lib/core/audio.core';
 
 /**
@@ -74,6 +75,13 @@ export async function POST(request: Request, { params }: Params) {
   if (!extension) {
     return Response.json(
       { ok: false, error: 'content-type precisa ser audio/ogg ou audio/mpeg' },
+      { status: 415 },
+    );
+  }
+  if (!publishableAudio(extension)) {
+    // Ogg toca no site, mas tira o episódio do Spotify. Ver publishableAudio.
+    return Response.json(
+      { ok: false, error: 'só audio/mpeg: ogg tira o episódio do feed do Spotify' },
       { status: 415 },
     );
   }

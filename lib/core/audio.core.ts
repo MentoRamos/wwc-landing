@@ -46,6 +46,17 @@ export function audioExtension(contentType: string | null | undefined): 'ogg' | 
 }
 
 /**
+ * O que pode virar o áudio de um artigo: só MP3.
+ *
+ * O bucket e o navegador tocam Ogg, mas o feed do Spotify só lista MP3 — e
+ * trocar o áudio de um artigo por um .ogg tira o episódio do app sem aviso.
+ * Por isso a recusa é na entrada, nas duas rotas de ingestão, e não no feed.
+ */
+export function publishableAudio(extension: string): boolean {
+  return extension === 'mp3';
+}
+
+/**
  * O nome do objeto no bucket: slug, impressão digital do conteúdo, extensão.
  *
  * A impressão digital é o que torna o cache de um ano seguro. Áudio novo para
